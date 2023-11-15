@@ -46,15 +46,15 @@ class DeterministicSeqNaive(cw.distributions.Distribution):
 
 def arrival_dists_from_grouped_prophet_forecast(forecasts, group_column='GROUPS'):
     '''Takes the concatenated predictions '''
-    demand_dists = {}
+    dists = {}
 
-    demand_dists['yhat'] = {}
-    demand_dists['yhat_upper'] = {}
-    demand_dists['yhat_lower'] = {}
+    dists['yhat'] = {}
+    dists['yhat_upper'] = {}
+    dists['yhat_lower'] = {}
 
     for facility, facility_demand_df in forecasts.grouby(by=group_column):
-        demand_dists['yhat'][facility] = ciw.dists.Sequential(sequence=facility_demand_df['yhat'].to_list())
-        demand_dists['yhat_upper'][facility] = ciw.dists.Sequential(sequence=facility_demand_df['yhat_upper'].to_list())
-        demand_dists['yhat_lower'][facility] = ciw.dists.Sequential(sequence=facility_demand_df['yhat_lower'].to_list())
+        dists['yhat'][facility] = ciw.dists.Sequential(sequence=facility_demand_df['yhat'].to_list())
+        dists['yhat_upper'][facility] = ciw.dists.Sequential(sequence=facility_demand_df['yhat_upper'].to_list())
+        dists['yhat_lower'][facility] = ciw.dists.Sequential(sequence=facility_demand_df['yhat_lower'].to_list())
 
-    return demand_dists
+    return dists
