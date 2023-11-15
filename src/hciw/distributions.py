@@ -43,3 +43,18 @@ class DeterministicSeqNaive(cw.distributions.Distribution):
 		else:
 			raise ValueError(f'Unsupported sampling time of {t} in DeterministicSeqNaive.')
 			
+
+def arrival_dists_from_grouped_prophet_forecast(forecasts, group_column='GROUPS'):
+    '''Takes the concatenated predictions '''
+    demand_dists = {}
+
+    demand_dists['yhat'] = {}
+    demand_dists['yhat_upper'] = {}
+    demand_dists['yhat_lower'] = {}
+
+    for facility, facility_demand_df in forecasts.grouby(by=group_column):
+        demand_dists['yhat'][facility] = ciw.dists.Sequential(sequence=facility_demand_df['yhat'].to_list())
+        demand_dists['yhat_upper'][facility] = ciw.dists.Sequential(sequence=facility_demand_df['yhat_upper'].to_list())
+        demand_dists['yhat_lower'][facility] = ciw.dists.Sequential(sequence=facility_demand_df['yhat_lower'].to_list())
+
+    return demand_dists
