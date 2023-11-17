@@ -20,7 +20,7 @@ class SeqPMFNaive(cw.distributions.Distribution):
 			return self.distseq[time].sample(time, ind)
 		elif time > max(self.distseq):
 			return self.distseq[max(self.distseq)].sample(time, ind)
-		elif time < min(self.distseq)::
+		elif time < min(self.distseq):
 			return self.distseq[min(self.distseq)].sample(time, ind)
 		else:# TODO: Linearly interpolate probabilities wrt t
 			raise ValueError(f'Unsupported sampling time of {t} in SeqPMFNaive.')
