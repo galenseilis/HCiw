@@ -1,7 +1,8 @@
-'''Initial waitlist construction.'''
+"""Initial waitlist construction."""
 
 import math
 import ciw
+
 
 def begin_service_if_possible_accept(node, next_individual):
     """
@@ -33,34 +34,50 @@ def accept(individual_id, individual_class, arrival_date, node, simulation):
       - update state tracker
     """
     simulation.current_time = arrival_date
-    next_individual = ciw.Individual(id_number=individual_id, customer_class=individual_class, priority_class=simulation.network.priority_class_mapping[individual_class], simulation=simulation)
+    next_individual = ciw.Individual(
+        id_number=individual_id,
+        customer_class=individual_class,
+        priority_class=simulation.network.priority_class_mapping[individual_class],
+        simulation=simulation,
+    )
     next_individual.node = node.id_number
-    next_individual.queue_size_at_arrival = 'Unknown'
+    next_individual.queue_size_at_arrival = "Unknown"
     node.individuals[next_individual.priority_class].append(next_individual)
     node.number_of_individuals += 1
     node.simulation.statetracker.change_state_accept(node, next_individual)
     next_individual.arrival_date = arrival_date
     begin_service_if_possible_accept(node, next_individual)
-   
+
     simulation.nodes[0].number_of_individuals += 1
-    simulation.nodes[0].number_of_individuals_per_class[next_individual.customer_class] += 1
+    simulation.nodes[0].number_of_individuals_per_class[
+        next_individual.customer_class
+    ] += 1
     simulation.nodes[0].number_accepted_individuals += 1
-    simulation.nodes[0].number_accepted_individuals_per_class[next_individual.customer_class] += 1
+    simulation.nodes[0].number_accepted_individuals_per_class[
+        next_individual.customer_class
+    ] += 1
+
 
 def create_existing_customers_from_list(backlog, Q):
-    '''Occupies instance of simulation with individuals.
+    """Occupies instance of simulation with individuals.
 
 
     PARAMETERS
     ----------
     backlog (list): List of data for each individual to be added.
     Q (ciw.Simulation): Instance of simulation.
-    '''
+    """
     customer_count = 1
     for row in backlog:
         customer_id = row[0]
         customer_class = row[1]
         customer_arrival_date = row[2]
         customer_node = row[3]
-        accept(customer_id, customer_class, customer_arrival_date, Q.nodes[customer_node], Q)
+        accept(
+            customer_id,
+            customer_class,
+            customer_arrival_date,
+            Q.nodes[customer_node],
+            Q,
+        )
         customer_count += 1

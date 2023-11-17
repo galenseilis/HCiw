@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class RandomDirichletList(list):
     """
     List that contains and resamples from a Dirichlet distribution.
@@ -104,4 +105,3 @@ class RandomDirichletList(list):
 
     def __repr__(self):
         return f"RDL{self.probs}"
-
