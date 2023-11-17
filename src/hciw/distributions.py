@@ -1,7 +1,7 @@
 """Custom distributions to be used with Ciw."""
 import ciw
 
-class SeqPMFNaive(ciw.distributions.Distribution):
+class SeqPMFNaive(ciw.dists.Distribution):
     """Samples from a sequence of PMFs, else a naive extrapolation assumption.
 
     Input times are rounded.
@@ -28,7 +28,7 @@ class SeqPMFNaive(ciw.distributions.Distribution):
             raise ValueError(f"Unsupported sampling time of {t} in SeqPMFNaive.")
 
 
-class DeterministicSeqNaive(ciw.distributions.Distribution):
+class DeterministicSeqNaive(ciw.dists.Distribution):
     """Samples from a sequence of constant random variables."""
 
     def __init__(self, distseq):
