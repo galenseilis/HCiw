@@ -21,4 +21,7 @@ classifiers = [
 "Homepage" = "https://github.com/galenseilis/HCiw/tree/main"
 "Bug Tracker" = "https://github.com/galenseilis/HCiw/issues"
 
+[tool.ruff.lint.mccabe]
+# Flag errors (`C901`) whenever the complexity level exceeds 5.
+max-complexity = 5
 
