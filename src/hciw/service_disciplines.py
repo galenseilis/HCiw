@@ -1,7 +1,10 @@
+from typing import List
+
+import ciw
 import numpy as np
 
 
-def wait_time_over_benchmark(individuals):
+def wait_time_over_benchmark(individuals: List[ciw.Individual]) -> ciw.Individual:
     """Service distribution that selects the individual
       the most over their benchmark.
 
@@ -14,7 +17,9 @@ def wait_time_over_benchmark(individuals):
     Returns (ciw.Individual):
       Individual with the greatest time over their
     """
+
     idx = np.argmax(
         [ind.customer_class.benchmark - ind.arrival_date for ind in individuals]
     )
+
     return individuals[idx]

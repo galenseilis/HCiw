@@ -1,7 +1,7 @@
 """Initial waitlist construction."""
 
 import math
-from typing import Any, NoReturn
+from typing import Any, List, NoReturn
 
 # TODO: Change `typing.NoReturn` to `typing.Never` when Python 3.11 is oldest LTS.
 
@@ -25,7 +25,7 @@ def begin_service_if_possible_accept(
         if math.isinf(node.c) is False:
             node.attach_server(free_server, next_individual)
         next_individual.service_start_date = 0
-        st, next_individual.service_time = node.get_service_time(next_individual)
+        next_individual.service_time = node.get_service_time(next_individual)
         next_individual.service_end_date = next_individual.service_time
         if not math.isinf(node.c):
             free_server.next_end_service_date = next_individual.service_end_date
@@ -69,14 +69,14 @@ def accept(
 
 
 def create_existing_customers_from_list(
-    backlog: List[list], Q: ciw.Simulation
+    backlog: List[list], simulation: ciw.Simulation
 ) -> NoReturn:
     """Occupies instance of simulation with individuals.
 
     PARAMETERS
     ----------
     backlog (list): List of data for each individual to be added.
-    Q (ciw.Simulation): Instance of ciw.Simulation.
+    simulation (ciw.Simulation): Instance of ciw.Simulation.
     """
     customer_count = 1
     for row in backlog:
@@ -88,7 +88,7 @@ def create_existing_customers_from_list(
             customer_id,
             customer_class,
             customer_arrival_date,
-            Q.nodes[customer_node],
-            Q,
+            simulation.nodes[customer_node],
+            simulation,
         )
         customer_count += 1
