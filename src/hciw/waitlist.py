@@ -1,17 +1,22 @@
 """Initial waitlist construction."""
 
 import math
+from typing import Any, NoReturn
+
+# TODO: Change `typing.NoReturn` to `typing.Never` when Python 3.11 is oldest LTS.
+
 import ciw
 
-
-def begin_service_if_possible_accept(node, next_individual):
-    """
-    Begins the service of the next individual (at acceptance point):
-        - Sets the arrival date as the current time
-        - If there is a free server or there are infinite servers:
-            - Attach the server to the individual (only when servers are not infinite)
-        - Get service start time, service time, service end time
-        - Update the server's end date (only when servers are not infinite)
+# TODO: Change `typing.NoReturn` to `typing.Never` when Python 3.11 is oldest LTS.
+def begin_service_if_possible_accept(
+    node: ciw.Node, next_individual: ciw.Individual
+) -> NoReturn:
+    """Begins the service of the next individual (at acceptance point):
+    - Sets the arrival date as the current time
+    - If there is a free server or there are infinite servers:
+        - Attach the server to the individual (only when servers are not infinite)
+    - Get service start time, service time, service end time
+    - Update the server's end date (only when servers are not infinite)
     """
     free_server = node.find_free_server(next_individual)
     if free_server is None and math.isinf(node.c) is False:
@@ -20,18 +25,23 @@ def begin_service_if_possible_accept(node, next_individual):
         if math.isinf(node.c) is False:
             node.attach_server(free_server, next_individual)
         next_individual.service_start_date = 0
-        next_individual.service_time = node.get_service_time(next_individual)
+        st, next_individual.service_time = node.get_service_time(next_individual)
         next_individual.service_end_date = next_individual.service_time
         if not math.isinf(node.c):
             free_server.next_end_service_date = next_individual.service_end_date
 
 
 # from the ciw source code; needs to be adapted to accommodate the pre-existing wait list
-def accept(individual_id, individual_class, arrival_date, node, simulation):
-    """
-    Accepts a new customer to the queue:
-      - record all other information at arrival point
-      - update state tracker
+def accept(
+    individual_id: ciw.Individual,
+    individual_class: Any,
+    arrival_date: float,
+    node: ciw.Node,
+    simulation: ciw.Simulation,
+) -> NoReturn:
+    """Accepts a new customer to the queue:
+    - record all other information at arrival point
+    - update state tracker
     """
     simulation.current_time = arrival_date
     next_individual = ciw.Individual(
@@ -58,14 +68,15 @@ def accept(individual_id, individual_class, arrival_date, node, simulation):
     ] += 1
 
 
-def create_existing_customers_from_list(backlog, Q):
+def create_existing_customers_from_list(
+    backlog: List[list], Q: ciw.Simulation
+) -> NoReturn:
     """Occupies instance of simulation with individuals.
-
 
     PARAMETERS
     ----------
     backlog (list): List of data for each individual to be added.
-    Q (ciw.Simulation): Instance of simulation.
+    Q (ciw.Simulation): Instance of ciw.Simulation.
     """
     customer_count = 1
     for row in backlog:
