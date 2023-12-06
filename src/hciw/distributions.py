@@ -1,5 +1,6 @@
 """Custom distributions to be used with Ciw."""
 import ciw
+import numpy as np
 import pandas as pd
 
 
@@ -53,26 +54,15 @@ class DeterministicSeqNaive(ciw.dists.Distribution):
                 f"Unsupported sampling time of {t} in DeterministicSeqNaive."
             )
 
+class SequentialZeroDefault:
 
-def arrival_dists_from_grouped_prophet_forecast(
-    forecasts: pd.DataFrame, group_column: str = "GROUPS"
-):
-    """Takes the concatenated predictions"""
-    dists = {}
+    def __init__(self, sequence):
+        self.sequence = sequence
+        self.counter = 0
+        self.seq_len = len(sequence)
 
-    dists["yhat"] = {}
-    dists["yhat_upper"] = {}
-    dists["yhat_lower"] = {}
+    def sample(self, t, ind=None):
+        selected_value = 1 / self.sequence[self.counter] if np.isfinite(self.sequence[self.counter]) else t % 1
+        self.counter = (self.counter + 1) % self.seq_len
+        return selected_value
 
-    for facility, facility_demand_df in forecasts.grouby(by=group_column):
-        dists["yhat"][facility] = ciw.dists.Sequential(
-            sequence=facility_demand_df["yhat"].to_list()
-        )
-        dists["yhat_upper"][facility] = ciw.dists.Sequential(
-            sequence=facility_demand_df["yhat_upper"].to_list()
-        )
-        dists["yhat_lower"][facility] = ciw.dists.Sequential(
-            sequence=facility_demand_df["yhat_lower"].to_list()
-        )
-
-    return dists
