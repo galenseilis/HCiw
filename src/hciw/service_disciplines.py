@@ -19,6 +19,7 @@ def wait_time_over_benchmark(individuals: List[ciw.Individual]) -> ciw.Individua
     """
 
     current_time = individuals[0].simulation.current_time
+    
     # Ignore current_time since it cancels in the difference.
     idx = np.argmax(
         [
@@ -43,6 +44,8 @@ def lex_priority_benchmark_with_threshold_switch(
     Returns (ciw.Individual):
         Selected invidual to be serviced next.
     '''
+
+    current_time = individuals[0].simulation.current_time
 
     # Calculate indicator of which top-priority individuals are under their benchmark.
     top_priority_under_bench = [
