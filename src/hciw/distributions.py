@@ -18,7 +18,7 @@ class SeqPMFNaive(ciw.dists.Distribution):
             raise ValueError("Not all inputs of distseq were of type ciw.dists.Pmf")
         self.distseq = distdeq
 
-    def sample(self, t:float, ind=None):
+    def sample(self, t: float, ind=None):
         time = round(t)  # TODO: Remove once probability interpolation is implemented.
         if time in self.distseq:
             return self.distseq[time].sample(time, ind)
@@ -40,7 +40,7 @@ class DeterministicSeqNaive(ciw.dists.Distribution):
             )
         self.distseq = distseq
 
-    def sample(self, t:float, ind=None):
+    def sample(self, t: float, ind=None):
         time = round(t)
         if time in self.disteq:
             return self.distseq[time].sample(time, ind)
@@ -54,7 +54,9 @@ class DeterministicSeqNaive(ciw.dists.Distribution):
             )
 
 
-def arrival_dists_from_grouped_prophet_forecast(forecasts:pd.DataFrame, group_column: str="GROUPS"):
+def arrival_dists_from_grouped_prophet_forecast(
+    forecasts: pd.DataFrame, group_column: str = "GROUPS"
+):
     """Takes the concatenated predictions"""
     dists = {}
 
