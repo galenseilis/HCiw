@@ -52,13 +52,13 @@ def lex_priority_benchmark_with_threshold_switch(
         (current_time - ind.arrival_date)
         <= (ind.customer_class.benchmark + ind.arrival_date)
         for ind in individuals
-        if ind.customer_class.priority_class == 0
+        if ind.customer_class.priority == 0
     ]
 
     # Service top-priority individual who is most over thier benchmark if
     # not enough of the top-priority individuals under their benchmark.
     if top_priority_under_bench and np.mean(top_priority_under_bench) < threshold:
-        top_priority_inds = [ind for ind in individuals if ind.customer_class.priority_class == 0]
+        top_priority_inds = [ind for ind in individuals if ind.customer_class.priority == 0]
         return wait_time_over_benchmark(top_priority_inds)
 
     # Service individual latest in their service relative to their benchmark.
