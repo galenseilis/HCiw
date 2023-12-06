@@ -57,12 +57,18 @@ class DeterministicSeqNaive(ciw.dists.Distribution):
 class SequentialZeroDefault:
 
     def __init__(self, sequence):
+
+        assert not np.all(np.isfinite(sequence))
+        
         self.sequence = sequence
         self.counter = 0
         self.seq_len = len(sequence)
 
     def sample(self, t, ind=None):
-        selected_value = 1 / self.sequence[self.counter] if np.isfinite(self.sequence[self.counter]) else t % 1
-        self.counter = (self.counter + 1) % self.seq_len
-        return selected_value
+        skips = 0
+        for idx in range(self.counter, self.seq_len):
+            
+            selected_value = self.sequence[self.counter] if np.isfinite(self.sequence[self.counter]) else t % 1
+            self.counter = (self.counter + 1) % self.seq_len
+            return selected_value
 
