@@ -2,7 +2,7 @@ from typing import Callable, NoReturn
 
 import ciw
 import numpy as np
-from sklearn.base import ClassifierMixin
+from sklearn.base import BaseEstimator
 
 class SKRouter(ciw.Node):
     '''
@@ -10,48 +10,50 @@ class SKRouter(ciw.Node):
 
     Args:
         get_clf_data (Callable): A function that takes an instance of Self and an individual as input
-                                and returns the data used for classification.
-        classifier (ClassifierMixin): An instance of a scikit-learn compatible classifier.
-        sampling (bool, optional): Flag indicating whether to use sampling for predicting the next node.
-                                   Defaults to True.
+                                and returns the data used for prediction of the next node.
+        skmodel (BaseEstimator): An instance of a scikit-learn compatible model.
+        method (str, optional): Label indicating how the next node is obtained from skmodel.
+                                   Defaults to `'predict_proba'`.
 
     Raises:
-        ValueError: If sampling is True and the classifier does not have the `predict_proba` method.
+        ValueError: If method is predict_proba the model does not have the `predict_proba` method.
 
     Attributes:
-        get_data (Callable): The provided function for obtaining classification data.
-        clf (ClassifierMixin): The classifier used for predicting the next node.
+        get_pred_data (Callable): The provided function for obtaining prediction data.
+        skmodel (BaseEstimator): The scikit-learn model used for predicting the next node.
 
     Methods:
         next_node(ind: ciw.Individual) -> ciw.Node:
-            Predicts the next node based on the provided individual's data using the classifier.
+            Predicts the next node based on the provided individual's data using skmodel.
 
     '''
 
-    def __init__(self, get_clf_data: Callable, classifier: ClassifierMixin, sampling: bool = True) -> NoReturn:
+    def __init__(self, get_pred_data: Callable, skmodel: BaseEstimator, method: str = 'predict_proba') -> NoReturn:
         '''
         Initializes an instance of SKRouter.
 
         Args:
-            get_clf_data (Callable): A function that takes an instance of Self and an individual as input
-                                    and returns the data used for classification.
-            classifier (ClassifierMixin): An instance of a scikit-learn compatible classifier.
-            sampling (bool, optional): Flag indicating whether to use sampling for predicting the next node.
-                                       Defaults to True.
+            get_pred_data (Callable): A function that takes an instance of Self and an individual as input
+                                    and returns the data used for prediction of the next node.
+            skmodel (BaseEstimator): An instance of a scikit-learn compatible model.
+            method (str, optional): Label indicating how the next node is obtained from skmodel.
+                                   Defaults to `'predict_proba'`.
 
         Raises:
-            ValueError: If sampling is True and the classifier does not have the `predict_proba` method.
+            ValueError: If sampling is True and the skmodel does not have the `predict_proba` method.
 
         '''
-        self.get_data = get_clf_data
-        self.clf = classifier
+        self.get_data = get_pred_data
+        self.clf = skmodel
 
-        if sampling and not hasattr(classifier, 'predict_proba'):
-            raise ValueError('Classifier does not have `predict_proba` method.')
+        if method not in ('predict_proba', 'predict'):
+            raise NotImplementedError(f'{self.method} is not supported.')
+        self.method: = method
+
 
     def next_node(self, ind: ciw.Individual) -> ciw.Node:
         '''
-        Predicts the next node based on the provided individual's data using the classifier.
+        Predicts the next node based on the provided individual's data using the scikit-learn model.
 
         Args:
             ind (ciw.Individual): The individual for which the next node needs to be predicted.
@@ -60,12 +62,17 @@ class SKRouter(ciw.Node):
             ciw.Node: The predicted next node.
 
         '''
-        clf_data = self.get_clf_data(self, ind)
+        
+        pred_data = self.get_pred_data(self, ind)
 
-        if sampling:
-            probs = self.clf.predict_proba(clf_data)[0]
-            chosen_node = self.clf.classes_ @ np.random.multinomial(1, probs)
-        else:
-            chosen_node = (self.clf.predict(clf_data) + 1)[0]
+        if method == 'predict_proba':
+            if hasattr(self.skmodel, 'predict_proba'):
+                probs = self.skmodel.predict_proba(pred_data)[0]
+                chosen_node = self.skmodel.classes_ @ np.random.multinomial(1, probs)
+            else:
+                probs = self.skmodel.predict(pred_data)[0]
+                chosen_node = range(len(self.simulation.nodes)) @ np.random.multinomial(1, probs)
+        else: method == 'predict':
+            chosen_node = self.skmodel.predict(pred_data)[0]
 
         return self.simulation.nodes[chosen_node]
