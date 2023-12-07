@@ -6,7 +6,7 @@ from sklearn.base import ClassifierMixin
 
 class SKRouter(ciw.Node):
     '''
-    Routes individuals depending on the system's state and time.
+    Routes individuals depending on the system's state and time using a Scikit-Learn model.
 
     Args:
         get_clf_data (Callable): A function that takes an instance of Self and an individual as input
