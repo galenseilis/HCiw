@@ -1,4 +1,4 @@
-from typing import Callable, NoReturn
+from typing import Callable, NoReturn, Union
 
 import ciw
 import numpy as np
@@ -28,7 +28,7 @@ class SKRouter(ciw.Node):
 
     '''
 
-    def __init__(self, get_pred_data: Callable, skmodel: BaseEstimator, method: str = 'predict_proba') -> NoReturn:
+    def __init__(self, get_pred_data: Callable, skmodel: BaseEstimator, method: Union[str,Callable] = 'predict_proba') -> NoReturn:
         '''
         Initializes an instance of SKRouter.
 
@@ -46,7 +46,7 @@ class SKRouter(ciw.Node):
         self.get_data = get_pred_data
         self.clf = skmodel
 
-        if method not in ('predict_proba', 'predict'):
+        if method not in ('predict_proba', 'predict') and not callable(method):
             raise NotImplementedError(f'{self.method} is not supported.')
         self.method: = method
 
@@ -65,14 +65,16 @@ class SKRouter(ciw.Node):
         
         pred_data = self.get_pred_data(self, ind)
 
-        if method == 'predict_proba':
+        if self.method == 'predict_proba':
             if hasattr(self.skmodel, 'predict_proba'):
                 probs = self.skmodel.predict_proba(pred_data)[0]
                 chosen_node = self.skmodel.classes_ @ np.random.multinomial(1, probs)
             else:
                 probs = self.skmodel.predict(pred_data)[0]
                 chosen_node = range(len(self.simulation.nodes)) @ np.random.multinomial(1, probs)
-        else: method == 'predict':
+        elif self.method == 'predict':
             chosen_node = self.skmodel.predict(pred_data)[0]
+        else:
+            chosen_node = self.method(self.skmodel.predict(pred_data)[0])
 
         return self.simulation.nodes[chosen_node]
