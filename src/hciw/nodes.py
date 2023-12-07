@@ -4,6 +4,8 @@ import ciw
 import numpy as np
 from sklearn.base import BaseEstimator
 
+# TODO: Write a function which returns new SKRouter classes in order to get around the
+# fact that certain params will not be available at runtime.
 class SKRouter(ciw.Node):
     '''
     Routes individuals depending on the system's state and time using a Scikit-Learn model.
@@ -68,10 +70,11 @@ class SKRouter(ciw.Node):
         if self.method == 'predict_proba':
             if hasattr(self.skmodel, 'predict_proba'):
                 probs = self.skmodel.predict_proba(pred_data)[0]
-                chosen_node = self.skmodel.classes_ @ np.random.multinomial(1, probs)
+                classes = self.skmodel.classes_
             else:
                 probs = self.skmodel.predict(pred_data)[0]
-                chosen_node = range(len(self.simulation.nodes)) @ np.random.multinomial(1, probs)
+                chosen_node = range(len(self.simulation.nodes))
+            chosen_node = classes @ np.random.multinomial(1, probs)
         elif self.method == 'predict':
             chosen_node = self.skmodel.predict(pred_data)[0]
         else:
