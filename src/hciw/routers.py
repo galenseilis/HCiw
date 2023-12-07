@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.base import ClassifierMixin
 
 class SKRouter(ciw.Node):
-  '''Routes individuals depending on the system's state and time.'''
+	'''Routes individuals depending on the system's state and time.'''
 
 	def __init__(self, get_clf_data:Callable, classifier:ClassifierMixin, sampling=True) -> NoReturn:
 		self.get_data = get_data
