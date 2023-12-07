@@ -16,7 +16,7 @@ class SKRouter(ciw.Node):
 
 	def next_node(self, ind:ciw.Individual) -> ciw.Node:
 	
-    clf_data = self.get_clf_data(self, ind)
+    		clf_data = self.get_clf_data(self, ind)
 		
 		if sampling:
 			probs = self.clf.predict_proba(clf_data)[0]
