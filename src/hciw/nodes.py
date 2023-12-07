@@ -47,7 +47,7 @@ class SKRouter(ciw.Node):
         self.clf = skmodel
 
         if method not in ('predict_proba', 'predict') and not callable(method):
-            raise NotImplementedError(f'{self.method} is not supported.')
+            raise NotImplementedError(f'{method} is not supported.')
         self.method: = method
 
 
