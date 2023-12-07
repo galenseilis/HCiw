@@ -9,7 +9,7 @@ class SKRouter(ciw.Node):
     Routes individuals depending on the system's state and time.
 
     Args:
-        get_clf_data (Callable): A function that takes an instance of SKRouter and an individual as input
+        get_clf_data (Callable): A function that takes an instance of Self and an individual as input
                                 and returns the data used for classification.
         classifier (ClassifierMixin): An instance of a scikit-learn compatible classifier.
         sampling (bool, optional): Flag indicating whether to use sampling for predicting the next node.
@@ -33,7 +33,7 @@ class SKRouter(ciw.Node):
         Initializes an instance of SKRouter.
 
         Args:
-            get_clf_data (Callable): A function that takes an instance of SKRouter and an individual as input
+            get_clf_data (Callable): A function that takes an instance of Self and an individual as input
                                     and returns the data used for classification.
             classifier (ClassifierMixin): An instance of a scikit-learn compatible classifier.
             sampling (bool, optional): Flag indicating whether to use sampling for predicting the next node.
