@@ -9,7 +9,7 @@ class SKRouter(ciw.Node):
     Routes individuals depending on the system's state and time using a Scikit-Learn model.
 
     Args:
-        get_clf_data (Callable): A function that takes an instance of Self and an individual as input
+        get_pred_data (Callable): A function that takes an instance of Self and an individual as input
                                 and returns the data used for prediction of the next node.
         skmodel (BaseEstimator): An instance of a scikit-learn compatible model.
         method (str, optional): Label indicating how the next node is obtained from skmodel.
