@@ -1,8 +1,6 @@
 """Custom distributions to be used with Ciw."""
 import ciw
 import numpy as np
-import pandas as pd
-
 
 class SeqPMFNaive(ciw.dists.Distribution):
     """Samples from a sequence of PMFs, else a naive extrapolation assumption.
