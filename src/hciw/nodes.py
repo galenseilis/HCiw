@@ -1,4 +1,5 @@
 from typing import Callable, NoReturn, Union
+# https://stackoverflow.com/questions/46092104/subclass-in-type-hinting
 
 import ciw
 import numpy as np
