@@ -1,4 +1,9 @@
+"""Randomly-unstable data structures (RUDS)."""
+
+from typing import NoReturn
+
 import numpy as np
+from numpy.typing import NDArray
 
 
 class RandomDirichletList(list):
@@ -59,8 +64,7 @@ class RandomDirichletList(list):
             object, displaying its current list of probabilities.
     """
 
-    def __init__(self, alphas):
-
+    def __init__(self, alphas: NDArray) -> NoReturn:
         if np.any(alphas) <= 0:
             raise ValueError("Alpha parameters must be positive")
         else:
@@ -69,7 +73,7 @@ class RandomDirichletList(list):
         self.sample()
         super().__init__(self.probs)
 
-    def _renormalize_probs(self):
+    def _renormalize_probs(self) -> NoReturn:
         """Sum renormalize probabilities.
 
         NumPy provides probabilities that are close to
@@ -78,8 +82,7 @@ class RandomDirichletList(list):
         """
         self.probs /= sum(self.probs)
 
-    def sample(self):
-
+    def sample(self) -> NoReturn:
         # Sample new values to get started
         self.probs = np.random.dirichlet(self.alphas)
         self._renormalize_probs()
@@ -89,19 +92,19 @@ class RandomDirichletList(list):
             self.probs = np.random.dirichlet(self.alphas)
             self._renormalize_probs()
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> float:
         """Resample and then get item."""
         self.sample()
         return self.probs[index]
 
-    def __min__(self):
+    def __min__(self) -> float:
         return min(self.probs)
 
-    def __max__(self):
+    def __max__(self) -> float:
         return max(self.probs)
 
-    def __len__(self):
+    def __len__(self) -> float:
         return len(self.probs)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"RDL{self.probs}"
