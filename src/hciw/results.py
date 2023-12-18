@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any, Callable
 
 import ciw
+import numpy as np
 import pandas as pd
 
 

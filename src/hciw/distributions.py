@@ -183,7 +183,6 @@ class SequentialZeroDefault:
         Returns:
             Union[int, float]: The sampled value from the sequence or the default value t % 1 for non-finite elements.
         """
-        skips = 0
         for idx in range(self.counter, self.seq_len):
             selected_value = (
                 self.sequence[self.counter]
