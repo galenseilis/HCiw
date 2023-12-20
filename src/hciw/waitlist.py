@@ -26,8 +26,8 @@ Functions:
 
 Examples:
     >>> backlog_data = [
-    ...     [1, 'Class_A', 5.0, 0],
-    ...     [2, 'Class_B', 7.0, 1],
+    ...     [1, 'Class_A', 5.0, 1],
+    ...     [2, 'Class_B', 7.0, 2],
     ...     # ... additional rows ...
     ... ]
     >>> simulation_instance = ciw.Simulation()
