@@ -182,7 +182,7 @@ def create_existing_customers_from_list(
 
     Examples:
         >>> backlog_data = [
-        ...     [1, 'Class_A', 5.0, 0],
+        ...     [1, 'Class_A', 5.0, 2],
         ...     [2, 'Class_B', 7.0, 1],
         ...     # ... additional rows ...
         ... ]
