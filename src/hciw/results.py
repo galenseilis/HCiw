@@ -234,7 +234,7 @@ def convert_simtime_to_datetime(base_datetime: datetime, t: float) -> datetime:
     """
     return base_datetime + pd.Timedelta(t, "D")
 
-
+# TODO: Convert to full time resolution (i.e. 
 def convert_datetime_to_simtime(start_time: datetime, datetime_value: datetime) -> int:
     """
     Converts a datetime object to simulation time in days relative to a specified start time.

@@ -1,7 +1,7 @@
 from typing import List
 
 import ciw
-import numpy as np
+mport numpy as np
 
 
 def wait_time_over_benchmark(individuals: List[ciw.Individual]) -> ciw.Individual:

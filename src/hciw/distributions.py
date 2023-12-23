@@ -193,7 +193,7 @@ class SequentialZeroDefault:
             return selected_value
 
 
-class WeekDayServe(ciw.dists.Distribution):
+class WeekDayConstrainedDist(ciw.dists.Distribution):
     """
     Custom distribution for simulating service times based on weekdays.
 
