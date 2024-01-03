@@ -10,7 +10,7 @@ import pandas as pd
 
 def summarize_individuals(
     simulation: ciw.Simulation,
-    t: float,
+    time: float,
     agg_f: Callable,
     desc_f: Callable,
     filter_f: Callable = None,
@@ -20,7 +20,7 @@ def summarize_individuals(
 
     Args:
         simulation: The simulation instance containing node and individual information.
-        t: The current time in the simulation.
+        time: The current time in the simulation.
         agg_f (function): The aggregation function to apply on individual-level descriptors.
         desc_f (function): The function to generate a descriptor for each individual.
         filter_f (function, optional): The filter function to selectively include individuals. Defaults to None.
@@ -234,7 +234,8 @@ def convert_simtime_to_datetime(base_datetime: datetime, t: float) -> datetime:
     """
     return base_datetime + pd.Timedelta(t, "D")
 
-# TODO: Convert to full time resolution (i.e. 
+
+# TODO: Convert to full time resolution (i.e.
 def convert_datetime_to_simtime(start_time: datetime, datetime_value: datetime) -> int:
     """
     Converts a datetime object to simulation time in days relative to a specified start time.

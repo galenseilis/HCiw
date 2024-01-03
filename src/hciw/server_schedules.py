@@ -2,6 +2,7 @@
 
 from typing import List
 
+
 def weekday_server_sched(offset: float = 0) -> List[List[float]]:
     """
     Generates a schedule indicating weekdays based on a given offset.
@@ -21,5 +22,4 @@ def weekday_server_sched(offset: float = 0) -> List[List[float]]:
 
         This example generates a schedule with a 2-day offset, where days 3 to 7 are considered weekdays.
     """
-    return [[1 if ((i - offset + 7) % 7) < 5 else 0, i+1] for i in range(7)]
-
+    return [[1 if ((i - offset + 7) % 7) < 5 else 0, i + 1] for i in range(7)]
