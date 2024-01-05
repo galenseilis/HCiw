@@ -116,7 +116,7 @@ def least_percent_underbenchmark(simulation: ciw.Simulation, t: float = None) ->
     t = t or simulation.current_time
     return min(
         summarize_individuals(
-            simulation, t=t, agg_f=np.mean, desc_f=is_under_benchmark
+            simulation, time=t, agg_f=np.mean, desc_f=is_under_benchmark
         ).values()
     )
 
@@ -179,7 +179,7 @@ def least_percent_urgent_underbenchmark(
     return min(
         summarize_individuals(
             simulation,
-            t=t,
+            time=t,
             agg_f=np.mean,
             desc_f=is_under_benchmark,
             filter_f=is_urgent,
