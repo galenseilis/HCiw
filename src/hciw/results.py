@@ -1,7 +1,8 @@
 """Computing results from simulatoins."""
 
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any, Callable, Hashable
 
 import ciw
 import numpy as np
@@ -52,7 +53,7 @@ def summarize_individuals(
     for node in simulation.nodes[1:-1]:
         if node.all_individuals:
             pub = agg_f(
-                [desc_f(ind, t) for ind in node.all_individuals if filter_f(ind, t)]
+                [desc_f(ind, time) for ind in node.all_individuals if filter_f(ind, time)]
             )
             result[str(node)] = pub if np.isfinite(pub) else 1
         else:
@@ -329,3 +330,24 @@ def fiscal_year_simtimes(start_date: datetime, end_date: datetime) -> list:
         convert_datetime_to_simtime(start_date, date)
         for date in fiscal_year_date_range(start_date, end_date)
     ]
+
+def expand_dataclass_column(dataclass_class: dataclass, dataframe: pd.DataFrame, dataframe_column: Hashable) -> pd.DataFrame:
+	'''Expand a column of dataclasses into multiple dataframe columns.
+
+	Args:
+		dataclass_class (dataclass): A dataclass.
+		dataframe (pandas.DataFrame): Dataframe with a column of dataclass instances to be expanded.
+		dataframe_column (str | hashble): Column containing dataclasses.
+
+	Returns:
+		expanded_dataframe (pandas.DataFrame): Expanded dataframe.
+		'''	
+	for attribute_name in dataclass_class.__annotations__:
+		dataframe[attribute_name] = dataframe[dataframe_column].apply(
+			lambda dataclass_instance: getattr(dataclass_instance, attribute_name)
+		)
+
+	expanded_dataframe = dataframe.drop(dataframe_column, axis=1)
+
+	return expanded_dataframe
+
