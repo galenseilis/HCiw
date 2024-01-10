@@ -1,4 +1,4 @@
-"""Computing results from simulatoins."""
+"""Computing results from simulations."""
 
 from dataclasses import dataclass
 from datetime import datetime
