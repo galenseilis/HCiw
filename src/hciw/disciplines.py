@@ -1,5 +1,6 @@
 from typing import List
 
+from ciw.auxiliary import random_choice
 import ciw
 import numpy as np
 

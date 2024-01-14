@@ -1,6 +1,6 @@
 """Randomly-unstable data structures (RUDS)."""
 
-from typing import NoReturn
+from typing import Any, List, NoReturn
 
 import numpy as np
 from numpy.typing import NDArray
@@ -108,3 +108,18 @@ class RandomDirichletList(list):
 
     def __repr__(self) -> str:
         return f"RDL{self.probs}"
+
+class DistList(list):
+	'''List of distributions sampled by indexing.'''
+
+    def __init__(self, distributions: List[ciw.dists.Distribution]) -> NoReturn:
+		'''Initialize instance.'''
+        self.distributions = distributions
+
+    def __getitem__(self, idx: int) -> Any:
+		'''Sample from an indexed distribution.'''
+        return self.distributions[idx].sample()
+
+    def __repr__(self) -> str:
+		'''String representation of self.'''
+        return str(self.distributions)
