@@ -4,9 +4,9 @@ import unittest
 import hciw
 import numpy as np
 
+
 class TestWaitTimeOverBenchmark(unittest.TestCase):
     def setUp(self):
-
         @dataclass(order=True, frozen=True)
         class MockBenchmarkClass:
             benchmark: float
@@ -15,7 +15,7 @@ class TestWaitTimeOverBenchmark(unittest.TestCase):
         class MockIndividual:
             customer_class: type
             arrival_date: float
-        
+
         self.mock_benchmark_class = MockBenchmarkClass
         self.mock_individual_class = MockIndividual
 
@@ -38,7 +38,10 @@ class TestWaitTimeOverBenchmark(unittest.TestCase):
 
         # Test when the benchmark differences are negative, it should return the one with the highest negative difference
         ind5 = self.mock_individual_class(self.mock_benchmark_class(8), 2)
-        self.assertEqual(hciw.wait_time_over_benchmark([ind1, ind2, ind3, ind4, ind5]), ind5)
+        self.assertEqual(
+            hciw.wait_time_over_benchmark([ind1, ind2, ind3, ind4, ind5]), ind5
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

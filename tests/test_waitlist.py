@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 
 from hciw.waitlist import begin_service_if_possible_accept
 
-class TestBeginServiceIfPossibleAccept(unittest.TestCase):
 
+class TestBeginServiceIfPossibleAccept(unittest.TestCase):
     def setUp(self):
         # Set up any necessary objects or configurations
         pass
@@ -31,11 +31,18 @@ class TestBeginServiceIfPossibleAccept(unittest.TestCase):
         # Assert that the expected methods were called with the expected arguments
         node.find_free_server.assert_called_once_with(next_individual)
         node.decide_preempt.assert_called_once_with(next_individual)
-        node.attach_server.assert_called_once_with(node.find_free_server.return_value, next_individual)
+        node.attach_server.assert_called_once_with(
+            node.find_free_server.return_value, next_individual
+        )
         self.assertEqual(next_individual.service_start_date, 0)
-        self.assertEqual(next_individual.service_time, node.get_service_time.return_value)
+        self.assertEqual(
+            next_individual.service_time, node.get_service_time.return_value
+        )
         self.assertEqual(next_individual.service_end_date, next_individual.service_time)
-        node.next_end_service_date.assert_called_once_with(next_individual.service_end_date)
+        node.next_end_service_date.assert_called_once_with(
+            next_individual.service_end_date
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

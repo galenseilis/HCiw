@@ -9,3 +9,13 @@
 #   generate-hashes: false
 
 -e file:.
+ciw==3.2.1
+    # via hciw
+networkx==3.3
+    # via ciw
+numpy==2.0.0
+    # via ciw
+setuptools==70.2.0
+    # via ciw
+tqdm==4.66.4
+    # via ciw
