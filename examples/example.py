@@ -2,6 +2,7 @@ from copy import copy
 from itertools import product
 from typing import Callable
 
+from tqdm import tqdm
 import ciw
 
 
@@ -37,7 +38,7 @@ class ServerOptimizer:
         best_score = None
         best_allocation = None
         sim_kwargs = {} if sim_kwargs is None else sim_kwargs
-        for server_allocation in product(*server_grid):
+        for server_allocation in tqdm(product(*server_grid)):
             N = self._gen_new_ciw_network(server_allocation)
             for replicate in range(reps):
                 S = ciw.Simulation(N, **sim_kwargs)
@@ -74,12 +75,13 @@ class ServerOptimizer:
 
 if __name__ == "__main__":
     N = ciw.create_network(
-        arrival_distributions=[ciw.dists.Exponential(rate=0.2)],
-        service_distributions=[ciw.dists.Exponential(rate=0.1)],
-        number_of_servers=[3],
+        arrival_distributions=[ciw.dists.Exponential(rate=0.2), ciw.dists.Exponential(rate=0.2)],
+        service_distributions=[ciw.dists.Exponential(rate=0.01), ciw.dists.Exponential(rate=0.2)],
+        number_of_servers=[3, 3],
+        routing=[[0.0] * 2] * 2
     )
 
-    server_grid = [list(range(1, 10))]
+    server_grid = [list(range(1, 10))] * 2
 
     def objective(sim: ciw.Simulation):
         num_servers = [sc.number_of_servers for sc in sim.network.service_centres]
