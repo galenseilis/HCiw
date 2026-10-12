@@ -4,6 +4,10 @@ HCiw
 A discrete event simulation library for queueing networks, forked from `Ciw <https://github.com/CiwPython/Ciw>`_.
 ---------------------------------------------------------------------------------------------------------------
 
+.. image:: https://img.shields.io/badge/docs-GitHub%20Pages-blue
+   :target: https://galenseilis.github.io/HCiw/
+   :alt: Documentation
+
 HCiw is a fork of the `Ciw <https://github.com/CiwPython/Ciw>`_ discrete event simulation library for open queueing networks. Development of Ciw has slowed, so HCiw takes over that codebase as its starting point in order to keep developing it. The HCiw repository is at `github.com/galenseilis/HCiw <https://github.com/galenseilis/HCiw>`_.
 Its core features include the capability to simulate networks of queues, multiple customer classes, and implementation of Type I blocking for restricted networks.
 

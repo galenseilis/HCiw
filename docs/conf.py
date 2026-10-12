@@ -115,6 +115,10 @@ todo_include_todos = False
 
 # -- Options for HTML output ----------------------------------------------
 
+# The URL the documentation is published at, used for canonical and OpenSearch
+# URLs. GitHub Pages serves project sites under /<repo>/.
+html_baseurl = "https://galenseilis.github.io/HCiw/"
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = "classic"
