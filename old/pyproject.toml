@@ -1,0 +1,26 @@
+[project]
+name = "hciw"
+version = "0.23.0"
+description = "A package for assisting in healthcare queueing network simulation."
+authors = [
+    { name = "galenseilis", email = "galen.seilis@seilis.ca" }
+]
+dependencies = [
+    "ciw>=3.2.1",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hciw"]
