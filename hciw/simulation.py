@@ -1,3 +1,5 @@
+"""The Simulation engine that drives customers through a network."""
+
 import tqdm
 import copy
 from decimal import getcontext
@@ -14,8 +16,34 @@ from hciw import deadlock
 
 
 class Simulation(object):
-    """
-    The Simulation class, that is the engine of the simulation.
+    """The engine that runs a queueing network simulation.
+
+    A ``Simulation`` drives customers through the network's nodes over
+    simulated time, collecting data records and tracking state.
+
+    Attributes:
+        current_time (float): The current simulated time.
+        network (Network): The network being simulated.
+        name (str): The name of the simulation.
+        NodeTypes (list): The node classes used at each service centre.
+        ArrivalNodeType (type): The class used for the arrival node.
+        ExitNodeType (type): The class used for the exit node.
+        IndividualType (type): The class used for individuals.
+        ServerType (type): The class used for servers.
+        deadlock_detector (object): The detector used to identify deadlocks.
+        inter_arrival_times (dict): Inter-arrival distributions by node and
+            class.
+        service_times (dict): Service distributions by node and class.
+        batch_sizes (dict): Batch size distributions by node and class.
+        number_of_priority_classes (int): The number of priority classes.
+        transitive_nodes (list): The service centre nodes.
+        nodes (list): The arrival, transitive and exit nodes.
+        active_nodes (list): The nodes that are not the exit node.
+        routers (dict): The routing objects by customer class.
+        statetracker (StateTracker): The state tracker in use.
+        times_dictionary (dict): Maps hashed states to the time first seen.
+        times_to_deadlock (dict): The time from each state to deadlock.
+        unchecked_blockage (bool): Whether a blockage needs checking.
     """
 
     def __init__(
@@ -31,8 +59,28 @@ class Simulation(object):
         individual_class=None,
         server_class=None,
     ):
-        """
-        Initialise a simulation instance.
+        """Initialise a simulation instance.
+
+        Args:
+            network (Network): The network to simulate.
+            exact (int, optional): If truthy, use exact ``Decimal`` arithmetic
+                with this many digits of precision. Defaults to ``False``.
+            name (str, optional): The name of the simulation. Defaults to
+                ``"Simulation"``.
+            tracker (StateTracker, optional): The state tracker to use.
+                Defaults to a plain ``StateTracker``.
+            deadlock_detector (object, optional): The deadlock detector to
+                use. Defaults to ``deadlock.NoDetection()``.
+            node_class (type or list, optional): The node class or classes to
+                use. Defaults to ``Node``.
+            arrival_node_class (type, optional): The arrival node class to use.
+                Defaults to ``ArrivalNode``.
+            exit_node_class (type, optional): The exit node class to use.
+                Defaults to ``ExitNode``.
+            individual_class (type, optional): The individual class to use.
+                Defaults to ``Individual``.
+            server_class (type, optional): The server class to use. Defaults
+                to ``Server``.
         """
         self.current_time = 0.0
         self.network = network
@@ -64,22 +112,27 @@ class Simulation(object):
         self.unchecked_blockage = False
 
     def __repr__(self):
-        """
-        Representation of the simulation.
+        """Return the name of the simulation.
+
+        Returns:
+            str: The simulation's name.
         """
         return self.name
 
     @property    
     def number_of_individuals(self):
-        """
-        The number of individuals currently in the system.
+        """Return the number of individuals currently in the system.
+
+        Returns:
+            int: The number of individuals currently in the system.
         """
         return (self.nodes[0].number_of_individuals - 1) - self.nodes[-1].number_of_individuals
 
     def find_arrival_dists(self):
-        """
-        Create the dictionary of arrival time distribution
-        objects for each node for each customer class.
+        """Create the arrival time distribution objects for each node and class.
+
+        Returns:
+            dict: Arrival time distributions keyed by node and customer class.
         """
         return {
             node + 1: {
@@ -89,9 +142,10 @@ class Simulation(object):
         }
 
     def find_service_dists(self):
-        """
-        Create the dictionary of service time distribution
-        objects for each node for each customer class.
+        """Create the service time distribution objects for each node and class.
+
+        Returns:
+            dict: Service time distributions keyed by node and customer class.
         """
         return {
             node + 1: {
@@ -101,9 +155,10 @@ class Simulation(object):
         }
 
     def find_batching_dists(self):
-        """
-        Create the dictionary of batch size distribution
-        objects for each node for each class.
+        """Create the batch size distribution objects for each node and class.
+
+        Returns:
+            dict: Batch size distributions keyed by node and customer class.
         """
         return {
             node + 1: {
@@ -113,9 +168,7 @@ class Simulation(object):
         }
 
     def show_simulation_to_distributions(self):
-        """
-        Adds the simulation object as an attribute of the distribution objects
-        """
+        """Add the simulation as an attribute of the distribution objects."""
         for clss in self.network.customer_class_names:
             for nd in range(self.network.number_of_nodes):
                 if self.inter_arrival_times[nd + 1][clss] is not None:
@@ -124,8 +177,10 @@ class Simulation(object):
                     self.batch_sizes[nd + 1][clss].simulation = self
 
     def find_and_initialise_routers(self):
-        """
-        Initialises the routing objects.
+        """Initialise and return the routing objects.
+
+        Returns:
+            dict: Routing objects keyed by customer class.
         """
         routers_dict = {}
         for clss in self.network.customer_class_names:
@@ -134,8 +189,12 @@ class Simulation(object):
         return routers_dict
 
     def find_next_active_node(self):
-        """
-        Returns the next active node, the node whose next_event_date is next:
+        """Return the active node with the earliest next event date.
+
+        If several nodes share the earliest date, one is chosen at random.
+
+        Returns:
+            Node: The next active node.
         """
         mindate = float("Inf")
         next_active_nodes = []
@@ -150,8 +209,10 @@ class Simulation(object):
         return next_active_nodes[0]
 
     def get_all_individuals(self):
-        """
-        Returns list of all individuals with at least one data record.
+        """Return all individuals with at least one data record.
+
+        Returns:
+            list: The individuals with at least one data record.
         """
         return [
             individual
@@ -162,8 +223,17 @@ class Simulation(object):
     def get_all_records(
         self, only=["service", "baulk", "rejection", "renege", "interrupted service"], include_incomplete=False
     ):
-        """
-        Gets all data records from all individuals.
+        """Get data records from all individuals.
+
+        Args:
+            only (list, optional): The record types to include. Defaults to
+                service, baulk, rejection, renege and interrupted service
+                records.
+            include_incomplete (bool, optional): Whether to include records
+                for individuals still in the system. Defaults to ``False``.
+
+        Returns:
+            list: The collected data records.
         """
         records = []
         for individual in self.get_all_individuals():
@@ -180,9 +250,23 @@ class Simulation(object):
     def set_classes(
         self, node_class, arrival_node_class, exit_node_class, individual_class, server_class
     ):
-        """
-        Sets the type of ArrivalNode, Node, Exit Node, Individual,
-        and Server classes being used in the Simulation model.
+        """Set the node, individual and server classes used by the simulation.
+
+        Args:
+            node_class (type or list): The node class or classes to use. If a
+                list, it must have one entry per node.
+            arrival_node_class (type): The arrival node class to use, or
+                ``None`` for the default.
+            exit_node_class (type): The exit node class to use, or ``None``
+                for the default.
+            individual_class (type): The individual class to use, or ``None``
+                for the default.
+            server_class (type): The server class to use, or ``None`` for the
+                default.
+
+        Raises:
+            ValueError: If ``node_class`` is a list whose length does not match
+                the number of nodes.
         """
         if arrival_node_class is not None:
             self.ArrivalNodeType = arrival_node_class
@@ -215,9 +299,13 @@ class Simulation(object):
             self.ServerType = Server
 
     def event_and_return_nextnode(self, next_active_node):
-        """
-        Carries out the event of current next_active_node,
-        and returns the next next_active_node
+        """Carry out an event and return the next active node.
+
+        Args:
+            next_active_node (Node): The node whose event to carry out.
+
+        Returns:
+            Node: The next active node.
         """
         next_active_node.have_event()
         for node in self.transitive_nodes:
@@ -225,9 +313,7 @@ class Simulation(object):
         return self.find_next_active_node()
 
     def simulate_until_deadlock(self):
-        """
-        Runs the simulation until deadlock is reached.
-        """
+        """Run the simulation until deadlock is reached."""
         deadlocked = False
         next_active_node = self.find_next_active_node()
         self.current_time = next_active_node.next_event_date
@@ -250,8 +336,12 @@ class Simulation(object):
         }
 
     def simulate_until_max_time(self, max_simulation_time, progress_bar=False):
-        """
-        Runs the simulation until max_simulation_time is reached.
+        """Run the simulation until a maximum simulated time is reached.
+
+        Args:
+            max_simulation_time (float): The time to stop the simulation at.
+            progress_bar (bool, optional): Whether to display a progress bar.
+                Defaults to ``False``.
         """
         next_active_node = self.find_next_active_node()
         self.current_time = next_active_node.next_event_date
@@ -280,21 +370,28 @@ class Simulation(object):
     def simulate_until_max_customers(
         self, max_customers, progress_bar=False, method="Complete"
     ):
-        """
-        Runs the simulation until max_customers is reached:
+        """Run the simulation until a number of customers is reached.
 
-            - Method: Complete
-                Simulates until max_customers has reached the Exit Node after
-                completing their journey
-            - Method: Finish
-                Simulates until max_customers has reached the Exit Node whether
-                they have completed their journey or not (included baulkers and
-                renegers)
-            - Method: Arrive
-                Simulates until max_customers have spawned at the Arrival Node
-            - Method: Accept
-                Simulates until max_customers have been spawned and accepted
-                (not rejected) at the Arrival Node
+        Args:
+            max_customers (int): The number of customers to stop at.
+            progress_bar (bool, optional): Whether to display a progress bar.
+                Defaults to ``False``.
+            method (str, optional): The measure used to count customers. One
+                of:
+
+                - ``'Complete'``: count customers that reach the Exit Node
+                  after completing their journey.
+                - ``'Finish'``: count customers that reach the Exit Node,
+                  whether or not they completed their journey (including
+                  baulkers and renegers).
+                - ``'Arrive'``: count customers spawned at the Arrival Node.
+                - ``'Accept'``: count customers spawned and accepted (not
+                  rejected) at the Arrival Node.
+
+                Defaults to ``'Complete'``.
+
+        Raises:
+            ValueError: If ``method`` is not one of the valid options.
         """
         next_active_node = self.find_next_active_node()
         self.current_time = next_active_node.next_event_date
@@ -335,10 +432,13 @@ class Simulation(object):
             self.progress_bar.close()
 
     def wrap_up_servers(self, current_time):
-        """
-        Updates the servers' total_time and busy_time as
-        the end of the simulation run. Finds the overall
-        server utilisation for each node.
+        """Update server times and find the overall server utilisation.
+
+        Updates each server's total time and busy time at the end of the
+        simulation run, and finds the overall server utilisation for each node.
+
+        Args:
+            current_time (float): The time at which the run finished.
         """
         for nd in self.transitive_nodes:
             nd.wrap_up_servers(current_time)

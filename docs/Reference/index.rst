@@ -11,4 +11,5 @@ Contents:
    distributions.rst
    routers.rst
    state_trackers.rst
+   api.rst
    glossary.rst

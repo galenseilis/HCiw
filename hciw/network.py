@@ -1,11 +1,19 @@
+"""Information stores describing the nodes and classes of a network."""
+
+
 class ServiceCentre(object):
-    """
-    An information store for each service centre in the queueing network.
-    Contains all information that is independent of customer class:
-      - number of servers
-      - queueing capacity
-      - server schedules + preemtion status
-      - class change matrix
+    """Store the class-independent information for a service centre.
+
+    Attributes:
+        number_of_servers (int or Schedule): The number of servers, or a
+            schedule describing how it varies over time.
+        queueing_capacity (int or float): The maximum queue length.
+        class_change_matrix (dict): Matrix describing class changes, if any.
+        priority_preempt (bool): Whether priority classes preempt service.
+        ps_threshold (int): Threshold used by the processor-sharing discipline.
+        server_priority_function (callable): Function assigning server priority.
+        service_discipline (callable): The service discipline used at the node.
+        class_change_time (bool): Whether class change times are modelled.
     """
 
     def __init__(
@@ -18,8 +26,22 @@ class ServiceCentre(object):
         server_priority_function=None,
         service_discipline=None,
     ):
-        """
-        Initialises the `ServiceCentre` object.
+        """Initialise a ``ServiceCentre`` object.
+
+        Args:
+            number_of_servers (int or Schedule): The number of servers, or a
+                schedule describing how it varies over time.
+            queueing_capacity (int or float): The maximum queue length.
+            class_change_matrix (dict, optional): Matrix describing class
+                changes, if any.
+            priority_preempt (bool, optional): Whether priority classes
+                preempt service. Defaults to ``False``.
+            ps_threshold (int, optional): Threshold used by the
+                processor-sharing discipline. Defaults to ``1``.
+            server_priority_function (callable, optional): Function assigning
+                server priority.
+            service_discipline (callable, optional): The service discipline
+                used at the node.
         """
         self.number_of_servers = number_of_servers
         self.queueing_capacity = queueing_capacity
@@ -32,15 +54,19 @@ class ServiceCentre(object):
 
 
 class CustomerClass(object):
-    """
-    An information store for each customer class in the queueing network.
-    Contains all information that is dependent on customer class:
-      - arrival distributions
-      - service distributions
-      - routing matrices/functions
-      - priority class
-      - baulking functions
-      - batching distributions
+    """Store the class-dependent information for a customer class.
+
+    Attributes:
+        arrival_distributions (dict): Arrival distributions for each node.
+        service_distributions (dict): Service distributions for each node.
+        batching_distributions (dict): Batching distributions for each node.
+        routing (Routing): The routing object for the class.
+        priority_class (int): The priority class of the customer class.
+        baulking_functions (dict): Baulking functions for each node.
+        reneging_time_distributions (dict): Reneging time distributions for
+            each node.
+        class_change_time_distributions (dict): Class change time
+            distributions for each pair of customer classes.
     """
 
     def __init__(
@@ -54,8 +80,19 @@ class CustomerClass(object):
         reneging_time_distributions,
         class_change_time_distributions,
     ):
-        """
-        Initialises the `CustomerClass` object.
+        """Initialise a ``CustomerClass`` object.
+
+        Args:
+            arrival_distributions (dict): Arrival distributions for each node.
+            service_distributions (dict): Service distributions for each node.
+            routing (Routing): The routing object for the class.
+            priority_class (int): The priority class of the customer class.
+            baulking_functions (dict): Baulking functions for each node.
+            batching_distributions (dict): Batching distributions for each node.
+            reneging_time_distributions (dict): Reneging time distributions for
+                each node.
+            class_change_time_distributions (dict): Class change time
+                distributions for each pair of customer classes.
         """
         self.arrival_distributions = arrival_distributions
         self.service_distributions = service_distributions
@@ -68,16 +105,28 @@ class CustomerClass(object):
 
 
 class Network(object):
-    """
-    An information store the queueing network.
-    Contains a list of `ServiceCentre` objects for each
-    service centre, and a list of `CustomerClass` objects
-    for each customer class.
+    """Store the queueing network.
+
+    Holds a list of ``ServiceCentre`` objects for each service centre and
+    a dictionary of ``CustomerClass`` objects keyed by class name.
+
+    Attributes:
+        service_centres (list): The service centres of the network.
+        customer_classes (dict): The customer classes, keyed by class name.
+        number_of_nodes (int): The number of service centres.
+        number_of_classes (int): The number of customer classes.
+        customer_class_names (list): The sorted names of the customer classes.
+        number_of_priority_classes (int): The number of distinct priority
+            classes.
+        priority_class_mapping (dict): Maps class names to priority classes.
     """
 
     def __init__(self, service_centres, customer_classes):
-        """
-        Initialises the Network object
+        """Initialise a ``Network`` object.
+
+        Args:
+            service_centres (list): The service centres of the network.
+            customer_classes (dict): The customer classes, keyed by class name.
         """
         self.service_centres = service_centres
         self.customer_classes = customer_classes

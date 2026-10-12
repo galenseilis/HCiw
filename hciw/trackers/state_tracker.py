@@ -1,69 +1,100 @@
+"""State tracker classes that record the state of a simulation over time."""
+
+
 class StateTracker:
-    """
-    A generic class to record system's state.
-    """
+    """A generic class to record a system's state."""
 
     def initialise(self, simulation):
-        """
-        Initialises the state tracker class.
+        """Initialise the state tracker class.
+
+        Args:
+            simulation (hciw.Simulation): The simulation being tracked.
         """
         self.simulation = simulation
         self.state = None
         self.history = [[self.simulation.current_time, self.hash_state()]]
 
     def change_state_accept(self, node, ind):
-        """
-        Changes the state of the system when a customer is accepted.
+        """Change the state of the system when a customer is accepted.
+
+        Args:
+            node (hciw.Node): The node at which the individual is accepted.
+            ind (hciw.Individual): The individual being accepted.
         """
         pass
 
     def change_state_block(self, node, destination, ind):
-        """
-        Changes the state of the system when a customer gets blocked.
+        """Change the state of the system when a customer gets blocked.
+
+        Args:
+            node (hciw.Node): The node at which the individual is blocked.
+            destination (hciw.Node): The node the individual is blocked from
+                entering.
+            ind (hciw.Individual): The individual being blocked.
         """
         pass
 
     def change_state_release(self, node, destination, ind, blocked):
-        """
-        Changes the state of the system when a customer is released.
+        """Change the state of the system when a customer is released.
+
+        Args:
+            node (hciw.Node): The node at which the individual is released.
+            destination (hciw.Node): The node the individual was blocked from
+                entering.
+            ind (hciw.Individual): The individual being released.
+            blocked (bool): Whether the individual was blocked.
         """
         pass
 
     def change_state_renege(self, node, destination, ind, blocked):
-        """
-        Changes the state of the system when a customer reneges.
+        """Change the state of the system when a customer reneges.
+
+        Args:
+            node (hciw.Node): The node at which the individual reneges.
+            destination (hciw.Node): The node the individual was blocked from
+                entering.
+            ind (hciw.Individual): The individual reneging.
+            blocked (bool): Whether the individual was blocked.
         """
         self.change_state_release(node, destination, ind, blocked)
 
     def change_state_classchange(self, node, ind):
-        """
-        Changes the state of the system when a customer changes class while queueung.
+        """Change the state of the system when a customer changes class.
+
+        Args:
+            node (hciw.Node): The node at which the individual changes class.
+            ind (hciw.Individual): The individual changing class.
         """
         pass
 
     def hash_state(self):
-        """
-        Returns a hashable state.
+        """Return a hashable state.
+
+        Returns:
+            Hashable: A hashable representation of the state.
         """
         return None
 
     def timestamp(self):
+        """Record the current state in the history if it has changed."""
         current_hash_state = self.hash_state()
         if current_hash_state != self.history[-1][1]:
             self.history.append([self.simulation.current_time, current_hash_state])
 
     def state_probabilities(self, observation_period=(0, float("Inf"))):
-        """
-        Get the state probabilities from the history
+        """Get the state probabilities from the history.
 
-        Input:
-            observation_period: tuple
-                A tuple given by the user to identify the observation period
-                that the probabilities will be computed on, by default is from
-                0 to infinity
+        Args:
+            observation_period (tuple, optional): A ``(start, end)`` tuple
+                identifying the observation period over which the
+                probabilities are computed. Defaults to ``(0, float('Inf'))``.
 
         Returns:
-            Dictionary of states as keys and probabilities as values
+            dict: A dictionary of states as keys and probabilities as values.
+
+        Raises:
+            ValueError: If the observation period is not a positive interval
+                above zero.
         """
         start = observation_period[0]
         end = observation_period[1]
@@ -103,9 +134,7 @@ class StateTracker:
 
 
 class SystemPopulation(StateTracker):
-    """
-    The system population tracker records the number of customers in the
-    system, regaerdless of node.
+    """Record the number of customers in the system, regardless of node.
 
     Example:
         3
@@ -113,41 +142,58 @@ class SystemPopulation(StateTracker):
     """
 
     def initialise(self, simulation):
-        """
-        Initialises the state tracker class.
+        """Initialise the state tracker class.
+
+        Args:
+            simulation (hciw.Simulation): The simulation being tracked.
         """
         self.simulation = simulation
         self.state = 0
         self.history = [[self.simulation.current_time, self.hash_state()]]
 
     def change_state_accept(self, node, ind):
-        """
-        Changes the state of the system when a customer is accepted.
+        """Change the state of the system when a customer is accepted.
+
+        Args:
+            node (hciw.Node): The node at which the individual is accepted.
+            ind (hciw.Individual): The individual being accepted.
         """
         self.state += 1
 
     def change_state_block(self, node, destination, ind):
-        """
-        Changes the state of the system when a customer gets blocked.
+        """Change the state of the system when a customer gets blocked.
+
+        Args:
+            node (hciw.Node): The node at which the individual is blocked.
+            destination (hciw.Node): The node the individual is blocked from
+                entering.
+            ind (hciw.Individual): The individual being blocked.
         """
         pass
 
     def change_state_release(self, node, destination, ind, blocked):
-        """
-        Changes the state of the system when a customer is released.
+        """Change the state of the system when a customer is released.
+
+        Args:
+            node (hciw.Node): The node at which the individual is released.
+            destination (hciw.Node): The node the individual was blocked from
+                entering.
+            ind (hciw.Individual): The individual being released.
+            blocked (bool): Whether the individual was blocked.
         """
         self.state -= 1
 
     def hash_state(self):
-        """
-        Returns a hashable state.
+        """Return a hashable state.
+
+        Returns:
+            int: The number of customers in the system.
         """
         return self.state
 
 
 class NodePopulation(StateTracker):
-    """
-    The node population tracker records the number of customers at each node.
+    """Record the number of customers at each node.
 
     Example:
         (3, 1)
@@ -156,42 +202,58 @@ class NodePopulation(StateTracker):
     """
 
     def initialise(self, simulation):
-        """
-        Initialises the state tracker class.
+        """Initialise the state tracker class.
+
+        Args:
+            simulation (hciw.Simulation): The simulation being tracked.
         """
         self.simulation = simulation
         self.state = [0 for i in range(self.simulation.network.number_of_nodes)]
         self.history = [[self.simulation.current_time, self.hash_state()]]
 
     def change_state_accept(self, node, ind):
-        """
-        Changes the state of the system when a customer is accepted.
+        """Change the state of the system when a customer is accepted.
+
+        Args:
+            node (hciw.Node): The node at which the individual is accepted.
+            ind (hciw.Individual): The individual being accepted.
         """
         self.state[node.id_number - 1] += 1
 
     def change_state_block(self, node, destination, ind):
-        """
-        Changes the state of the system when a customer gets blocked.
+        """Change the state of the system when a customer gets blocked.
+
+        Args:
+            node (hciw.Node): The node at which the individual is blocked.
+            destination (hciw.Node): The node the individual is blocked from
+                entering.
+            ind (hciw.Individual): The individual being blocked.
         """
         pass
 
     def change_state_release(self, node, destination, ind, blocked):
-        """
-        Changes the state of the system when a customer is released.
+        """Change the state of the system when a customer is released.
+
+        Args:
+            node (hciw.Node): The node at which the individual is released.
+            destination (hciw.Node): The node the individual was blocked from
+                entering.
+            ind (hciw.Individual): The individual being released.
+            blocked (bool): Whether the individual was blocked.
         """
         self.state[node.id_number - 1] -= 1
 
     def hash_state(self):
-        """
-        Returns a hashable state.
+        """Return a hashable state.
+
+        Returns:
+            tuple: The number of customers at each node.
         """
         return tuple(self.state)
 
 
 class NodePopulationSubset(StateTracker):
-    """
-    The node population tracker records the number of customers at each node
-    from a given set of observed nodes.
+    """Record the number of customers at each node in a given set.
 
     Example:
         (3, 1)
@@ -200,77 +262,104 @@ class NodePopulationSubset(StateTracker):
     """
 
     def __init__(self, observed_nodes):
-        """
-        Pre-initialises the object with keyword `observed_nodes`
+        """Pre-initialise the object with the observed nodes.
+
+        Args:
+            observed_nodes (list): The indices of the nodes to observe.
         """
         self.observed_nodes = observed_nodes
 
     def initialise(self, simulation):
-        """
-        Initialises the state tracker class.
+        """Initialise the state tracker class.
+
+        Args:
+            simulation (hciw.Simulation): The simulation being tracked.
         """
         self.simulation = simulation
         self.state = [0 for i in self.observed_nodes]
         self.history = [[self.simulation.current_time, self.hash_state()]]
 
     def change_state_accept(self, node, ind):
-        """
-        Changes the state of the system when a customer is accepted.
+        """Change the state of the system when a customer is accepted.
+
+        Args:
+            node (hciw.Node): The node at which the individual is accepted.
+            ind (hciw.Individual): The individual being accepted.
         """
         if node.id_number - 1 in self.observed_nodes:
             state_index = self.observed_nodes.index(node.id_number - 1)
             self.state[state_index] += 1
 
     def change_state_block(self, node, destination, ind):
-        """
-        Changes the state of the system when a customer gets blocked.
+        """Change the state of the system when a customer gets blocked.
+
+        Args:
+            node (hciw.Node): The node at which the individual is blocked.
+            destination (hciw.Node): The node the individual is blocked from
+                entering.
+            ind (hciw.Individual): The individual being blocked.
         """
         pass
 
     def change_state_release(self, node, destination, ind, blocked):
-        """
-        Changes the state of the system when a customer is released.
+        """Change the state of the system when a customer is released.
+
+        Args:
+            node (hciw.Node): The node at which the individual is released.
+            destination (hciw.Node): The node the individual was blocked from
+                entering.
+            ind (hciw.Individual): The individual being released.
+            blocked (bool): Whether the individual was blocked.
         """
         if node.id_number - 1 in self.observed_nodes:
             state_index = self.observed_nodes.index(node.id_number - 1)
             self.state[state_index] -= 1
 
     def hash_state(self):
-        """
-        Returns a hashable state.
+        """Return a hashable state.
+
+        Returns:
+            tuple: The number of customers at each observed node.
         """
         return tuple(self.state)
 
 
 class GroupedNodePopulation(StateTracker):
-    """
-    The node population tracker records the number of customers at each group
-    of nodes, where node groups are defined by the user.
+    """Record the number of customers at each group of nodes.
+
+    Node groups are defined by the user.
 
     Example:
         (3, 1)
-        This denotes 3 customers at the first node group, and 1 customer at the
-        second node group.
+        This denotes 3 customers at the first node group, and 1 customer at
+        the second node group.
     """
 
     def __init__(self, groups):
-        """
-        Pre-initialises the object with keyword `observed_nodes`
+        """Pre-initialise the object with the observed node groups.
+
+        Args:
+            groups (list): A list of node groups, each a list of node indices.
         """
         self.groups = groups
         self.observed_nodes = [nd for group in groups for nd in group] 
 
     def initialise(self, simulation):
-        """
-        Initialises the state tracker class.
+        """Initialise the state tracker class.
+
+        Args:
+            simulation (hciw.Simulation): The simulation being tracked.
         """
         self.simulation = simulation
         self.state = [0 for i in self.groups]
         self.history = [[self.simulation.current_time, self.hash_state()]]
 
     def change_state_accept(self, node, ind):
-        """
-        Changes the state of the system when a customer is accepted.
+        """Change the state of the system when a customer is accepted.
+
+        Args:
+            node (hciw.Node): The node at which the individual is accepted.
+            ind (hciw.Individual): The individual being accepted.
         """
         if node.id_number - 1 in self.observed_nodes:
             node_in_group = [(node.id_number - 1) in group for group in self.groups]
@@ -278,14 +367,25 @@ class GroupedNodePopulation(StateTracker):
             self.state[group_index] += 1
 
     def change_state_block(self, node, destination, ind):
-        """
-        Changes the state of the system when a customer gets blocked.
+        """Change the state of the system when a customer gets blocked.
+
+        Args:
+            node (hciw.Node): The node at which the individual is blocked.
+            destination (hciw.Node): The node the individual is blocked from
+                entering.
+            ind (hciw.Individual): The individual being blocked.
         """
         pass
 
     def change_state_release(self, node, destination, ind, blocked):
-        """
-        Changes the state of the system when a customer is released.
+        """Change the state of the system when a customer is released.
+
+        Args:
+            node (hciw.Node): The node at which the individual is released.
+            destination (hciw.Node): The node the individual was blocked from
+                entering.
+            ind (hciw.Individual): The individual being released.
+            blocked (bool): Whether the individual was blocked.
         """
         if node.id_number - 1 in self.observed_nodes:
             node_in_group = [(node.id_number - 1) in group for group in self.groups]
@@ -293,33 +393,41 @@ class GroupedNodePopulation(StateTracker):
             self.state[group_index] -= 1
 
     def hash_state(self):
-        """
-        Returns a hashable state.
+        """Return a hashable state.
+
+        Returns:
+            tuple: The number of customers at each node group.
         """
         return tuple(self.state)
 
 
 class NodeClassMatrix(StateTracker):
-    """
-    The node-class matrix tracker records the number of customers of each
-    class at each node.
+    """Record the number of customers of each class at each node.
 
     Example:
-        ((3, 1),
-         (0, 1))
-        This denotes 4 customers at the first node (3 of Class 0, 1 of
-        Class 0), and 1 customer at the second node (0 of Class 0, 1 of
-        Class 1).
+        ::
+
+            ((3, 1),
+             (0, 1))
+            This denotes 4 customers at the first node (3 of Class 0, 1 of
+            Class 0), and 1 customer at the second node (0 of Class 0, 1 of
+            Class 1).
     """
+
     def __init__(self, class_ordering=None):
-        """
-        Pre-initialises the object with keyword `class_ordering`
+        """Pre-initialise the object with the class ordering.
+
+        Args:
+            class_ordering (list, optional): The order of the customer
+                classes. Defaults to ``None``.
         """
         self.class_ordering = class_ordering
 
     def initialise(self, simulation):
-        """
-        Initialises the state tracker class.
+        """Initialise the state tracker class.
+
+        Args:
+            simulation (hciw.Simulation): The simulation being tracked.
         """
         self.simulation = simulation
         
@@ -335,41 +443,58 @@ class NodeClassMatrix(StateTracker):
         self.history = [[self.simulation.current_time, self.hash_state()]]
 
     def change_state_accept(self, node, ind):
-        """
-        Changes the state of the system when a customer is accepted.
+        """Change the state of the system when a customer is accepted.
+
+        Args:
+            node (hciw.Node): The node at which the individual is accepted.
+            ind (hciw.Individual): The individual being accepted.
         """
         self.state[node.id_number - 1][self.class_ordering[ind.customer_class]] += 1
 
     def change_state_block(self, node, destination, ind):
-        """
-        Changes the state of the system when a customer gets blocked.
+        """Change the state of the system when a customer gets blocked.
+
+        Args:
+            node (hciw.Node): The node at which the individual is blocked.
+            destination (hciw.Node): The node the individual is blocked from
+                entering.
+            ind (hciw.Individual): The individual being blocked.
         """
         pass
 
     def change_state_release(self, node, destination, ind, blocked):
-        """
-        Changes the state of the system when a customer is released.
+        """Change the state of the system when a customer is released.
+
+        Args:
+            node (hciw.Node): The node at which the individual is released.
+            destination (hciw.Node): The node the individual was blocked from
+                entering.
+            ind (hciw.Individual): The individual being released.
+            blocked (bool): Whether the individual was blocked.
         """
         self.state[node.id_number - 1][self.class_ordering[ind.customer_class]] -= 1
 
     def change_state_classchange(self, node, ind):
-        """
-        Changes the state of the system when a customer changes class while queueing.
+        """Change the state of the system when a customer changes class.
+
+        Args:
+            node (hciw.Node): The node at which the individual changes class.
+            ind (hciw.Individual): The individual changing class.
         """
         self.state[node.id_number - 1][self.class_ordering[ind.previous_class]] -= 1
         self.state[node.id_number - 1][self.class_ordering[ind.customer_class]] += 1
 
     def hash_state(self):
-        """
-        Returns a hashable state.
+        """Return a hashable state.
+
+        Returns:
+            tuple: The number of customers of each class at each node.
         """
         return tuple(tuple(obs) for obs in self.state)
 
 
 class NaiveBlocking(StateTracker):
-    """
-    The naive blocking tracker records the number of customers at each node,
-    and how many of those customers are currently blocked.
+    """Record the number of customers and blocked customers at each node.
 
     Example:
         ((3, 0), (1, 4))
@@ -379,29 +504,45 @@ class NaiveBlocking(StateTracker):
     """
 
     def initialise(self, simulation):
-        """
-        Initialises the naive blocking tracker class.
+        """Initialise the naive blocking tracker class.
+
+        Args:
+            simulation (hciw.Simulation): The simulation being tracked.
         """
         self.simulation = simulation
         self.state = [[0, 0] for i in range(self.simulation.network.number_of_nodes)]
         self.history = [[self.simulation.current_time, self.hash_state()]]
 
     def change_state_accept(self, node, ind):
-        """
-        Changes the state of the system when a customer is accepted.
+        """Change the state of the system when a customer is accepted.
+
+        Args:
+            node (hciw.Node): The node at which the individual is accepted.
+            ind (hciw.Individual): The individual being accepted.
         """
         self.state[node.id_number - 1][0] += 1
 
     def change_state_block(self, node, destination, ind):
-        """
-        Changes the state of the system when a customer gets blocked.
+        """Change the state of the system when a customer gets blocked.
+
+        Args:
+            node (hciw.Node): The node at which the individual is blocked.
+            destination (hciw.Node): The node the individual is blocked from
+                entering.
+            ind (hciw.Individual): The individual being blocked.
         """
         self.state[node.id_number - 1][1] += 1
         self.state[node.id_number - 1][0] -= 1
 
     def change_state_release(self, node, destination, ind, blocked):
-        """
-        Changes the state of the system when a customer is released.
+        """Change the state of the system when a customer is released.
+
+        Args:
+            node (hciw.Node): The node at which the individual is released.
+            destination (hciw.Node): The node the individual was blocked from
+                entering.
+            ind (hciw.Individual): The individual being released.
+            blocked (bool): Whether the individual was blocked.
         """
         if blocked:
             self.state[node.id_number - 1][1] -= 1
@@ -409,31 +550,38 @@ class NaiveBlocking(StateTracker):
             self.state[node.id_number - 1][0] -= 1
 
     def hash_state(self):
-        """
-        Returns a hashable state.
+        """Return a hashable state.
+
+        Returns:
+            tuple: The number of customers and blocked customers at each node.
         """
         return tuple(tuple(obs) for obs in self.state)
 
 
 class MatrixBlocking(StateTracker):
-    """
-    The matrix blocking tracker records the order and destination of
-    blockages in the form of a matrix. Alongside this the number
-    of customers at each node is tracked.
+    """Record the order and destination of blockages, and node populations.
+
+    The blockages are recorded in the form of a matrix, alongside the number
+    of customers at each node.
 
     Example:
-        ((((1, 4), (2)),
-           (3),    ())),
-           (5, 8))
-        This denotes 5 customers at the first node 8 customer at
-        the second; 2 customer blocked from the first node to the
-        first, one from the first node to the second, and on from
-        the second node to the first. The numbers denote the order
-        at which they became blocked.
+        ::
+
+            ((((1, 4), (2)),
+               (3),    ())),
+               (5, 8))
+            This denotes 5 customers at the first node, 8 customers at the
+            second; 2 customers blocked from the first node to the first,
+            one from the first node to the second, and one from the second
+            node to the first. The numbers denote the order at which they
+            became blocked.
     """
+
     def initialise(self, simulation):
-        """
-        Initialises the matrix blocking tracker class.
+        """Initialise the matrix blocking tracker class.
+
+        Args:
+            simulation (hciw.Simulation): The simulation being tracked.
         """
         self.simulation = simulation
         self.state = [
@@ -448,21 +596,35 @@ class MatrixBlocking(StateTracker):
         self.history = [[self.simulation.current_time, self.hash_state()]]
 
     def change_state_accept(self, node, ind):
-        """
-        Changes the state of the system when a customer is accepted.
+        """Change the state of the system when a customer is accepted.
+
+        Args:
+            node (hciw.Node): The node at which the individual is accepted.
+            ind (hciw.Individual): The individual being accepted.
         """
         self.state[-1][node.id_number - 1] += 1
 
     def change_state_block(self, node, destination, ind):
-        """
-        Changes the state of the system when a customer gets blocked.
+        """Change the state of the system when a customer gets blocked.
+
+        Args:
+            node (hciw.Node): The node at which the individual is blocked.
+            destination (hciw.Node): The node the individual is blocked from
+                entering.
+            ind (hciw.Individual): The individual being blocked.
         """
         self.state[0][node.id_number - 1][destination.id_number - 1].append(self.increment)
         self.increment += 1
 
     def change_state_release(self, node, destination, ind, blocked):
-        """
-        Changes the state of the system when a customer is released.
+        """Change the state of the system when a customer is released.
+
+        Args:
+            node (hciw.Node): The node at which the individual is released.
+            destination (hciw.Node): The node the individual was blocked from
+                entering.
+            ind (hciw.Individual): The individual being released.
+            blocked (bool): Whether the individual was blocked.
         """
         if blocked:
             self.state[-1][node.id_number - 1] -= 1
@@ -473,16 +635,26 @@ class MatrixBlocking(StateTracker):
             self.state[-1][node.id_number - 1] -= 1
 
     def find_blocked_position_and_pop(self, node, destination):
-        """
-        Finds the position of the next customer to unblock.
+        """Find the position of the next customer to unblock.
+
+        Args:
+            node (hciw.Node): The node the individual is blocked at.
+            destination (hciw.Node): The node the individual is blocked from
+                entering.
+
+        Returns:
+            int: The order position of the blocked customer.
         """
         position = self.state[0][node.id_number - 1][destination.id_number - 1].pop(0)
         return position
 
     def adjust_positions(self, position):
-        """
-        Loops through whole matrix, reducing any
-        positions > position by 1.
+        """Reduce any positions greater than ``position`` by one.
+
+        Loops through the whole matrix.
+
+        Args:
+            position (int): The order position that was removed.
         """
         for r in range(len(self.state[0])):
             for c in range(len(self.state[0][r])):
@@ -491,8 +663,11 @@ class MatrixBlocking(StateTracker):
                         self.state[0][r][c][o] -= 1
 
     def hash_state(self):
-        """
-        Returns a hashable state.
+        """Return a hashable state.
+
+        Returns:
+            tuple: The blockage matrix and the number of customers at each
+                node.
         """
         naive = tuple(self.state[-1])
         matrix = tuple(

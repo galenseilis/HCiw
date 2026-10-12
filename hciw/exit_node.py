@@ -1,5 +1,8 @@
+"""Exit node of the queueing network."""
+
+
 class ExitNode:
-    """Exit node on our network."""
+    """Represent the exit node of the network."""
 
     def __init__(self):
         """Initialise the exit node."""
@@ -11,14 +14,19 @@ class ExitNode:
         self.node_capacity = float("Inf")
 
     def __repr__(self):
-        """
-        Representation of the exit node.
+        """Return a string representation of the exit node.
+
+        Returns:
+            str: The representation of the exit node.
         """
         return "Exit Node"
 
     def accept(self, next_individual, completed=True):
-        """
-        Adds individual to the list of completed individuals.
+        """Add an individual to the list of completed individuals.
+
+        Args:
+            next_individual (Individual): The individual to accept.
+            completed (bool): Whether the individual completed service.
         """
         self.all_individuals.append(next_individual)
         next_individual.node = -1
@@ -27,9 +35,5 @@ class ExitNode:
             self.number_of_completed_individuals += 1
 
     def update_next_event_date(self):
-        """
-        Finds the time of the next event at this node
-        Just passes as next_event_date always set to
-        the max_simulation_time
-        """
+        """Do nothing, as the next event date is always the max time."""
         pass

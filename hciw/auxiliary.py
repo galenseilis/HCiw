@@ -1,24 +1,37 @@
+"""Auxiliary helper functions used throughout the simulation.
+
+This module provides seeding utilities, weighted random sampling, and
+small list helpers used by the simulation engine.
+"""
+
 import random
 import numpy as np
 import hciw
 
 
 def seed(z):
-    """
-    Sets all seeds used to generate random number streams.
-    Currently contains:
-            - random library
-            - numpy random
+    """Set all seeds used to generate random number streams.
+
+    Seeds both the standard library ``random`` module and the NumPy
+    random generator used by ``hciw``.
+
+    Args:
+        z (int): The seed value to use.
     """
     random.seed(z)
     hciw.rng = np.random.default_rng(seed=z)
 
 
 def random_choice(array, probs=None):
-    """
-    This function takes in an array of values to make a choice from,
-    and an pdf corresponding to those values. It returns a random choice
-    from that array, using the probs as weights.
+    """Select a random element from an array using optional weights.
+
+    Args:
+        array (list): The values to choose from.
+        probs (list, optional): Probability weights corresponding to each
+            value. If omitted, a uniform choice is made.
+
+    Returns:
+        The randomly selected element of ``array``.
     """
     # If no pdf provided, assume uniform dist:
     if probs == None:
@@ -40,11 +53,17 @@ def random_choice(array, probs=None):
 
 
 def truncated_normal(mean, sd):
-    """
-        Sample from a Normal distribution, with mean and standard
-        deviation (sd). This truncates the distribution at 0 (lower bound
-        of 0). If samples less than 0 are sampled, they are resampled
-    until a positive value is sampled.
+    """Sample from a Normal distribution truncated at zero.
+
+    Values less than or equal to zero are resampled until a positive
+    value is obtained.
+
+    Args:
+        mean (float): The mean of the Normal distribution.
+        sd (float): The standard deviation of the Normal distribution.
+
+    Returns:
+        float: A positive sample from the truncated Normal distribution.
     """
     sample = random.normalvariate(mean, sd)
     while sample <= 0.0:
@@ -53,6 +72,14 @@ def truncated_normal(mean, sd):
 
 
 def flatten_list(list_of_lists):
+    """Flatten a list of lists into a single list.
+
+    Args:
+        list_of_lists (list): A list whose elements are themselves lists.
+
+    Returns:
+        list: A single list containing all elements of the inner lists.
+    """
     flat = []
     for a_list in list_of_lists:
         flat += a_list
@@ -60,8 +87,15 @@ def flatten_list(list_of_lists):
 
 
 def no_routing(ind):
-    """
-    Process-based routing fucntion that sends the customer straight
-    to exit node. It is a placeholder for when NoArrivals is used.
+    """Send a customer straight to the exit node.
+
+    This process-based routing function is a placeholder used when
+    ``NoArrivals`` is used.
+
+    Args:
+        ind (Individual): The individual being routed.
+
+    Returns:
+        list: An empty list of destinations.
     """
     return []

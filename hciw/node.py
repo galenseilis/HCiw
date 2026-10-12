@@ -1,3 +1,5 @@
+"""Transient node of the queueing network."""
+
 from random import random
 from math import isinf, nan
 import networkx as nx
@@ -8,13 +10,18 @@ from .schedules import *
 
 
 class Node(object):
-    """
-    Class for a node on the network.
+    """Represent a node in the queueing network.
+
+    The node holds a queue of individuals and, where applicable, the
+    servers that process them.
     """
 
     def __init__(self, id_, simulation):
-        """
-        Initialise a node.
+        """Initialise a node.
+
+        Args:
+            id_ (int): Identifier for the node.
+            simulation (object): The simulation to which this node belongs.
         """
         self.simulation = simulation
         node = self.simulation.network.service_centres[id_ - 1]
@@ -69,30 +76,42 @@ class Node(object):
 
     @property
     def now(self):
-        """
-        Gets the current time.
+        """Get the current simulation time.
+
+        Returns:
+            float: The current simulation time.
         """
         return self.simulation.current_time
 
     @property
     def all_individuals(self):
+        """Get all individuals currently at the node.
+
+        Returns:
+            list: Every individual at the node, across all priority classes.
+        """
         if self.simulation.number_of_priority_classes == 1:
             return self.individuals[0]
         return flatten_list(self.individuals)
 
     def __repr__(self):
-        """
-        Representation of a node.
+        """Return a string representation of the node.
+
+        Returns:
+            str: The representation of the node.
         """
         return "Node %s" % self.id_number
 
     def accept(self, next_individual, completed=False):
-        """
-        Accepts a new customer to the queue:
-          - remove previous exit date and blockage status
-          - see if possible to begin service
-          - record all other information at arrival point
-          - update state tracker
+        """Accept a new individual into the queue.
+
+        Removes any previous exit date and blockage status, begins service
+        if possible, records arrival information, and updates the state
+        tracker.
+
+        Args:
+            next_individual (Individual): The individual to accept.
+            completed (bool): Whether the individual has completed service.
         """
         next_individual.node = self.id_number
         next_individual.exit_date = False
@@ -105,16 +124,21 @@ class Node(object):
         self.simulation.statetracker.change_state_accept(self, next_individual)
 
     def add_new_servers(self, num_servers):
-        """
-        Add appropriate amount of servers for the given shift.
+        """Add the appropriate number of servers for the given shift.
+
+        Args:
+            num_servers (int): The number of servers to add.
         """
         for i in range(num_servers):
             self.highest_id += 1
             self.servers.append(self.simulation.ServerType(self, self.highest_id, self.now))
 
     def attach_server(self, server, individual):
-        """
-        Attaches a server to an individual, and vice versa.
+        """Attach a server to an individual, and vice versa.
+
+        Args:
+            server (Server): The server to attach.
+            individual (Individual): The individual to attach.
         """
         server.cust = individual
         server.busy = True
@@ -122,13 +146,15 @@ class Node(object):
         self.simulation.deadlock_detector.action_at_attach_server(self, server, individual)
 
     def begin_service_if_possible_accept(self, next_individual):
-        """
-        Begins the service of the next individual (at acceptance point):
-            - Sets the arrival date as the current time
-            - If there is a free server or there are infinite servers:
-                - Attach the server to the individual (only when servers are not infinite)
-            - Get service start time, service time, service end time
-            - Update the server's end date (only when servers are not infinite)
+        """Begin service for an individual at the acceptance point.
+
+        Sets the arrival date to the current time, and if a server is free
+        or there are infinitely many servers, attaches the server, gets the
+        service start time, service time and service end time, and updates
+        the server's end date.
+
+        Args:
+            next_individual (Individual): The individual to serve.
         """
         next_individual.arrival_date = self.now
         if self.reneging is True:
@@ -156,9 +182,12 @@ class Node(object):
                     free_server.next_end_service_date = ind.service_end_date
 
     def begin_interrupted_individuals_service(self, srvr):
-        """
-        Restarts the next interrupted individual's service (by
-        resampling service time)
+        """Restart an interrupted individual's service.
+
+        The individual's service time is resampled.
+
+        Args:
+            srvr (Server): The server to give to the individual.
         """
         ind = [i for i in self.interrupted_individuals][0]
         if ind.is_blocked:
@@ -178,12 +207,11 @@ class Node(object):
         self.number_interrupted_individuals -= 1
 
     def begin_service_if_possible_change_shift(self):
-        """
-        If there are free servers after a shift change:
-          - restart interrupted customers' services
-          - begin service of any waiting customers
-            - give a start date and end date
-            - attach servers to individual
+        """Begin service for customers after a shift change.
+
+        If there are free servers, restarts interrupted customers' services
+        and begins service for any waiting customers by giving a start date
+        and end date and attaching servers to individuals.
         """
         free_servers = [s for s in self.servers if not s.busy]
         for srvr in free_servers:
@@ -201,14 +229,15 @@ class Node(object):
                     srvr.next_end_service_date = ind.service_end_date
 
     def begin_service_if_possible_release(self, next_individual, newly_free_server):
-        """
-        Begins the service of the next individual (at point
-        of previous individual's release)
-          - check if there are any interrupted individuals
-            left to restart service
-          - give an arrival date and service time
-          - give a start date and end date
-          - attach server to individual
+        """Begin service for an individual after a release.
+
+        Checks for interrupted individuals left to restart service, then
+        gives an arrival date and service time, gives a start date and end
+        date, and attaches the server to the individual.
+
+        Args:
+            next_individual (Individual): The individual being released.
+            newly_free_server (Server): The server freed by the release.
         """
 
         if newly_free_server is not None and newly_free_server in self.servers:
@@ -226,14 +255,17 @@ class Node(object):
                     newly_free_server.next_end_service_date = ind.service_end_date
 
     def block_individual(self, individual, next_node):
-        """
-        Blocks the individual from entering the next node:
-          - change is_blocked attribute
-          - update state tracker
-          - add information to the next node's blocked queue
-          - update deadlock detector
-          - inform simulation that there are unchecked
-          blockages for deadlock detection
+        """Block an individual from entering the next node.
+
+        Changes the blocked status, updates the state tracker, adds
+        information to the next node's blocked queue, and updates the
+        deadlock detector, informing the simulation that there are unchecked
+        blockages for deadlock detection.
+
+        Args:
+            individual (Individual): The individual being blocked.
+            next_node (Node): The node the individual is blocked from
+                entering.
         """
         individual.is_blocked = True
         self.simulation.statetracker.change_state_block(self, next_node, individual)
@@ -243,9 +275,12 @@ class Node(object):
         self.simulation.unchecked_blockage = True
 
     def change_customer_class(self, individual):
-        """
-        Takes individual and changes customer class
-        according to a probability distribution.
+        """Change an individual's customer class.
+
+        The new class is chosen according to a probability distribution.
+
+        Args:
+            individual (Individual): The individual whose class changes.
         """
         if self.class_change:
             individual.previous_class = individual.customer_class
@@ -257,8 +292,10 @@ class Node(object):
             individual.priority_class = self.simulation.network.priority_class_mapping[individual.customer_class]
 
     def change_customer_class_while_waiting(self):
-        """
-        Finds the next individual to have a class change (while queueing) and changes their class.
+        """Change the next queued individual's class while waiting.
+
+        The individual is moved between priority queues and preemption is
+        decided if the priority class changes.
         """
         changing_individual = self.next_individual
         changing_individual.customer_class = changing_individual.next_class
@@ -272,17 +309,19 @@ class Node(object):
         self.decide_class_change(changing_individual)
 
     def change_priority_queue(self, individual):
-        """
-        Moves an individual from their old priority queue to their new priority queue.
+        """Move an individual to their new priority queue.
+
+        Args:
+            individual (Individual): The individual to move.
         """
         self.individuals[individual.prev_priority_class].remove(individual)
         self.individuals[individual.priority_class].append(individual)
 
     def change_shift(self):
-        """
-        Implement a server shift change:
-         - adds / deletes servers, or indicates which servers should go off duty
-         - begin any new services if free servers
+        """Implement a server shift change.
+
+        Adds or deletes servers, or indicates which servers should go off
+        duty, and begins any new services if there are free servers.
         """
         self.schedule.get_next_shift()
         self.next_shift_change = self.schedule.next_shift_change_date
@@ -292,17 +331,21 @@ class Node(object):
         self.begin_service_if_possible_change_shift()
 
     def find_number_of_slotted_services(self):
-        """
-        Finds the number of slotted services to start in this slot
+        """Find the number of slotted services to start in this slot.
+
+        Returns:
+            int: The number of services to start.
         """
         if self.schedule.capacitated:
             return min(max(self.schedule.slot_size - self.number_in_service, 0), self.number_of_individuals)
         return min(self.schedule.slot_size, self.number_of_individuals)
 
     def interrupt_slotted_services(self):
-        """
-        Finds the amount of customers that need their slotted services interrupted
-        due to not enough capacity at the current slot, and interrupt their services
+        """Interrupt services when there is not enough slot capacity.
+
+        Finds the customers whose slotted services need to be interrupted
+        because of insufficient capacity at the current slot, and interrupts
+        their services.
         """
         if self.schedule.capacitated and self.schedule.preemption is not False:
             number_to_interrupt = self.number_in_service - self.schedule.slot_size
@@ -316,9 +359,10 @@ class Node(object):
                     self.interrupt_service(ind)
 
     def slotted_service(self):
-        """
-        Allows only a set amount of customers to have service at the exact
-        time the method is called.
+        """Serve a set number of customers at the current time.
+
+        Only the number of customers allowed by the current slot may have
+        service at the exact time the method is called.
         """
         number_of_slotted_services = self.find_number_of_slotted_services()
         self.interrupt_slotted_services()
@@ -339,8 +383,11 @@ class Node(object):
         self.schedule.get_next_slot()
 
     def choose_next_customer(self):
-        """
-        Chooses which customer will be next to be served.
+        """Choose which customer will be next to be served.
+
+        Returns:
+            Individual: The customer chosen by the service discipline, or
+                None if no customer is waiting.
         """
         for priority_individuals in self.individuals:
             waiting_individuals = [ind for ind in priority_individuals if not ind.server]
@@ -348,14 +395,18 @@ class Node(object):
                 return self.service_discipline(waiting_individuals, self.now)
 
     def create_starting_servers(self):
-        """
-        Initialise the servers.
+        """Initialise the servers.
+
+        Returns:
+            list: The newly created starting servers.
         """
         return [self.simulation.ServerType(self, i + 1, 0.0) for i in range(self.c)]
 
     def decide_class_change(self, next_individual):
-        """
-        Decides on the next_individual's next class and class change date
+        """Decide the next class and class change date for an individual.
+
+        Args:
+            next_individual (Individual): The individual to update.
         """
         if self.dynamic_classes is True:
             next_time = float('inf')
@@ -371,8 +422,12 @@ class Node(object):
             self.find_next_class_change()
 
     def decide_preempt(self, individual):
-        """
-        Decides if priority preemption is needed, finds the individual to preempt, and preempt them.
+        """Decide whether priority preemption is needed.
+
+        If needed, finds the individual to preempt and preempts them.
+
+        Args:
+            individual (Individual): The individual seeking service.
         """
         if self.priority_preempt != False:
             least_priority = max(s.cust.priority_class for s in self.servers)
@@ -389,8 +444,11 @@ class Node(object):
                 self.preempt(individual_to_preempt, individual)
 
     def detatch_server(self, server, individual):
-        """
-        Detaches a server from an individual, and vice versa.
+        """Detach a server from an individual, and vice versa.
+
+        Args:
+            server (Server): The server to detach.
+            individual (Individual): The individual to detach.
         """
         self.simulation.deadlock_detector.action_at_detatch_server(server)
         server.cust = False
@@ -402,8 +460,13 @@ class Node(object):
             self.kill_server(server)
 
     def find_free_server(self, ind):
-        """
-        Finds a free server.
+        """Find a free server.
+
+        Args:
+            ind (Individual): The individual needing a server.
+
+        Returns:
+            Server: A free server, or None if none is available.
         """
         if isinf(self.c):
             return None
@@ -419,8 +482,11 @@ class Node(object):
         return None
 
     def decide_between_simultaneous_individuals(self):
-        """
-        Finds the next individual that should now finish service.
+        """Find the next individual that should now finish service.
+
+        Returns:
+            Individual: A randomly chosen individual when several finish at
+                the same time.
         """
         if len(self.next_individual) > 1:
             next_individual = random_choice(self.next_individual)
@@ -429,9 +495,7 @@ class Node(object):
         return next_individual
 
     def find_next_class_change(self):
-        """
-        Updates the next_class_change_date and next_class_change_ind
-        """
+        """Update the next class change date and individual."""
         self.next_class_change_date = float('inf')
         self.next_class_change_ind = None
         for ind in self.all_individuals:
@@ -441,9 +505,7 @@ class Node(object):
                 self.next_class_change_date = ind.class_change_date
 
     def find_server_utilisation(self):
-        """
-        Finds the overall server utilisation for the node.
-        """
+        """Find the overall server utilisation for the node."""
         if isinf(self.c) or self.c == 0:
             self.server_utilisation = None
         else:
@@ -453,13 +515,11 @@ class Node(object):
             self.server_utilisation = sum(self.all_servers_busy) / sum(self.all_servers_total)
 
     def finish_service(self):
-        """
-        The next individual finishes service:
-          - finds the individual to finish service
-          - check if they need to change class
-          - find their next node
-          - release the individual if there is capacity at destination,
-            otherwise cause blockage
+        """Finish the service of the next individual.
+
+        Finds the individual to finish service, checks whether they need to
+        change class, finds their next node, and releases the individual if
+        there is capacity at the destination, otherwise causes blockage.
         """
         next_individual = self.decide_between_simultaneous_individuals()
         self.change_customer_class(next_individual)
@@ -473,9 +533,12 @@ class Node(object):
             self.block_individual(next_individual, next_node)
 
     def give_individual_a_service_time(self, individual):
-        """
-        Gives a service time to an individual, either a new
-        service time, or after pre-emption.
+        """Give a service time to an individual.
+
+        Either a new service time, or a service time after pre-emption.
+
+        Args:
+            individual (Individual): The individual to serve.
         """
         if individual.service_time is False:
             individual.service_time = self.get_service_time(individual)
@@ -484,8 +547,13 @@ class Node(object):
 
 
     def give_service_time_after_preemption(self, individual):
-        """
-        Either resample, restart or resume service time where it was left off
+        """Give a service time after preemption.
+
+        Either resamples, restarts, or resumes service time from where it was
+        left off.
+
+        Args:
+            individual (Individual): The individual to serve.
         """
         if individual.service_time == "resample":
             individual.service_time = self.get_service_time(individual)
@@ -495,9 +563,7 @@ class Node(object):
             individual.service_time = individual.time_left
 
     def have_event(self):
-        """
-        Has an event
-        """
+        """Trigger the node's next event."""
         if self.next_event_type == 'end_service':
             self.finish_service()
         elif self.next_event_type == 'shift_change':
@@ -510,14 +576,22 @@ class Node(object):
             self.slotted_service()
 
     def increment_time(self, original, increment):
-        """
-        Increments the original time by the increment.
+        """Increment the original time by the increment.
+
+        Args:
+            original (float): The original time.
+            increment (float): The amount to add.
+
+        Returns:
+            The incremented time.
         """
         return original + increment
 
     def kill_server(self, srvr):
-        """
-        Kills a server when they go off duty.
+        """Kill a server when it goes off duty.
+
+        Args:
+            srvr (Server): The server to remove.
         """
         srvr.total_time = self.increment_time(self.next_event_date, -srvr.start_date)
         self.overtime.append(self.increment_time(self.next_event_date, -srvr.shift_end))
@@ -527,26 +601,45 @@ class Node(object):
         del self.servers[indx]
 
     def next_node(self, ind):
-        """
-        Finds the next node according the routing method:
+        """Find the next node according to the routing method.
+
+        Args:
+            ind (Individual): The individual being routed.
+
+        Returns:
+            Node: The next node.
         """
         return self.simulation.routers[ind.customer_class].next_node(ind, self.id_number)
 
     def next_node_for_rerouting(self, ind):
-        """
-        Finds the next node (for rerouting) according the routing method:
+        """Find the next node for rerouting according to the routing method.
+
+        Args:
+            ind (Individual): The individual being rerouted.
+
+        Returns:
+            Node: The next node for rerouting.
         """
         return self.simulation.routers[ind.customer_class].next_node_for_rerouting(ind, self.id_number)
 
     def next_node_for_jockeying(self, ind):
-        """
-        Finds the next node (for jockeing) according the routing method:
+        """Find the next node for jockeying according to the routing method.
+
+        Args:
+            ind (Individual): The jockeying individual.
+
+        Returns:
+            Node: The next node for jockeying.
         """
         return self.simulation.routers[ind.customer_class].next_node_for_jockeying(ind, self.id_number)
 
     def preempt(self, individual_to_preempt, next_individual):
-        """
-        Removes individual_to_preempt from service and replaces them with next_individual
+        """Preempt an individual and replace them in service.
+
+        Args:
+            individual_to_preempt (Individual): The individual removed from
+                service.
+            next_individual (Individual): The individual taking their place.
         """
         server = individual_to_preempt.server
         individual_to_preempt.original_service_time = individual_to_preempt.service_time
@@ -568,17 +661,17 @@ class Node(object):
         server.next_end_service_date = next_individual.service_end_date
 
     def release(self, next_individual, next_node, reroute=False):
-        """
-        Update node when an individual is released:
-          - find the individual to release
-          - remove from queue
-          - record relevant information to data record
-          - detatch individual from server
-          - write record
-          - update state tracker
-          - begin service of any waiting customers
-          - send individual to next destination
-          - release any individuals blocked by this node
+        """Release an individual from the node.
+
+        Removes the individual from the queue, records relevant information,
+        detaches the server, updates the state tracker, begins service of any
+        waiting customers, sends the individual to their next destination, and
+        releases any individuals blocked by this node.
+
+        Args:
+            next_individual (Individual): The individual to release.
+            next_node (Node): The node receiving the individual.
+            reroute (bool): Whether the release is due to rerouting.
         """
         self.individuals[next_individual.prev_priority_class].remove(next_individual)
         self.number_of_individuals -= 1
@@ -604,14 +697,11 @@ class Node(object):
             self.release_blocked_individual()
 
     def release_blocked_individual(self):
-        """
-        Releases an individual who becomes unblocked when
-        another individual is released:
-          - check if anyone is blocked by this node
-          - find the individual who has been blocked the longest
-          - remove that individual from blocked queue
-          - check if that individual had their service interrupted
-          - release that individual from their node
+        """Release an individual blocked by this node.
+
+        Finds the individual who has been blocked the longest, removes them
+        from the blocked queue, restores their service if it was interrupted,
+        and releases them from their node.
         """
         if (self.len_blocked_queue > 0) and (self.number_of_individuals < self.node_capacity):
             node_to_receive_from = self.simulation.nodes[self.blocked_queue[0][0]]
@@ -630,8 +720,10 @@ class Node(object):
             node_to_receive_from.release(individual_to_receive, self)
 
     def reset_class_change(self, individual):
-        """
-        Resets the individual's change_class date when beginning service.
+        """Reset an individual's class change date when service begins.
+
+        Args:
+            individual (Individual): The individual beginning service.
         """
         if self.dynamic_classes:
             individual.class_change_date = float('inf')
@@ -639,10 +731,10 @@ class Node(object):
                 self.find_next_class_change()
 
     def renege(self):
-        """
-        Removes the appropriate customer from the queue;
-        Resets that customer's reneging date;
-        Send customer to their reneging destination.
+        """Remove an individual from the queue due to reneging.
+
+        Resets the individual's reneging date and sends the individual to
+        their reneging destination.
         """
         reneging_individual = self.decide_between_simultaneous_individuals()
         reneging_individual.reneging_date = float("Inf")
@@ -658,8 +750,13 @@ class Node(object):
         self.release_blocked_individual()
 
     def get_reneging_date(self, ind):
-        """
-        Returns the reneging date for a given individual.
+        """Return the reneging date for a given individual.
+
+        Args:
+            ind (Individual): The individual.
+
+        Returns:
+            float: The reneging date.
         """
         dist = self.simulation.network.customer_classes[ind.customer_class].reneging_time_distributions[self.id_number - 1]
         if dist is None:
@@ -667,14 +764,22 @@ class Node(object):
         return self.now + dist.sample(t=self.now, ind=ind)
 
     def get_service_time(self, ind):
-        """
-        Returns a service time for the given customer class.
+        """Return a service time for the given customer class.
+
+        Args:
+            ind (Individual): The individual being served.
+
+        Returns:
+            float: The sampled service time.
         """
         return self.simulation.service_times[self.id_number][ind.customer_class].sample(t=self.now, ind=ind)
 
     def take_servers_off_duty(self, preemption=False):
-        """
-        Gathers servers that should be deleted.
+        """Gather the servers that should be deleted.
+
+        Args:
+            preemption (bool): Whether preemption is active for this shift
+                change.
         """
         if preemption == False:
             to_delete = []
@@ -695,9 +800,13 @@ class Node(object):
             self.kill_server(obs)
 
     def interrupt_service(self, individual):
-        """
-        Interrupts the service of an individual and places them in an
-        interrupted queue, and writes an interruption record for them.
+        """Interrupt an individual's service.
+
+        Places the individual in the interrupted queue and writes an
+        interruption record for them.
+
+        Args:
+            individual (Individual): The individual being interrupted.
         """
         individual.original_service_time = individual.service_time
         if self.schedule.preemption == 'reroute':
@@ -715,23 +824,21 @@ class Node(object):
             self.number_in_service -= 1
 
     def sort_interrupted_individuals(self):
-        """
-        Sorts the list of interrupted individuals by priority class and arrival date.
-        """
+        """Sort interrupted individuals by priority class and arrival date."""
         self.interrupted_individuals.sort(key=lambda x: (x.priority_class, x.arrival_date))
 
     def reroute(self, individual):
-        """
-        Rerouts a preempted individual
+        """Reroute a preempted individual.
+
+        Args:
+            individual (Individual): The individual being rerouted.
         """
         next_node = self.next_node_for_rerouting(individual)
         self.write_interruption_record(individual, destination=next_node.id_number)
         self.release(individual, next_node, reroute=True)
 
     def update_next_end_service_without_server(self):
-        """
-        Updates the next end of a slotted service in the `possible_next_events` dictionary.
-        """
+        """Update the next end of a slotted service in `possible_next_events`."""
         if self.slotted or isinf(self.c):
             next_end_service_date = float("Inf")
             for ind in self.all_individuals:
@@ -743,9 +850,7 @@ class Node(object):
                         self.possible_next_events['end_service'][0].append(ind)
 
     def update_next_end_service_with_server(self):
-        """
-        Updates the next end service with a server in the `possible_next_events` dictionary.
-        """
+        """Update the next end service with a server in `possible_next_events`."""
         if not self.slotted and not isinf(self.c):
             next_end_service_date = float("Inf")
             for s in self.servers:
@@ -756,9 +861,7 @@ class Node(object):
                     self.possible_next_events['end_service'][0].append(s.cust)
 
     def update_next_renege_time(self):
-        """
-        Updates the next renege time in the `possible_next_events` dictionary.
-        """
+        """Update the next renege time in `possible_next_events`."""
         if not isinf(self.c) and self.reneging is True:
             next_renege_date = float('Inf')
             for ind in self.all_individuals:
@@ -769,16 +872,12 @@ class Node(object):
                     self.possible_next_events['renege'][0].append(ind)
 
     def update_next_class_change_while_waiting(self):
-        """
-        Updates the next time to change a customer's class while waiting in the `possible_next_events` dictionary.
-        """
+        """Update the next class change while waiting in `possible_next_events`."""
         if self.dynamic_classes is True and not isinf(self.c):
             self.possible_next_events['class_change'] = (self.next_class_change_ind, self.next_class_change_date)
 
     def update_next_shift_change_or_slot_time(self):
-        """
-        Updates the `possible_next_events` dictionary with the time of the next shift change or the next slotted service time.
-        """
+        """Update `possible_next_events` with the next shift or slot time."""
         if self.schedule is not None:
             if self.schedule.schedule_type == 'schedule':
                 self.possible_next_events['shift_change'] = (None, self.next_shift_change)
@@ -786,12 +885,12 @@ class Node(object):
                 self.possible_next_events['slotted_service'] = (None, self.schedule.next_slot_date)
 
     def update_next_event_date(self):
-        """
-        Finds the time of the next event at this node:
-          - if infinite servers, return time for next individual to
-            end service, or Inf
-          - otherwise return minimum of next shift change, and time for
-            next individual (who isn't blocked) to end service, or Inf
+        """Find the time of the next event at this node.
+
+        With infinite servers this is the time of the next individual to end
+        service, or infinity. Otherwise it is the minimum of the next shift
+        change and the time for the next individual (who is not blocked) to
+        end service, or infinity.
         """
         self.possible_next_events = {}
         self.update_next_end_service_without_server()
@@ -810,15 +909,19 @@ class Node(object):
             self.next_event_type = 'end_service'
 
     def decide_next_event(self):
-        """
-        Decides the next event. Chooses the next service end,
-        renege, shift change, or class change. In the case of
-        a tie, prioritise as follows:
-            1) slotted service
-            2) shift change
-            3) end service
-            4) class change
-            5) renege
+        """Decide the next event.
+
+        Chooses the next service end, renege, shift change, or class change.
+        In the case of a tie, events are prioritised in the following order:
+
+        1. slotted service
+        2. shift change
+        3. end service
+        4. class change
+        5. renege
+
+        Returns:
+            tuple: The next event and its event type.
         """
         next_date = float('inf')
         next_event = (None, float('inf'))
@@ -832,9 +935,10 @@ class Node(object):
         return next_event, next_event_type
 
     def wrap_up_servers(self, current_time):
-        """
-        Updates the servers' total_time and busy_time
-        as the end of the simulation run.
+        """Update server total and busy times at the end of the run.
+
+        Args:
+            current_time (float): The simulation end time.
         """
         if not isinf(self.c):
             for srvr in self.servers:
@@ -843,8 +947,10 @@ class Node(object):
                     srvr.busy_time += self.increment_time(current_time, -srvr.cust.service_start_date)
 
     def write_individual_record(self, individual):
-        """
-        Write a data record for an individual when leaving a node.
+        """Write a data record for an individual leaving a node.
+
+        Args:
+            individual (Individual): The individual leaving the node.
         """
         if isinf(self.c) or self.slotted:
             server_id = False
@@ -872,9 +978,13 @@ class Node(object):
         individual.data_records.append(record)
 
     def write_incomplete_record(self, individual):
-        """
-        Write an incomplete data record for an individual
-        at the end of the simulation run.
+        """Write an incomplete data record at the end of the run.
+
+        Args:
+            individual (Individual): The individual still at the node.
+
+        Returns:
+            DataRecord: The incomplete data record.
         """
         if not individual.service_time:  # Still in queue
             service_start_date = None
@@ -912,8 +1022,11 @@ class Node(object):
         return record
 
     def write_interruption_record(self, individual, destination=nan):
-        """
-        Write a data record for an individual when being interrupted.
+        """Write a data record for an individual being interrupted.
+
+        Args:
+            individual (Individual): The interrupted individual.
+            destination (int): The destination node number.
         """
         if self.slotted:
             server_id = False
@@ -941,8 +1054,10 @@ class Node(object):
         individual.data_records.append(record)
 
     def write_reneging_record(self, individual):
-        """
-        Write a data record for an individual when reneging.
+        """Write a data record for an individual when reneging.
+
+        Args:
+            individual (Individual): The reneging individual.
         """
         record = DataRecord(
             id_number=individual.id_number,
@@ -965,8 +1080,11 @@ class Node(object):
         individual.data_records.append(record)
 
     def write_baulking_or_rejection_record(self, individual, record_type):
-        """
-        Write a data record for an individual baulks.
+        """Write a data record for an individual who baulks or is rejected.
+
+        Args:
+            individual (Individual): The individual.
+            record_type (str): The type of record to write.
         """
         record = DataRecord(
             id_number=individual.id_number,
@@ -989,8 +1107,10 @@ class Node(object):
         individual.data_records.append(record)
 
     def reset_individual_attributes(self, individual):
-        """
-        Resets the attributes of an individual
+        """Reset the attributes of an individual.
+
+        Args:
+            individual (Individual): The individual to reset.
         """
         individual.arrival_date = False
         individual.service_time = False

@@ -1,3 +1,5 @@
+"""Build ``Network`` objects from user-supplied parameters."""
+
 import hciw.dists
 from .network import *
 from .schedules import *
@@ -21,8 +23,45 @@ def create_network(
     service_disciplines=None,
     system_capacity=float('inf')
 ):
-    """
-    Takes in kwargs, creates dictionary.
+    """Create a ``Network`` object from keyword arguments.
+
+    Args:
+        arrival_distributions (dict, optional): Arrival distributions for each
+            customer class and node. Required.
+        baulking_functions (dict, optional): Baulking functions for each
+            customer class and node.
+        class_change_matrices (list, optional): Class change matrices, one per
+            node.
+        class_change_time_distributions (dict, optional): Class change time
+            distributions for each pair of customer classes.
+        number_of_servers (list, optional): The number of servers at each node,
+            or schedules. Required.
+        priority_classes (dict or tuple, optional): The priority class of each
+            customer class.
+        queue_capacities (list, optional): The queue capacity of each node.
+        service_distributions (dict, optional): Service distributions for each
+            customer class and node. Required.
+        routing (list, dict, or Routing, optional): The routing for each
+            customer class.
+        batching_distributions (dict, optional): Batching distributions for
+            each customer class and node.
+        ps_thresholds (list, optional): Processor-sharing thresholds, one per
+            node.
+        server_priority_functions (list, optional): Server priority functions,
+            one per node.
+        reneging_time_distributions (dict, optional): Reneging time
+            distributions for each customer class and node.
+        service_disciplines (list, optional): Service disciplines, one per
+            node.
+        system_capacity (int or float, optional): The maximum number of
+            customers allowed in the system. Defaults to infinity.
+
+    Returns:
+        Network: The constructed network object.
+
+    Raises:
+        ValueError: If ``arrival_distributions``, ``service_distributions`` or
+            ``number_of_servers`` are not provided.
     """
     if (
         arrival_distributions == None
@@ -67,8 +106,13 @@ def create_network(
 
 
 def create_network_from_dictionary(params_input):
-    """
-    Creates a Network object from a parameters dictionary.
+    """Create a ``Network`` object from a parameters dictionary.
+
+    Args:
+        params_input (dict): The dictionary of network parameters.
+
+    Returns:
+        Network: The constructed network object.
     """
     params = fill_out_dictionary(params_input)
     validify_dictionary(params)
@@ -124,9 +168,13 @@ def create_network_from_dictionary(params_input):
 
 
 def fill_out_dictionary(params):
-    """
-    Fills out the parameters dictionary with the
-    default values of the optional arguments.
+    """Fill out a parameters dictionary with default optional values.
+
+    Args:
+        params (dict): The parameters dictionary to complete.
+
+    Returns:
+        dict: The completed parameters dictionary.
     """
     if isinstance(params["arrival_distributions"], list):
         arr_dists = params["arrival_distributions"]
@@ -191,9 +239,13 @@ def fill_out_dictionary(params):
 
 
 def validify_dictionary(params):
-    """
-    Raises errors if there is something wrong with the
-    parameters dictionary.
+    """Raise errors if a parameters dictionary is invalid.
+
+    Args:
+        params (dict): The parameters dictionary to validate.
+
+    Raises:
+        ValueError: If the parameters are inconsistent or invalid.
     """
     consistant_num_classes = (
         params["number_of_classes"]

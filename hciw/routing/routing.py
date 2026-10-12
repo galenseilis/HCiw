@@ -1,56 +1,86 @@
+"""Routing classes that determine the next node an individual visits."""
+
 import hciw
 import itertools
 
+
 class NetworkRouting:
-    """
-    A class to hold a number of routing objects for each node.
-    """
+    """Hold a number of routing objects, one for each node."""
+
     def __init__(self, routers):
-        """
-        Sets up the router objects for each node.
+        """Set up the router objects for each node.
+
+        Args:
+            routers (list): The routing objects, one for each node.
         """
         self.routers = routers
 
     def initialise(self, simulation):
-        """
-        Gives the simulation and node attributes to the routing objects.
+        """Give the simulation and node attributes to the routing objects.
+
+        Args:
+            simulation (hciw.Simulation): The simulation the routers belong
+                to.
         """
         self.simulation = simulation
         for router, node in zip(self.routers, self.simulation.transitive_nodes):
             router.initialise(self.simulation, node)
 
     def initialise_individual(self, ind):
-        """
-        A method that is called at the arrival node when the individual is spawned.
+        """Run at the arrival node when the individual is spawned.
+
+        Args:
+            ind (hciw.Individual): The individual being spawned.
         """
         pass
 
     def next_node(self, ind, node_id):
-        """
-        Chooses the next node.
+        """Choose the next node.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+            node_id (int): The id number of the node the individual is at.
+
+        Returns:
+            hciw.Node: The next node.
         """
         return self.routers[node_id - 1].next_node(ind)
 
     def next_node_for_rerouting(self, ind, node_id):
-        """
-        Chooses the next node when rerouting preempted customer.
+        """Choose the next node when rerouting a preempted customer.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+            node_id (int): The id number of the node the individual is at.
+
+        Returns:
+            hciw.Node: The next node.
         """
         return self.routers[node_id - 1].next_node_for_rerouting(ind)
 
     def next_node_for_jockeying(self, ind, node_id):
-        """
-        Chooses the next node when jockeying to another node after reneging.
+        """Choose the next node when jockeying to another node after reneging.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+            node_id (int): The id number of the node the individual is at.
+
+        Returns:
+            hciw.Node: The next node.
         """
         return self.routers[node_id - 1].next_node_for_jockeying(ind)
 
 
 class TransitionMatrix(NetworkRouting):
-    """
-    A class to hold a number of probabilistic routing objects.
-    """
+    """Hold a number of probabilistic routing objects."""
+
     def __init__(self, transition_matrix):
-        """
-        Sets up the relevant probabilistic router objects for each node.
+        """Set up the relevant probabilistic router objects for each node.
+
+        Args:
+            transition_matrix (list): A square matrix where the entry in row
+                ``i`` and column ``j`` is the probability of moving from node
+                ``i + 1`` to node ``j + 1``.
         """
         n_destinations = len(transition_matrix)
         self.routers = [
@@ -61,39 +91,59 @@ class TransitionMatrix(NetworkRouting):
         ]
 
     def initialise(self, simulation):
+        """Give the simulation to the routing objects.
+
+        Args:
+            simulation (hciw.Simulation): The simulation the routers belong
+                to.
+
+        Raises:
+            ValueError: If the number of rows in the transition matrix does
+                not equal the number of nodes in the network.
+        """
         super().initialise(simulation)
         if len(self.routers) != simulation.network.number_of_nodes:
             raise ValueError("Ensure a transition matrix is given, and that the number of rows is equal to the number of nodes in the network.")
 
 
 class ProcessBased(NetworkRouting):
-    """
-    A class to route an individual based on a pre-defined process.
-    """
-    def __init__(self, route_function):
-        """
-        Initialises the routing object.
+    """Route an individual based on a pre-defined process."""
 
-        Takes:
-            - route_function: a function that returns a pre-defined route 
+    def __init__(self, route_function):
+        """Initialise the routing object.
+
+        Args:
+            route_function (callable): A function that returns a pre-defined
+                route for an individual.
         """
         self.route_function = route_function
 
     def initialise(self, simulation):
-        """
-        Gives the simulation and node attributes to the routing objects.
+        """Give the simulation and node attributes to the routing objects.
+
+        Args:
+            simulation (hciw.Simulation): The simulation the routers belong
+                to.
         """
         self.simulation = simulation
 
     def initialise_individual(self, ind):
-        """
-        A method that is called at the arrival node when the individual is spawned.
+        """Set the route of the individual when they are spawned.
+
+        Args:
+            ind (hciw.Individual): The individual being spawned.
         """
         ind.route = self.route_function(ind, self.simulation)
 
     def next_node(self, ind, node_id):
-        """
-        Chooses the next node from the process-based pre-defined route.
+        """Choose the next node from the process-based pre-defined route.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+            node_id (int): The id number of the node the individual is at.
+
+        Returns:
+            hciw.Node: The next node.
         """
         if len(ind.route) == 0:
             node_index = -1
@@ -102,27 +152,50 @@ class ProcessBased(NetworkRouting):
         return self.simulation.nodes[node_index]
 
     def next_node_for_rerouting(self, ind, node_id):
-        """
-        Chooses the next node when rerouting preempted customer.
+        """Choose the next node when rerouting a preempted customer.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+            node_id (int): The id number of the node the individual is at.
+
+        Returns:
+            hciw.Node: The next node.
         """
         return self.next_node(ind, node_id)
 
     def next_node_for_jockeying(self, ind, node_id):
-        """
-        Chooses the next node when jockeying to another node after reneging.
+        """Choose the next node when jockeying to another node after reneging.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+            node_id (int): The id number of the node the individual is at.
+
+        Returns:
+            hciw.Node: The exit node.
         """
         return self.simulation.nodes[-1]
 
-class FlexibleProcessBased(ProcessBased):
-    """
-    A class to route an individual based on a pre-defined process.
-    """
-    def __init__(self, route_function, rule, choice):
-        """
-        Initialises the routing object.
 
-        Takes:
-            - route_function: a function that returns a pre-defined route 
+class FlexibleProcessBased(ProcessBased):
+    """Route an individual based on a pre-defined process.
+
+    The route is flexible: each step may be a subset of nodes from which the
+    next node is chosen according to a rule and a choice method.
+    """
+
+    def __init__(self, route_function, rule, choice):
+        """Initialise the routing object.
+
+        Args:
+            route_function (callable): A function that returns a pre-defined
+                route for an individual.
+            rule (str): Either ``'any'`` or ``'all'``.
+            choice (str): Either ``'random'``, ``'jsq'`` or ``'lb'``.
+
+        Raises:
+            ValueError: If ``rule`` is not ``'any'`` or ``'all'``.
+            ValueError: If ``choice`` is not ``'random'``, ``'jsq'`` or
+                ``'lb'``.
         """
         self.route_function = route_function
         if rule not in ['any', 'all']:
@@ -133,9 +206,14 @@ class FlexibleProcessBased(ProcessBased):
         self.choice = choice
 
     def find_next_node_from_subset(self, subset, ind):
-        """
-        Finds the next node within a subset of nodes
-        according to the 'choice' parameter
+        """Find the next node within a subset according to ``choice``.
+
+        Args:
+            subset (list): The subset of node indices to choose from.
+            ind (hciw.Individual): The individual being routed.
+
+        Returns:
+            int: The id number of the chosen node.
         """
         if self.choice == 'random':
             return hciw.random_choice(subset)
@@ -151,9 +229,11 @@ class FlexibleProcessBased(ProcessBased):
             return nd.id_number
 
     def update_individual_route(self, ind, next_node_id):
-        """
-        Updates the individual route by removing chosen nodes
-        along the route, according to the 'rule' parameter
+        """Remove chosen nodes from the individual's route according to ``rule``.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+            next_node_id (int): The id number of the chosen next node.
         """
         if self.rule == 'any':
             ind.route = ind.route[1:]
@@ -163,8 +243,14 @@ class FlexibleProcessBased(ProcessBased):
                 ind.route = ind.route[1:]
 
     def next_node(self, ind, node_id):
-        """
-        Chooses the next node from the process-based pre-defined route.
+        """Choose the next node from the process-based pre-defined route.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+            node_id (int): The id number of the node the individual is at.
+
+        Returns:
+            hciw.Node: The next node.
         """
         if len(ind.route) == 0:
             node_index = -1
@@ -174,46 +260,66 @@ class FlexibleProcessBased(ProcessBased):
         return self.simulation.nodes[node_index]
 
 
-
 class NodeRouting:
-    """
-    A generic routing class to determine next sampled node.
-    """
+    """A generic routing class to determine next sampled node."""
+
     def initialise(self, simulation, node):
-        """
-        Gives the simulation and node attributes to the routing object.
+        """Give the simulation and node attributes to the routing object.
+
+        Args:
+            simulation (hciw.Simulation): The simulation the router belongs
+                to.
+            node (hciw.Node): The node the router belongs to.
         """
         self.simulation = simulation
         self.node = node
         self.error_check_at_initialise()
 
     def error_check_at_initialise(self):
+        """Check the routing object is valid when it is initialised."""
         pass
 
     def next_node_for_rerouting(self, ind):
-        """
-        By default, the next node for rerouting uses the same method as next_node.
+        """Choose the next node when rerouting a preempted customer.
+
+        By default, the next node for rerouting uses the same method as
+        :meth:`next_node`.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+
+        Returns:
+            hciw.Node: The next node.
         """
         return self.next_node(ind)
 
     def next_node_for_jockeying(self, ind):
-        """
-        Chooses the next node when jockeying to another node after reneging.
+        """Choose the next node when jockeying to another node after reneging.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+
+        Returns:
+            hciw.Node: The exit node.
         """
         return self.simulation.nodes[-1]
 
 
 class Probabilistic(NodeRouting):
-    """
-    A router that probabilistically chooses the next node.
-    """
-    def __init__(self, destinations, probs):
-        """
-        Initialises the routing object.
+    """A router that probabilistically chooses the next node."""
 
-        Takes:
-            - destinations: a list of node indices
-            - probs: a list of probabilities associated with each destination
+    def __init__(self, destinations, probs):
+        """Initialise the routing object.
+
+        Args:
+            destinations (list): A list of node indices.
+            probs (list): A list of probabilities associated with each
+                destination.
+
+        Raises:
+            ValueError: If any probability is not a float.
+            ValueError: If any probability is less than 0 or greater than 1.
+            ValueError: If the probabilities sum to more than 1.
         """
         for p in probs:
             if not isinstance(p, float):
@@ -226,81 +332,118 @@ class Probabilistic(NodeRouting):
         self.probs = probs + [1 - sum(probs)]
 
     def error_check_at_initialise(self):
+        """Check the probabilities and destinations are valid.
+
+        Raises:
+            ValueError: If the probabilities and destinations differ in
+                length.
+            ValueError: If the destinations are not a subset of the nodes in
+                the network.
+        """
         if len(self.probs) != len(self.destinations):
             raise ValueError("Routing probabilities should correspond to destinations, and so should be lists of the same length.")
         if not set(self.destinations).issubset(set([nd.id_number for nd in self.simulation.nodes[1:]])):
             raise ValueError("Routing destinations should be a subset of the nodes in the network.")
 
     def next_node(self, ind):
-        """
-        Probabilistically chooses the next node from the destinations.
+        """Probabilistically choose the next node from the destinations.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+
+        Returns:
+            hciw.Node: The next node.
         """
         node_index = hciw.random_choice(self.destinations, self.probs)
         return self.simulation.nodes[node_index]
 
 
 class Direct(NodeRouting):
-    """
-    A router that sends the individual directly to another node.
-    """
-    def __init__(self, to):
-        """
-        Initialises the routing object.
+    """A router that sends the individual directly to another node."""
 
-        Takes:
-            - to: a the node index to send to.
+    def __init__(self, to):
+        """Initialise the routing object.
+
+        Args:
+            to (int): The node index to send to.
         """
         self.to = to
 
     def next_node(self, ind):
-        """
-        Chooses the node 'to' with probability 1.
+        """Choose the node ``to`` with probability 1.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+
+        Returns:
+            hciw.Node: The destination node.
         """
         return self.simulation.nodes[self.to]
 
 
 class Leave(NodeRouting):
-    """
-    A router that sends the individual directly to the exit node.
-    """
+    """A router that sends the individual directly to the exit node."""
+
     def next_node(self, ind):
-        """
-        Chooses the exit node with probability 1.
+        """Choose the exit node with probability 1.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+
+        Returns:
+            hciw.Node: The exit node.
         """
         return self.simulation.nodes[-1]
 
 
 class JoinShortestQueue(NodeRouting):
-    """
-    A router that sends the individual to the node
-    with the shortest queue from a list of destinations.
-    """
-    def __init__(self, destinations, tie_break='random'):
-        """
-        Initialises the routing object.
+    """A router that sends the individual to the node with the shortest queue.
 
-        Takes:
-            - destinations: a list of node indices
-            - tie_break: the method to deal with ties.
-                + "random" - randomly choose between ties
-                + "order" - prioritise nodes in the order given by the destinations
+    The node is chosen from a list of destinations.
+    """
+
+    def __init__(self, destinations, tie_break='random'):
+        """Initialise the routing object.
+
+        Args:
+            destinations (list): A list of node indices.
+            tie_break (str, optional): The method to deal with ties. One of
+                ``'random'`` (randomly choose between ties) or ``'order'``
+                (prioritise nodes in the order given by ``destinations``).
+                Defaults to ``'random'``.
         """
         self.destinations = destinations
         self.tie_break = tie_break
 
     def error_check_at_initialise(self):
+        """Check the destinations are a subset of the network's nodes.
+
+        Raises:
+            ValueError: If the destinations are not a subset of the nodes in
+                the network.
+        """
         if not set(self.destinations).issubset(set([nd.id_number for nd in self.simulation.nodes[1:]])):
             raise ValueError("Routing destinations should be a subset of the nodes in the network.")
 
     def get_queue_size(self, node_index):
-        """
-        Gets the size of the queue at the node_index.
+        """Get the size of the queue at ``node_index``.
+
+        Args:
+            node_index (int): The index of the node.
+
+        Returns:
+            int: The number of waiting individuals.
         """
         return self.simulation.nodes[node_index].number_of_individuals - self.simulation.nodes[node_index].number_in_service
 
     def next_node(self, ind):
-        """
-        Chooses the node from the destinations with the shortest queue.
+        """Choose the destination node with the shortest queue.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+
+        Returns:
+            hciw.Node: The next node.
         """
         shortest_queues = []
         shortest_queue_size = float('inf')
@@ -320,37 +463,50 @@ class JoinShortestQueue(NodeRouting):
 
 
 class LoadBalancing(JoinShortestQueue):
-    """
-    A version of JoinShortestQueue that also counts customers in service.
-    """
+    """A version of JoinShortestQueue that also counts customers in service."""
+
     def get_queue_size(self, node_index):
-        """
-        Gets the size of the queue at the node_index.
+        """Get the size of the queue at ``node_index``.
+
+        Args:
+            node_index (int): The index of the node.
+
+        Returns:
+            int: The number of individuals at the node.
         """
         return self.simulation.nodes[node_index].number_of_individuals
 
 
 class Cycle(NodeRouting):
-    """
-    A router that cycles through destinations, repeating the cycle once ended.
-    """
-    def __init__(self, cycle):
-        """
-        Initialises the routing object.
+    """A router that cycles through destinations, repeating the cycle once ended."""
 
-        Takes:
-            - cycle: an ordered sequence of nodes.
+    def __init__(self, cycle):
+        """Initialise the routing object.
+
+        Args:
+            cycle (list): An ordered sequence of node indices.
         """
         self.cycle = cycle
         self.generator = itertools.cycle(self.cycle)
 
     def error_check_at_initialise(self):
+        """Check the cycle is a subset of the network's nodes.
+
+        Raises:
+            ValueError: If the cycle is not a subset of the nodes in the
+                network.
+        """
         if not set(self.cycle).issubset(set([nd.id_number for nd in self.simulation.nodes[1:]])):
             raise ValueError("Routing destinations should be a subset of the nodes in the network.")
 
     def next_node(self, ind):
-        """
-        Chooses the node 'to' with probability 1.
+        """Choose the next node in the cycle.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+
+        Returns:
+            hciw.Node: The next node.
         """
         next_node_index = next(self.generator)
         return self.simulation.nodes[next_node_index]

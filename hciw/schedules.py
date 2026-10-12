@@ -1,56 +1,33 @@
+"""Server schedules for varying the number of servers over time."""
+
 from typing import List, Tuple, Union, Generator, NoReturn
 
 class Schedule:
-    """
-    A Schedule class for storing information about server schedules and
-    generating the next shifts.
+    """Store server schedule information and generate the next shifts.
 
-    Parameters
-    ----------
-    schedule : List[Tuple[int, float]]
-        A list of tuples representing shifts, where each tuple contains the
-        number of servers and the shift end date.
-    preemption : Union[bool, str], optional
-        Pre-emption option, should be either 'resume', 'restart', 'resample',
-        or False. Default is False.
-
-    Attributes
-    ----------
-    schedule_type : str
-        Type of the schedule.
-    shift_end_dates : List[float]
-        List of shift end dates.
-    numbers_of_servers : List[int]
-        List of corresponding server numbers.
-    preemption : Union[bool, str]
-        Pre-emption option.
-    cyclelength : float
-        Length of the schedule cycle.
-
-    Methods
-    -------
-    initialise()
-        Initializes the generator object at the beginning of a simulation.
-    get_schedule_generator(boundaries, values)
-        A generator that yields the next time and number of servers according
-        to a given schedule.
-    get_next_shift()
-        Updates the next shifts from the generator.
+    Attributes:
+        schedule_type (str): The type of the schedule.
+        shift_end_dates (List[float]): The end dates of each shift.
+        numbers_of_servers (List[int]): The number of servers for each shift.
+        preemption (Union[bool, str]): The pre-emption option.
+        cyclelength (float): The length of the schedule cycle.
+        offset (float): The offset applied to the schedule.
     """
     def __init__(self, numbers_of_servers: List[int], shift_end_dates: List[float], preemption: Union[bool, str] = False, offset: float = 0.0) -> NoReturn:
-        """
-        Initializes the instance of the Schedule object.
+        """Initialise a ``Schedule`` instance.
 
-        Parameters
-        ----------
-        numbers_of_servers : List[int]
-            A list containing the number of servers working at each shift
-        shift_end_dates : List[float]
-            A list containing the end dates of each shift.
-        preemption : Union[bool, str], optional
-            Pre-emption option, should be either 'resume', 'restart',
-            'resample', or False.
-            Default is False.
+        Args:
+            numbers_of_servers (List[int]): The number of servers working at
+                each shift.
+            shift_end_dates (List[float]): The end dates of each shift.
+            preemption (Union[bool, str], optional): The pre-emption option,
+                one of ``'resume'``, ``'restart'``, ``'resample'``,
+                ``'reroute'`` or ``False``. Defaults to ``False``.
+            offset (float, optional): A non-negative offset applied to the
+                schedule. Defaults to ``0.0``.
+
+        Raises:
+            ValueError: If ``preemption`` or ``offset`` is invalid.
         """
         if preemption not in [False, 'resume', 'restart', 'resample', 'reroute']:
             raise ValueError("Pre-emption options should be either 'resume', 'restart', 'resample', 'reroute', or False.")
@@ -66,30 +43,23 @@ class Schedule:
         self.offset = offset
 
     def initialise(self) -> NoReturn:
-        """
-        Initializes the generator object at the beginning of a simulation.
-        """
+        """Initialise the generator at the beginning of a simulation."""
         self.c = 0
         self.next_shift_change_date = self.offset
         self.next_c = self.numbers_of_servers[0]
         self.schedule_generator = self.get_schedule_generator(self.shift_end_dates, self.numbers_of_servers, self.offset)
 
     def get_schedule_generator(self, boundaries:List[float], values:List[int], offset:float) -> Generator[Tuple[float, int], None, None]:
-        """
-        A generator that yields the next time and number of servers according
-        to a given schedule.
+        """Yield the next shift date and server count.
 
-        Parameters
-        ----------
-        boundaries : List[float]
-            List of shift boundaries.
-        values : List[int]
-            List of corresponding server numbers.
+        Args:
+            boundaries (List[float]): The shift boundaries.
+            values (List[int]): The number of servers corresponding to each
+                boundary.
+            offset (float): The offset applied to the schedule.
 
-        Yields
-        ------
-        Tuple[float, int]
-            A tuple representing the next shift date and the number of servers.
+        Yields:
+            Tuple[float, int]: The next shift date and the number of servers.
         """
         num_boundaries = len(boundaries)
         index = 0
@@ -100,9 +70,7 @@ class Schedule:
             yield date, values[index % num_boundaries]
 
     def get_next_shift(self) -> NoReturn:
-        """
-        Updates the next shifts from the generator.
-        """
+        """Update the next shift from the generator."""
         self.c = self.next_c
         date, c = next(self.schedule_generator)
         self.next_shift_change_date = date
@@ -110,9 +78,36 @@ class Schedule:
 
 
 class Slotted(Schedule):
+    """A schedule divided into slots with a number of servers per slot.
+
+    Attributes:
+        schedule_type (str): The type of the schedule.
+        offset (float): The offset applied to the schedule.
+        slots (list): The slot boundaries.
+        slot_sizes (list): The number of servers in each slot.
+        next_slot_sizes (list): The slot sizes of the next cycle.
+        capacitated (bool): Whether the slots are capacitated.
+        preemption (Union[bool, str]): The pre-emption option.
+        cyclelength (float): The length of the schedule cycle.
+        c (int): The current number of servers.
+    """
+
     def __init__(self, slots, slot_sizes, capacitated=False, preemption=False, offset=0.0):
-        """
-        Initialises the instance of the Slotted Schedule object
+        """Initialise a ``Slotted`` schedule instance.
+
+        Args:
+            slots (list): The slot boundaries.
+            slot_sizes (list): The number of servers in each slot.
+            capacitated (bool, optional): Whether the slots are capacitated.
+                Defaults to ``False``.
+            preemption (Union[bool, str], optional): The pre-emption option,
+                one of ``'resume'``, ``'restart'``, ``'resample'`` or
+                ``False``. Defaults to ``False``.
+            offset (float, optional): A non-negative offset applied to the
+                schedule. Defaults to ``0.0``.
+
+        Raises:
+            ValueError: If ``preemption`` or ``offset`` is invalid.
         """
         if not capacitated:
             if preemption is not False:
@@ -134,16 +129,12 @@ class Slotted(Schedule):
         self.c = 0
 
     def initialise(self):
-        """
-        Initialises the generator object at the beginning of a simulation
-        """
+        """Initialise the generator at the beginning of a simulation."""
         self.schedule_generator = self.get_schedule_generator(self.slots, self.next_slot_sizes, self.offset)
         self.get_next_slot()
 
     def get_next_slot(self):
-        """
-        Updates the next slot time and size from the generator
-        """
+        """Update the next slot date and size from the generator."""
         date, size = next(self.schedule_generator)
         self.next_slot_date = date
         self.slot_size = size

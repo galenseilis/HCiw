@@ -1,27 +1,22 @@
+"""Arrival node of the queueing network."""
+
 from random import random
 from .individual import Individual
 
 
 class ArrivalNode:
-    """Class for the arrival node of the network.
-    
-    See Also
-    --------
-    hciw.Simulation : Main simulation class.
+    """Represent the arrival node of the network.
 
-    Notes
-    -----
     This class handles arrivals, baulking, and rejections of individuals.
+    See `hciw.Simulation` for the main simulation class.
     """
 
     def __init__(self, simulation):
-        """
-        Initialise the arrvial node.
+        """Initialise the arrival node.
 
-        Parameters
-        ----------
-        simulation : object
-            The simulation to which this arrival node belongs.
+        Args:
+            simulation (object): The simulation to which this arrival node
+                belongs.
         """
         self.simulation = simulation
         self.number_of_individuals = 0
@@ -35,19 +30,24 @@ class ArrivalNode:
         }
 
     def initialise(self):
+        """Initialise the event dates dictionary and next event date."""
         self.initialise_event_dates_dict()
         self.find_next_event_date()
 
     def __repr__(self):
-        """
-        Representation of an arrival node.
+        """Return a string representation of the arrival node.
+
+        Returns:
+            str: The representation of the arrival node.
         """
         return "Arrival Node"
 
     def decide_baulk(self, next_node, next_individual):
-        """
-        Either makes an individual baulk, or sends the individual
-        to the next node.
+        """Either make an individual baulk or send them to the next node.
+
+        Args:
+            next_node (Node): The next node.
+            next_individual (Individual): The individual being considered.
         """
         if next_node.baulking_functions[self.next_class] is None:
             self.send_individual(next_node, next_individual)
@@ -60,9 +60,7 @@ class ArrivalNode:
                 self.send_individual(next_node, next_individual)
 
     def find_next_event_date(self):
-        """
-        Finds the time of the next arrival.
-        """
+        """Find the time of the next arrival."""
         minnd = None
         minclss = None
         mindate = float("Inf")
@@ -77,9 +75,10 @@ class ArrivalNode:
         self.next_event_date = mindate
 
     def have_event(self):
-        """
-        Finds a batch size. Creates that many Individuals and send
-        them to the relevent node. Then updates the event_dates_dict.
+        """Create and send a batch of arriving individuals.
+
+        Finds a batch size, creates that many individuals, sends them to the
+        relevant node, then updates the event dates dictionary.
         """
         batch = self.batch_size(self.next_node, self.next_class)
         for _ in range(batch):
@@ -104,15 +103,21 @@ class ArrivalNode:
         self.find_next_event_date()
 
     def increment_time(self, original, increment):
-        """
-        Increments the original time by the increment.
+        """Increment the original time by the increment.
+
+        Args:
+            original (float): The original time.
+            increment (float): The amount to add.
+
+        Returns:
+            The incremented time.
         """
         return original + increment
 
     def initialise_event_dates_dict(self):
-        """
-        Initialises the next event dates dictionary
-        with random times for each node and class.
+        """Initialise the event dates dictionary.
+
+        Random times are sampled for each node and class.
         """
         for nd in self.event_dates_dict:
             for clss in self.event_dates_dict[nd]:
@@ -122,15 +127,30 @@ class ArrivalNode:
                     self.event_dates_dict[nd][clss] = float("inf")
 
     def inter_arrival(self, nd, clss):
-        """
-        Samples the inter-arrival time for next class and node.
+        """Sample the inter-arrival time for the next class and node.
+
+        Args:
+            nd (int): The destination node.
+            clss (str): The customer class.
+
+        Returns:
+            The sampled inter-arrival time.
         """
         return self.simulation.inter_arrival_times[nd][clss]._sample(t=self.simulation.current_time)
 
     def batch_size(self, nd, clss):
-        """
-        Samples the batch size for next class and node.
-        Raises error if a positive integer is not sampled.
+        """Sample the batch size for the next class and node.
+
+        Args:
+            nd (int): The destination node.
+            clss (str): The customer class.
+
+        Returns:
+            int: The sampled batch size.
+
+        Raises:
+            ValueError: If the sampled batch size is not a non-negative
+                integer.
         """
         batch = self.simulation.batch_sizes[nd][clss]._sample(t=self.simulation.current_time)
         if isinstance(batch, int) and batch >= 0:
@@ -138,21 +158,32 @@ class ArrivalNode:
         raise ValueError("Batch sizes must be positive integers.")
 
     def record_baulk(self, next_node, individual):
-        """
-        Adds an individual to the baulked dictionary.
+        """Write a baulking record for an individual.
+
+        Args:
+            next_node (Node): The node the individual would have joined.
+            individual (Individual): The baulking individual.
         """
         next_node.write_baulking_or_rejection_record(individual, record_type="baulk")
 
     def record_rejection(self, next_node, individual):
-        """
-        Adds an individual to the rejection dictionary.
+        """Write a rejection record for an individual.
+
+        Args:
+            next_node (Node): The node the individual was rejected from.
+            individual (Individual): The rejected individual.
         """
         next_node.write_baulking_or_rejection_record(individual, record_type="rejection")
 
     def release_individual(self, next_node, next_individual):
-        """
-        Either rejects the next_individual die to lack of capacity,
-        or sends that individual to baulk or not.
+        """Release an individual to the next node.
+
+        Either rejects the individual due to lack of capacity, or sends that
+        individual to baulk or not.
+
+        Args:
+            next_node (Node): The next node.
+            next_individual (Individual): The individual being released.
         """
         if (next_node.number_of_individuals >= next_node.node_capacity) or (self.simulation.number_of_individuals >= self.system_capacity):
             self.record_rejection(next_node, next_individual)
@@ -161,15 +192,16 @@ class ArrivalNode:
             self.decide_baulk(next_node, next_individual)
 
     def send_individual(self, next_node, next_individual):
-        """
-        Sends the next_individual to the next_node.
+        """Send the next individual to the next node.
+
+        Args:
+            next_node (Node): The next node.
+            next_individual (Individual): The individual being sent.
         """
         self.number_accepted_individuals += 1
         self.number_accepted_individuals_per_class[next_individual.customer_class] += 1
         next_node.accept(next_individual)
 
     def update_next_event_date(self):
-        """
-        Passes, as updating next event happens at time of event.
-        """
+        """Do nothing, as the next event update happens at the event time."""
         pass

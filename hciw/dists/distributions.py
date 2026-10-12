@@ -23,13 +23,18 @@ from hciw.auxiliary import *
 from hciw.individual import Individual
 
 class Distribution(object):
-    """
-    A general distribution from which all other distirbutions will inherit.
-    """
+    """A general distribution from which all other distributions inherit."""
     def __repr__(self):
+        """Return a string representation of the distribution."""
         return "Distribution"
 
     def sample(self, t=None, ind=None):
+        """Sample a value from the distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+        """
         pass
 
     def _sample(self, t=None, ind=None):
@@ -43,80 +48,151 @@ class Distribution(object):
             raise ValueError("Invalid time sampled.")
 
     def __add__(self, dist):
-        """
-        Add two distributions such that sampling is the sum of the samples.
+        """Add two distributions such that sampling is the sum of the samples.
+
+        Args:
+            dist (Distribution): The distribution to add.
+
+        Returns:
+            CombinedDistribution: A distribution sampling the sum.
         """
         return CombinedDistribution(self, dist, add)
 
     def __sub__(self, dist):
-        """
-        Subtract two distributions such that sampling is the difference of the samples.
+        """Subtract two distributions such that sampling is the difference.
+
+        Args:
+            dist (Distribution): The distribution to subtract.
+
+        Returns:
+            CombinedDistribution: A distribution sampling the difference.
         """
         return CombinedDistribution(self, dist, sub)
 
     def __mul__(self, dist):
-        """
-        Multiply two distributions such that sampling is the product of the samples.
+        """Multiply two distributions such that sampling is the product.
+
+        Args:
+            dist (Distribution): The distribution to multiply by.
+
+        Returns:
+            CombinedDistribution: A distribution sampling the product.
         """
         return CombinedDistribution(self, dist, mul)
 
     def __truediv__(self, dist):
-        """
-        Divide two distributions such that sampling is the ratio of the samples.
+        """Divide two distributions such that sampling is the ratio.
+
+        Args:
+            dist (Distribution): The distribution to divide by.
+
+        Returns:
+            CombinedDistribution: A distribution sampling the ratio.
         """
         return CombinedDistribution(self, dist, truediv)
     
     @property
     def mean(self):
-        """default mean of a distribution"""
+        """Return the default mean of a distribution.
+
+        Returns:
+            float: The mean, NaN by default.
+        """
         return float('nan')
 
     @property
     def variance(self):
-        """default variance of a distribution"""
+        """Return the default variance of a distribution.
+
+        Returns:
+            float: The variance, NaN by default.
+        """
         return float('nan')
 
     @property
     def sd(self):
-        """default standard deviation of a distribution"""
+        """Return the default standard deviation of a distribution.
+
+        Returns:
+            float: The square root of the variance.
+        """
         return math.sqrt(self.variance)
 
     @property
     def median(self):
-        """default median of a distribution""" 
+        """Return the default median of a distribution.
+
+        Returns:
+            float: The median, NaN by default.
+        """
         return float('nan')
 
     @property
     def upper_limit(self):
-         """default upper range of a distribution""" 
+         """Return the default upper limit of a distribution.
+
+         Returns:
+             float: The upper limit, NaN by default.
+         """
          return float('nan')
 
     @property
     def lower_limit(self):
-        """default lower range of a distribution""" 
+        """Return the default lower limit of a distribution.
+
+        Returns:
+            float: The lower limit, NaN by default.
+        """
         return float('nan')
 
 
 class CombinedDistribution(Distribution):
-    """
-    A distribution that combines the samples of two other distributions, `dist1`
-    and `dist2`, using `operator`.
+    """A distribution combining the samples of two other distributions.
+
+    The samples of ``dist1`` and ``dist2`` are combined using ``operator``.
+
+    Attributes:
+        d1 (Distribution): A deep copy of the first distribution.
+        d2 (Distribution): A deep copy of the second distribution.
+        operator (callable): The binary operator used to combine samples.
     """
     def __init__(self, dist1, dist2, operator):
+        """Initialize the combined distribution.
+
+        Args:
+            dist1 (Distribution): The first distribution.
+            dist2 (Distribution): The second distribution.
+            operator (callable): The binary operator used to combine samples.
+        """
         self.d1 = copy.deepcopy(dist1)
         self.d2 = copy.deepcopy(dist2)
         self.operator = operator
 
     def __repr__(self):
+        """Return a string representation of the combined distribution."""
         return "CombinedDistribution"
 
     def sample(self, t=None, ind=None):
+        """Sample from each distribution and combine the samples.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: The combined sample.
+        """
         s1 = self.d1.sample(t, ind)
         s2 = self.d2.sample(t, ind)
         return self.operator(s1, s2)
 
     @property
     def mean(self):
+        """Return the combined mean of the two distributions.
+
+        Returns:
+            float: The mean implied by the operator.
+        """
         m1 = self.d1.mean
         m2 = self.d2.mean
         if self.operator == add:
@@ -132,6 +208,11 @@ class CombinedDistribution(Distribution):
 
     @property
     def variance(self):
+        """Return the combined variance of the two distributions.
+
+        Returns:
+            float: The variance implied by the operator.
+        """
         m1 = self.d1.mean
         m2 = self.d2.mean
         v1 = self.d1.variance
@@ -152,26 +233,44 @@ class CombinedDistribution(Distribution):
 
     @property
     def upper_limit(self):
+        """Return the combined upper limit.
+
+        Returns:
+            float: The sum of the upper limits for addition, NaN otherwise.
+        """
         if self.operator == add:
             return self.d1.upper_limit + self.d2.upper_limit
         return float('nan')
 
     @property
     def lower_limit(self):
+        """Return the combined lower limit.
+
+        Returns:
+            float: The sum of the lower limits for addition, NaN otherwise.
+        """
         if self.operator == add:
             return self.d1.lower_limit + self.d2.lower_limit
         return float('nan')
 
 
 class Uniform(Distribution):
-    """
-    The Uniform distribution.
+    """The Uniform distribution.
 
-    Takes:
-      - `lower` the lower bound
-      - `upper` the upper bound
+    Attributes:
+        lower (float): The lower bound.
+        upper (float): The upper bound.
     """
     def __init__(self, lower, upper):
+        """Initialize the Uniform distribution.
+
+        Args:
+            lower (float): The lower bound.
+            upper (float): The upper bound.
+
+        Raises:
+            ValueError: If a bound is negative or ``upper`` is less than ``lower``.
+        """
         if lower < 0.0 or upper < 0.0:
             raise ValueError("Uniform distribution must sample positive numbers only.")
         if upper < lower:
@@ -182,42 +281,82 @@ class Uniform(Distribution):
         self.upper = upper
 
     def __repr__(self):
+        """Return a string representation of the Uniform distribution."""
         return f"Uniform(lower={self.lower}, upper={self.upper})"
 
     def sample(self, t=None, ind=None):
+        """Sample from the Uniform distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A sample between ``lower`` and ``upper``.
+        """
         return uniform(self.lower, self.upper)
 
     @property
     def mean(self):
-        """Returns the mean of the Uniform distribution."""
+        """Return the mean of the Uniform distribution.
+
+        Returns:
+            float: The mean.
+        """
         return (self.lower + self.upper) / 2
 
     @property
     def variance(self):
-        """Returns the variance of the Uniform distribution."""
+        """Return the variance of the Uniform distribution.
+
+        Returns:
+            float: The variance.
+        """
         return ((self.upper - self.lower) ** 2) / 12
  
     @property
     def median(self):
+        """Return the median of the Uniform distribution.
+
+        Returns:
+            float: The median.
+        """
         return (self.lower + self.upper) / 2
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Uniform distribution.
+
+        Returns:
+            float: The upper bound.
+        """
         return self.upper
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Uniform distribution.
+
+        Returns:
+            float: The lower bound.
+        """
         return self.lower
 
 
 class Deterministic(Distribution):
-    """
-    The Deterministic distribution.
+    """The Deterministic distribution.
 
-    Takes:
-      - `value` the value to return
+    Attributes:
+        value (float): The value always returned by the distribution.
     """
     def __init__(self, value):
+        """Initialize the Deterministic distribution.
+
+        Args:
+            value (float): The value to return.
+
+        Raises:
+            ValueError: If ``value`` is negative.
+        """
         if value < 0.0:
             raise ValueError(
                 "Deterministic distribution must sample positive numbers only."
@@ -225,44 +364,87 @@ class Deterministic(Distribution):
         self.value = value
 
     def __repr__(self):
+        """Return a string representation of the Deterministic distribution."""
         return f"Deterministic(value={self.value})"
 
     def sample(self, t=None, ind=None):
+        """Sample from the Deterministic distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: The deterministic value.
+        """
         return self.value
 
     @property
     def mean(self):
-        """Returns the mean of the Deterministic distribution."""
+        """Return the mean of the Deterministic distribution.
+
+        Returns:
+            float: The deterministic value.
+        """
         return self.value
 
     @property
     def variance(self):
-        """Variance of a Deterministic distribution is always 0."""
+        """Return the variance of the Deterministic distribution.
+
+        Returns:
+            float: Always 0.0.
+        """
         return 0.0
 
     @property
     def median(self):
+        """Return the median of the Deterministic distribution.
+
+        Returns:
+            float: The deterministic value.
+        """
         return self.value
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Deterministic distribution.
+
+        Returns:
+            float: The deterministic value.
+        """
         return self.value
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Deterministic distribution.
+
+        Returns:
+            float: The deterministic value.
+        """
         return self.value
 
 
 class Triangular(Distribution):
-    """
-    The Triangular distribution.
+    """The Triangular distribution.
 
-    Takes:
-      - `lower` the lower bound
-      - `upper` the upper bound
-      - `mode`  the modal value
+    Attributes:
+        lower (float): The lower bound.
+        mode (float): The modal value.
+        upper (float): The upper bound.
     """
     def __init__(self, lower, mode, upper):
+        """Initialize the Triangular distribution.
+
+        Args:
+            lower (float): The lower bound.
+            mode (float): The modal value.
+            upper (float): The upper bound.
+
+        Raises:
+            ValueError: If any parameter is negative.
+            ValueError: If the bounds do not satisfy ``lower <= mode <= upper``.
+        """
         if lower < 0.0 or upper < 0.0 or mode < 0.0:
             raise ValueError(
                 "Triangular distribution must sample positive numbers only."
@@ -276,25 +458,48 @@ class Triangular(Distribution):
         self.upper = upper
 
     def __repr__(self):
+        """Return a string representation of the Triangular distribution."""
         return f"Triangular(lower={self.lower}, mode={self.mode}, upper={self.upper})"
 
     def sample(self, t=None, ind=None):
+        """Sample from the Triangular distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A sample between ``lower`` and ``upper``.
+        """
         return triangular(self.lower, self.upper, self.mode)
 
     @property
     def mean(self):
-        """Returns the mean of the Triangular distribution."""
+        """Return the mean of the Triangular distribution.
+
+        Returns:
+            float: The mean.
+        """
         return (self.lower + self.mode + self.upper) / 3
 
     @property
     def variance(self):
-        """Returns the variance of the Triangular distribution."""
+        """Return the variance of the Triangular distribution.
+
+        Returns:
+            float: The variance.
+        """
         a, b, c = self.lower, self.upper, self.mode
         return (a**2 + b**2 + c**2 - a*b - a*c - b*c) / 18
  
     @property
     def median(self):
         # True median of a Triangular(a, c, b)
+        """Return the median of the Triangular distribution.
+
+        Returns:
+            float: The median.
+        """
         a, c, b = self.lower, self.mode, self.upper
         mid = (a + b) / 2
         if c >= mid:
@@ -303,21 +508,38 @@ class Triangular(Distribution):
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Triangular distribution.
+
+        Returns:
+            float: The upper bound.
+        """
         return self.upper
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Triangular distribution.
+
+        Returns:
+            float: The lower bound.
+        """
         return self.lower
 
 
 class Exponential(Distribution):
-    """
-    The Exponential distribution.
+    """The Exponential distribution.
 
-    Takes:
-      - `rate` the rate parameter, lambda
+    Attributes:
+        rate (float): The rate parameter, lambda.
     """
     def __init__(self, rate):
+        """Initialize the Exponential distribution.
+
+        Args:
+            rate (float): The rate parameter, lambda.
+
+        Raises:
+            ValueError: If ``rate`` is not positive.
+        """
         if rate <= 0.0:
             raise ValueError(
                 "Exponential distribution must sample positive numbers only."
@@ -325,92 +547,173 @@ class Exponential(Distribution):
         self.rate = rate
 
     def __repr__(self):
+        """Return a string representation of the Exponential distribution."""
         return f"Exponential(rate={self.rate})"
 
     def sample(self, t=None, ind=None):
+        """Sample from the Exponential distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A sample from the distribution.
+        """
         return expovariate(self.rate)
 
     @property
     def mean(self):
-        """Returns the mean of the Exponential distribution."""
+        """Return the mean of the Exponential distribution.
+
+        Returns:
+            float: The mean.
+        """
         return 1 / self.rate
 
     @property
     def variance(self):
-        """Returns the variance of the Exponential distribution."""
+        """Return the variance of the Exponential distribution.
+
+        Returns:
+            float: The variance.
+        """
         return 1 / (self.rate ** 2)
 
 
     @property
     def median(self):
+        """Return the median of the Exponential distribution.
+
+        Returns:
+            float: The median.
+        """
         return math.log(2) / self.rate
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Exponential distribution.
+
+        Returns:
+            float: Infinity.
+        """
         return float('inf')
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Exponential distribution.
+
+        Returns:
+            float: Zero.
+        """
         return 0 
 
 
 class Gamma(Distribution):
-    """
-    The Gamma distribution.
+    """The Gamma distribution.
 
-    Takes:
-      - `shape` the shape parameter, alpha
-      - `scale` the scale parameter, beta
+    Attributes:
+        shape (float): The shape parameter, alpha.
+        scale (float): The scale parameter, beta.
     """
     def __init__(self, shape, scale):
+        """Initialize the Gamma distribution.
+
+        Args:
+            shape (float): The shape parameter, alpha.
+            scale (float): The scale parameter, beta.
+        """
         self.shape = shape
         self.scale = scale
 
     def __repr__(self):
+        """Return a string representation of the Gamma distribution."""
         return f"Gamma(shape={self.shape}, scale={self.scale})"
 
     def sample(self, t=None, ind=None):
+        """Sample from the Gamma distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A sample from the distribution.
+        """
         return gammavariate(self.shape, self.scale)
 
     @property
     def mean(self):
-        """Returns the mean of the Gamma distribution."""
+        """Return the mean of the Gamma distribution.
+
+        Returns:
+            float: The mean.
+        """
         return self.shape * self.scale
 
     @property
     def variance(self):
-        """Returns the variance of the Gamma distribution."""
+        """Return the variance of the Gamma distribution.
+
+        Returns:
+            float: The variance.
+        """
         return self.shape * (self.scale ** 2)
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Gamma distribution.
+
+        Returns:
+            float: Infinity.
+        """
         return float('inf')
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Gamma distribution.
+
+        Returns:
+            float: Zero.
+        """
         return 0
 
 
 class Normal(Distribution):
-    """
-    Truncated Normal distribution (truncated below at 0).
-
-    Parameters:
-        mean (float): Mean of the original normal distribution.
-        sd (float): Standard deviation of the original normal distribution.
-    """
+    """Truncated Normal distribution, truncated below at 0."""
     def __init__(self, mean, sd):
+        """Initialize the truncated Normal distribution.
+
+        Args:
+            mean (float): Mean of the underlying normal distribution.
+            sd (float): Standard deviation of the underlying normal distribution.
+        """
         self._mean = mean
         self._sd = sd
 
     def __repr__(self):
+        """Return a string representation of the Normal distribution."""
         return f"Normal(mean={self._mean}, sd={self._sd})"
 
     def sample(self, t=None, ind=None):
+        """Sample from the truncated Normal distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A sample truncated below at 0.
+        """
         return truncated_normal(self._mean, self._sd)
 
     @property
     def mean(self):
+        """Return the mean of the truncated Normal distribution.
+
+        Returns:
+            float: The mean of the truncated distribution.
+        """
         z = self._mean / self._sd
         phi = (1 / sqrt(2 * pi)) * exp(-0.5 * z ** 2)
         Phi = 0.5 * (1 + erf(z / sqrt(2)))
@@ -418,6 +721,11 @@ class Normal(Distribution):
 
     @property
     def variance(self):
+        """Return the variance of the truncated Normal distribution.
+
+        Returns:
+            float: The variance of the truncated distribution.
+        """
         z = self._mean / self._sd
         phi = (1 / sqrt(2 * pi)) * exp(-0.5 * z ** 2)
         Phi = 0.5 * (1 + erf(z / sqrt(2)))
@@ -427,6 +735,11 @@ class Normal(Distribution):
     @property
     def median(self):
         # Truncated below at 0 
+        """Return the median of the truncated Normal distribution.
+
+        Returns:
+            float: The median of the truncated distribution.
+        """
         z = self._mean / self._sd
         Norm = st.NormalDist(0, 1)
         target = 1.0 - 0.5 * Norm.cdf(z)
@@ -434,103 +747,193 @@ class Normal(Distribution):
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the truncated Normal distribution.
+
+        Returns:
+            float: Infinity.
+        """
         return float('inf')
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the truncated Normal distribution.
+
+        Returns:
+            float: Zero.
+        """
         return 0
 
 
 class Lognormal(Distribution):
-    """
-    The Lognormal distribution.
-
-    Takes:
-      - `mean` the mean of the Normal, mu
-      - `sd`   the standard deviation of the Normal, sigma
-    """
+    """The Lognormal distribution."""
     def __init__(self, mean, sd):
+        """Initialize the Lognormal distribution.
+
+        Args:
+            mean (float): The mean of the underlying normal, mu.
+            sd (float): The standard deviation of the underlying normal, sigma.
+        """
         self._mean = mean
         self._sd = sd
 
     def __repr__(self):
+        """Return a string representation of the Lognormal distribution."""
         return f"Lognormal(mean={self._mean}, sd={self._sd})"
 
     def sample(self, t=None, ind=None):
+        """Sample from the Lognormal distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A sample from the distribution.
+        """
         return lognormvariate(self._mean, self._sd)
 
     @property
     def mean(self):
+        """Return the mean of the Lognormal distribution.
+
+        Returns:
+            float: The mean.
+        """
         return math.exp(self._mean + (self._sd ** 2) / 2)
 
     @property
     def variance(self):
+        """Return the variance of the Lognormal distribution.
+
+        Returns:
+            float: The variance.
+        """
         return (math.exp(self._sd ** 2) - 1) * math.exp(2 * self._mean + self._sd ** 2)
 
     @property
     def median(self):
+        """Return the median of the Lognormal distribution.
+
+        Returns:
+            float: The median.
+        """
         return math.exp(self._mean)
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Lognormal distribution.
+
+        Returns:
+            float: Infinity.
+        """
         return float('inf')
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Lognormal distribution.
+
+        Returns:
+            float: Zero.
+        """
         return 0
 
 
 class Weibull(Distribution):
-    """
-    The Weibull distribution.
+    """The Weibull distribution.
 
-    Takes:
-      - `scale` the scale parameter, alpha
-      - `shape` the shape parameter, beta
+    Attributes:
+        scale (float): The scale parameter, alpha.
+        shape (float): The shape parameter, beta.
     """
     def __init__(self, scale, shape):
+        """Initialize the Weibull distribution.
+
+        Args:
+            scale (float): The scale parameter, alpha.
+            shape (float): The shape parameter, beta.
+        """
         self.scale = scale
         self.shape = shape
 
     def __repr__(self):
+        """Return a string representation of the Weibull distribution."""
         return f"Weibull(shape={self.shape}, scale={self.scale})"
 
     def sample(self, t=None, ind=None):
+        """Sample from the Weibull distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A sample from the distribution.
+        """
         return weibullvariate(self.scale, self.shape)
 
     @property
     def mean(self):
-        """Returns the mean of the Weibull distribution."""
+        """Return the mean of the Weibull distribution.
+
+        Returns:
+            float: The mean.
+        """
         return self.scale * math.gamma(1 + 1 / self.shape)
 
     @property
     def variance(self):
-        """Returns the variance of the Weibull distribution."""
+        """Return the variance of the Weibull distribution.
+
+        Returns:
+            float: The variance.
+        """
         g1 = math.gamma(1 + 1 / self.shape)
         g2 = math.gamma(1 + 2 / self.shape)
         return (self.scale ** 2) * (g2 - (g1 ** 2))
 
     @property
     def median(self):
+        """Return the median of the Weibull distribution.
+
+        Returns:
+            float: The median.
+        """
         return self.scale * (math.log(2) ** (1 / self.shape))
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Weibull distribution.
+
+        Returns:
+            float: Infinity.
+        """
         return float ('inf')
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Weibull distribution.
+
+        Returns:
+            float: Zero.
+        """
         return 0
 
 
 class Empirical(Distribution):
-    """
-    The Empirical distribution.
+    """The Empirical distribution.
 
-    Takes:
-      - `observations` the observations from which to sample
+    Attributes:
+        observations (list): The observations from which to sample.
     """
     def __init__(self, observations):
+        """Initialize the Empirical distribution.
+
+        Args:
+            observations (list): The observations from which to sample.
+
+        Raises:
+            ValueError: If any observation is negative.
+        """
         if any(o < 0 for o in observations):
             raise ValueError(
                 "Empirical distribution must sample positive numbers only."
@@ -538,19 +941,37 @@ class Empirical(Distribution):
         self.observations = observations
 
     def __repr__(self):
+        """Return a string representation of the Empirical distribution."""
         return "Empirical"
 
     def sample(self, t=None, ind=None):
+        """Sample from the Empirical distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A value chosen uniformly from ``observations``.
+        """
         return random_choice(self.observations)
 
     @property
     def mean(self):
-        """Returns the mean of the Empirical distribution."""
+        """Return the mean of the Empirical distribution.
+
+        Returns:
+            float: The mean of the observations.
+        """
         return sum(self.observations) / len(self.observations)
 
     @property
     def variance(self):
-        """Returns the variance of the Empirical distribution."""
+        """Return the variance of the Empirical distribution.
+
+        Returns:
+            float: The population variance of the observations.
+        """
         m = self.mean
         return sum((x - m) ** 2 for x in self.observations) / len(self.observations)
     
@@ -559,6 +980,11 @@ class Empirical(Distribution):
         # standard sample-median:
         #  - odd n: middle element
         #  - even n: average of the two middle elements
+        """Return the median of the Empirical distribution.
+
+        Returns:
+            float: The sample median of the observations.
+        """
         xs = sorted(self.observations)
         n = len(xs)
         mid = n // 2
@@ -569,21 +995,39 @@ class Empirical(Distribution):
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Empirical distribution.
+
+        Returns:
+            float: The largest observation.
+        """
         return max(self.observations)
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Empirical distribution.
+
+        Returns:
+            float: The smallest observation.
+        """
         return min(self.observations)
 
 
 class Sequential(Distribution):
-    """
-    The Sequential distribution.
+    """The Sequential distribution.
 
-    Takes:
-      - `sequence` the sequence to cycle through
+    Attributes:
+        sequence (list): The sequence of values to cycle through.
+        generator (itertools.cycle): The cycle iterator over ``sequence``.
     """
     def __init__(self, sequence):
+        """Initialize the Sequential distribution.
+
+        Args:
+            sequence (list): The sequence of values to cycle through.
+
+        Raises:
+            ValueError: If any value in ``sequence`` is negative.
+        """
         if any(o < 0 for o in sequence):
             raise ValueError(
                 "Sequential distribution must sample positive numbers only."
@@ -592,22 +1036,40 @@ class Sequential(Distribution):
         self.generator = cycle(self.sequence)
 
     def __repr__(self):
+        """Return a string representation of the Sequential distribution."""
         if len(self.sequence) <= 3:
             return f"Sequential({self.sequence})"
         else:
             return f"Sequential([{self.sequence[0]}, ..., {self.sequence[-1]}])"
 
     def sample(self, t=None, ind=None):
+        """Sample the next value from the sequence.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: The next value in the sequence.
+        """
         return next(self.generator)
 
     @property
     def mean(self):
-        """Returns the mean of the Sequential distribution."""
+        """Return the mean of the Sequential distribution.
+
+        Returns:
+            float: The mean of the sequence.
+        """
         return sum(self.sequence) / len(self.sequence)
 
     @property
     def variance(self):
-        """Returns the variance of the Sequential distribution."""
+        """Return the variance of the Sequential distribution.
+
+        Returns:
+            float: The population variance of the sequence.
+        """
         m = self.mean
         return sum((x - m) ** 2 for x in self.sequence) / len(self.sequence)
 
@@ -616,6 +1078,11 @@ class Sequential(Distribution):
         # sample median of the fixed sequence 
         #  - odd n: middle element
         #  - even n: average of the two middle elements
+        """Return the median of the Sequential distribution.
+
+        Returns:
+            float: The sample median of the sequence.
+        """
         xs = sorted(self.sequence)
         n = len(xs)
         mid = n // 2
@@ -626,22 +1093,42 @@ class Sequential(Distribution):
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Sequential distribution.
+
+        Returns:
+            float: The largest value in the sequence.
+        """
         return max(self.sequence)
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Sequential distribution.
+
+        Returns:
+            float: The smallest value in the sequence.
+        """
         return min(self.sequence)
 
 
 class Pmf(Distribution):
-    """
-    A distribution defined by a probability mass function (pmf).
+    """A distribution defined by a probability mass function (pmf).
 
-    Takes:
-      - `values` the values to sample
-      - `probs`  the associated probabilities
+    Attributes:
+        values (list): The values that can be sampled.
+        probs (list): The probability associated with each value.
     """
     def __init__(self, values, probs):
+        """Initialize the Pmf distribution.
+
+        Args:
+            values (list): The values to sample.
+            probs (list): The associated probabilities, which must sum to 1.
+
+        Raises:
+            ValueError: If any value is negative.
+            ValueError: If any probability is outside [0, 1].
+            ValueError: If the probabilities do not sum to 1.0.
+        """
         if any(o < 0 for o in values):
             raise ValueError("Pmf must sample positive numbers only.")
         if any(p < 0 or p > 1.0 for p in probs):
@@ -652,24 +1139,47 @@ class Pmf(Distribution):
         self.probs = probs
 
     def __repr__(self):
+        """Return a string representation of the Pmf distribution."""
         return f"Pmf(values={self.values}, probs={self.probs})"
 
     def sample(self, t=None, ind=None):
+        """Sample from the Pmf distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A value chosen according to ``probs``.
+        """
         return random_choice(self.values, self.probs)
 
     @property
     def mean(self):
-        """Returns the mean of the PMF distribution."""
+        """Return the mean of the Pmf distribution.
+
+        Returns:
+            float: The mean.
+        """
         return sum(v * p for v, p in zip(self.values, self.probs))
 
     @property
     def variance(self):
-        """Returns the variance of the PMF distribution."""
+        """Return the variance of the Pmf distribution.
+
+        Returns:
+            float: The variance.
+        """
         m = self.mean 
         return sum(p * (v - m) ** 2 for v, p in zip(self.values, self.probs))
 
     @property 
     def median(self): 
+        """Return the median of the Pmf distribution.
+
+        Returns:
+            float: The value at which the cumulative probability reaches 0.5.
+        """
         pairs = sorted(zip(self.values, self.probs), key=lambda t: t[0]) 
         cum = 0.0 
         for v, p in pairs: 
@@ -680,24 +1190,53 @@ class Pmf(Distribution):
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Pmf distribution.
+
+        Returns:
+            float: The largest value.
+        """
         return max(self.values)
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Pmf distribution.
+
+        Returns:
+            float: The smallest value.
+        """
         return min(self.values) 
 
 
 class PhaseType(Distribution): 
-    """
-    A distribution defined by an initial vector and an absorbing Markov chain
+    """A distribution defined by an initial vector and an absorbing Markov chain.
 
-    Takes:
-      - `initial_state`   the intial probabilities of being in each state
-      - `absorbing_matrix` the martix representation of the absorbing Markov
-        chain, with the final state the absorbing state
+    The final state of the chain is the absorbing state.
+
+    Attributes:
+        initial_state (list): The initial probability of being in each state.
+        states (tuple): The indices of the states.
+        absorbing_matrix (list): The rates of the absorbing Markov chain.
     """
 
     def __init__(self, initial_state, absorbing_matrix): 
+        """Initialize the PhaseType distribution.
+
+        Args:
+            initial_state (list): The initial probabilities of being in each state.
+            absorbing_matrix (list): The matrix representation of the absorbing
+                Markov chain, with the final state the absorbing state.
+
+        Raises:
+            ValueError: If the initial state contains negative probabilities.
+            ValueError: If the initial state contains probabilities above 1.0.
+            ValueError: If the initial state probabilities do not sum to 1.0.
+            ValueError: If the absorbing matrix is not square.
+            ValueError: If the initial state and matrix sizes differ.
+            ValueError: If any transition rate is negative.
+            ValueError: If the matrix rows do not sum to 0.
+            ValueError: If the final state is not the absorbing state.
+            ValueError: If the absorbing state cannot be reached.
+        """
         if any(p < 0 for p in initial_state): 
             raise ValueError("Initial state vector must have positive probabilities.") 
         if any(p > 1.0 for p in initial_state): 
@@ -731,14 +1270,32 @@ class PhaseType(Distribution):
         self.absorbing_matrix = absorbing_matrix 
 
     def __repr__(self): 
+        """Return a string representation of the PhaseType distribution."""
         return "PhaseType" 
 
     def sample_transition(self, rate): 
+        """Sample the time to a single transition.
+
+        Args:
+            rate (float): The rate of the transition.
+
+        Returns:
+            float: The sampled transition time, or infinity if ``rate`` is not positive.
+        """
         if rate <= 0.0: 
             return float("Inf") 
         return expovariate(rate) 
 
     def sample(self, t=None, ind=None): 
+        """Sample from the PhaseType distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: The total time until absorption.
+        """
         cumulative_time = 0 
         current_state = random_choice(self.states, probs=self.initial_state) 
         while current_state != self.states[-1]: 
@@ -754,6 +1311,11 @@ class PhaseType(Distribution):
 
     @property
     def mean(self):
+        """Return the mean of the PhaseType distribution.
+
+        Returns:
+            float: The expected time to absorption.
+        """
         Q = np.array(self.absorbing_matrix)[:-1, :-1]
         alpha = np.array(self.initial_state[:-1])
         ones = np.ones(len(Q))
@@ -761,6 +1323,11 @@ class PhaseType(Distribution):
 
     @property
     def variance(self):
+        """Return the variance of the PhaseType distribution.
+
+        Returns:
+            float: The variance of the time to absorption.
+        """
         Q = np.array(self.absorbing_matrix)[:-1, :-1]
         alpha = np.array(self.initial_state)[:-1]
         ones = np.ones(len(Q))
@@ -776,22 +1343,41 @@ class PhaseType(Distribution):
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the PhaseType distribution.
+
+        Returns:
+            float: Infinity.
+        """
         return float('inf')
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the PhaseType distribution.
+
+        Returns:
+            float: Zero.
+        """
         return 0
 
 
 class Erlang(PhaseType):
-    """
-    An shortcut for the Erlang distribution, using the PhaseType distribution
+    """A shortcut for the Erlang distribution, using the PhaseType distribution.
 
-    Takes:
-      - `rate` the rate spent in each phase
-      - `num_phases` the number of phases in series
+    Attributes:
+        rate (float): The rate spent in each phase.
+        num_phases (int): The number of phases in series.
     """
     def __init__(self, rate, num_phases):
+        """Initialize the Erlang distribution.
+
+        Args:
+            rate (float): The rate spent in each phase.
+            num_phases (int): The number of phases in series.
+
+        Raises:
+            ValueError: If ``rate`` is not positive.
+            ValueError: If ``num_phases`` is less than 1.
+        """
         if rate <= 0.0: 
             raise ValueError("Rate must be positive.")
         if num_phases < 1:
@@ -806,26 +1392,45 @@ class Erlang(PhaseType):
         super().__init__(initial_state, absorbing_matrix)
 
     def __repr__(self):
+        """Return a string representation of the Erlang distribution."""
         return f"Erlang(rate={self.rate}, k={self.num_phases})"
 
     @property
     def mean(self):
+        """Return the mean of the Erlang distribution.
+
+        Returns:
+            float: The mean.
+        """
         return self.num_phases / self.rate
 
     @property
     def variance(self):
+        """Return the variance of the Erlang distribution.
+
+        Returns:
+            float: The variance.
+        """
         return self.num_phases / (self.rate ** 2)
 
 
 class HyperExponential(PhaseType):
-    """
-    A shortcut for the HyperExponential distribution, using the PhaseType distribution
+    """A shortcut for the HyperExponential distribution, using the PhaseType distribution.
 
-    Takes:
-      - `rates` a vector of rates for each phase
-      - `probs` a probability vector for starting in each phase
+    Attributes:
+        rates (list): The rate of each phase.
+        probs (list): The probability of starting in each phase.
     """
     def __init__(self, rates, probs):
+        """Initialize the HyperExponential distribution.
+
+        Args:
+            rates (list): A vector of rates for each phase.
+            probs (list): A probability vector for starting in each phase.
+
+        Raises:
+            ValueError: If any rate is not positive.
+        """
         if any(r <= 0.0 for r in rates):
             raise ValueError("Rates must be positive.")
         self.rates = rates
@@ -839,28 +1444,49 @@ class HyperExponential(PhaseType):
         super().__init__(initial_state, absorbing_matrix)
 
     def __repr__(self):
+        """Return a string representation of the HyperExponential distribution."""
         return "HyperExponential"
 
     @property
     def mean(self):
+        """Return the mean of the HyperExponential distribution.
+
+        Returns:
+            float: The mean.
+        """
         return sum(p / r for p, r in zip(self.probs, self.rates))
 
     @property
     def variance(self):
+        """Return the variance of the HyperExponential distribution.
+
+        Returns:
+            float: The variance.
+        """
         mean = self.mean
         return sum(2 * p / (r ** 2) for p, r in zip(self.probs, self.rates)) - (mean ** 2)
 
 
 class HyperErlang(PhaseType):
-    """
-    A shortcut for the HyperErlang distribution, using the PhaseType distribution
+    """A shortcut for the HyperErlang distribution, using the PhaseType distribution.
 
-    Takes:
-      - `rates` a vector of rates for each phase
-      - `probs` a probability vector for starting in each phase
-      - `phase_lengths` the number of sub-phases in each phase
+    Attributes:
+        rates (list): The rate of each phase.
+        probs (list): The probability of starting in each phase.
+        phase_lengths (list): The number of sub-phases in each phase.
     """
     def __init__(self, rates, probs, phase_lengths):
+        """Initialize the HyperErlang distribution.
+
+        Args:
+            rates (list): A vector of rates for each phase.
+            probs (list): A probability vector for starting in each phase.
+            phase_lengths (list): The number of sub-phases in each phase.
+
+        Raises:
+            ValueError: If any rate is not positive.
+            ValueError: If any phase length is less than 1.
+        """
         if any(r <= 0.0 for r in rates):
             raise ValueError("Rates must be positive.")
         if any(n < 1 for n in phase_lengths):
@@ -888,16 +1514,27 @@ class HyperErlang(PhaseType):
         super().__init__(initial_state, absorbing_matrix)
 
     def __repr__(self):
+        """Return a string representation of the HyperErlang distribution."""
         return "HyperErlang"
 
     @property
     def mean(self):
+        """Return the mean of the HyperErlang distribution.
+
+        Returns:
+            float: The mean.
+        """
         return sum(
             p * k / r for p, r, k in zip(self.probs, self.rates, self.phase_lengths)
         )
    
     @property
     def variance(self):
+        """Return the variance of the HyperErlang distribution.
+
+        Returns:
+            float: The variance.
+        """
         mean = self.mean  # âˆ‘ p * k / r
         #  second moment for Erlang(k, r) is k*(k+1)/r^2
         second_moment = sum(
@@ -909,14 +1546,19 @@ class HyperErlang(PhaseType):
 
 
 class Coxian(PhaseType):
-    """
-    A shortcut for the Coxian distribuion, using the PhaseType distribution
-
-    Takes:
-      - `rates` a vector of rates for each phase
-      - `probs` a vector of the probability of absorption at each phase
-    """
+    """A shortcut for the Coxian distribution, using the PhaseType distribution."""
     def __init__(self, rates, probs):
+        """Initialize the Coxian distribution.
+
+        Args:
+            rates (list): A vector of rates for each phase.
+            probs (list): A vector of the probability of absorption at each phase.
+
+        Raises:
+            ValueError: If any rate is not positive.
+            ValueError: If any probability is outside [0, 1].
+            ValueError: If the final probability is not exactly 1.0.
+        """
         if any(r <= 0.0 for r in rates):
             raise ValueError("Rates must be positive.")
         if any(p < 0 or p > 1.0 for p in probs):
@@ -935,26 +1577,38 @@ class Coxian(PhaseType):
         super().__init__(initial_state, absorbing_matrix)
 
     def __repr__(self):
+        """Return a string representation of the Coxian distribution."""
         return "Coxian"
 
 
 class PoissonIntervals(Sequential):
-    """
-    A time-dependant Poission distribution for arrivals.
+    """A time-dependent Poisson distribution for arrivals.
 
-    Takes:
-      - `rates` a list of Possion rates for each time interval
-      - `endpoints` the endpoints of each time interval
-      - `max_sample_date` the point where no more arrivals can occur
+    The number of arrivals in each time interval is sampled from a Poisson
+    distribution, the arrival dates are distributed uniformly within each
+    interval, and the consecutive differences of these dates are used as the
+    inter-arrival times.
 
-    The idea is to first sample the number of arrivals in each time
-    interval from a Poisson distribution. Then to randomly distribute
-    those arrival dates within the interval using a Uniform distribution.
-    Then to take consecutive differences of these arrivals as the
-    inter-arrival times, and use HCiw's Sequential distribution to output
-    them.
+    Attributes:
+        rates (list): The Poisson rate for each time interval.
+        endpoints (list): The endpoints of each time interval.
+        max_sample_date (float): The point after which no arrivals occur.
     """
     def __init__(self, rates, endpoints, max_sample_date):
+        """Initialize the PoissonIntervals distribution.
+
+        Args:
+            rates (list): A list of Poisson rates for each time interval.
+            endpoints (list): The endpoints of each time interval.
+            max_sample_date (float): The point where no more arrivals can occur.
+
+        Raises:
+            ValueError: If any rate is negative.
+            ValueError: If any endpoint is not positive.
+            ValueError: If ``max_sample_date`` is not positive.
+            ValueError: If the endpoints are not strictly increasing.
+            ValueError: If the numbers of rates and endpoints differ.
+        """
         if any(r < 0.0 for r in rates):
             raise ValueError("All rates must be positive.")
         if any(e <= 0.0 for e in endpoints):
@@ -978,9 +1632,11 @@ class PoissonIntervals(Sequential):
         super().__init__(self.inter_arrivals)
 
     def __repr__(self):
+        """Return a string representation of the PoissonIntervals distribution."""
         return "PoissonIntervals"
 
     def get_intervals(self):
+        """Build the list of time intervals up to ``max_sample_date``."""
         self.num_intervals = len(self.endpoints)
         self.intervals = [(0, self.endpoints[0])]
         i, t1, t2 = 0, 0, 0
@@ -1000,6 +1656,7 @@ class PoissonIntervals(Sequential):
             t1 = t2
 
     def get_dates(self):
+        """Sample the arrival dates within each time interval."""
         self.dates = [0.0]
         for i, interval in enumerate(self.intervals):
             n = hciw.rng.poisson(
@@ -1013,6 +1670,11 @@ class PoissonIntervals(Sequential):
     
     @property
     def overall_rate(self):
+        """Return the overall rate across all intervals.
+
+        Returns:
+            float: The time-averaged Poisson rate.
+        """
         deltas = [self.endpoints[0]] + [
             self.endpoints[i] - self.endpoints[i - 1]
             for i in range(1, len(self.endpoints))
@@ -1023,75 +1685,150 @@ class PoissonIntervals(Sequential):
 
     @property
     def mean(self):
+        """Return the mean inter-arrival time.
+
+        Returns:
+            float: The reciprocal of the overall rate, or infinity.
+        """
         O_R = self.overall_rate
         return 1 / O_R if O_R > 0 else float('inf')
 
     @property
     def variance(self):
+        """Return the variance of the inter-arrival times.
+
+        Returns:
+            float: The variance, which is NaN.
+        """
         return float('nan')
 
     @property
     def median(self):
+        """Return the median inter-arrival time.
+
+        Returns:
+            float: The median, which is NaN.
+        """
         return float('nan')
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the inter-arrival times.
+
+        Returns:
+            float: Infinity.
+        """
         return float('inf')
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the inter-arrival times.
+
+        Returns:
+            float: Zero.
+        """
         return 0
 
     
 class Poisson(Distribution):
-    """
-    The Poisson distribution.
-    Note that this is a discrete integer distribution, for use with Batching.
+    """The Poisson distribution.
 
-    Takes:
-      - `rate` the rate parameter, lambda
+    Note that this is a discrete integer distribution, for use with batching.
+
+    Attributes:
+        rate (float): The rate parameter, lambda.
     """
     def __init__(self, rate):
+        """Initialize the Poisson distribution.
+
+        Args:
+            rate (float): The rate parameter, lambda.
+
+        Raises:
+            ValueError: If ``rate`` is not positive.
+        """
         if rate <= 0.0:
             raise ValueError("Poisson distribution must sample positive numbers only.")
         self.rate = rate
 
     def sample(self, t=None, ind=None):
+        """Sample from the Poisson distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            int: A sample from the distribution.
+        """
         return hciw.rng.poisson(lam=self.rate)
 
     def __repr__(self):
+        """Return a string representation of the Poisson distribution."""
         return f"Poisson(rate={self.rate})"
 
     @property
     def mean(self):
+        """Return the mean of the Poisson distribution.
+
+        Returns:
+            float: The mean.
+        """
         return self.rate
 
     @property
     def variance(self):
+        """Return the variance of the Poisson distribution.
+
+        Returns:
+            float: The variance.
+        """
         return self.rate
 
     @property
     def median(self):
-        """this is a well known approximation of the median of a Poisson distribution"""
+        """Return the median of the Poisson distribution.
+
+        Returns:
+            float: An approximation of the median.
+        """
         return math.floor(self.rate + (1 / 3) - (0.02 / self.rate))
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Poisson distribution.
+
+        Returns:
+            float: Infinity.
+        """
         return float('inf')
 
     @property
     def lower_limit(self):
+        """Return the lower limit of the Poisson distribution.
+
+        Returns:
+            float: Zero.
+        """
         return 0
 
 class Geometric(Distribution):
-    """
-    The Geometric distribution.
-    Note that this is a discrete integer distribution, for use with Batching.
+    """The Geometric distribution.
 
-    Takes:
-      - `prob` the probability parameter
+    Note that this is a discrete integer distribution, for use with batching.
+
+    Attributes:
+        prob (float): The probability parameter.
     """
     def __init__(self, prob):
+        """Initialize the Geometric distribution.
+
+        Args:
+            prob (float): The probability parameter.
+
+        Raises:
+            ValueError: If ``prob`` is not strictly between 0 and 1.
+        """
         if prob <= 0.0 or prob >= 1:
             raise ValueError(
                 "Geometric distribution must have parameter between 0 and 1."
@@ -1099,42 +1836,87 @@ class Geometric(Distribution):
         self.prob = prob
 
     def sample(self, t=None, ind=None):
+        """Sample from the Geometric distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            int: A sample from the distribution.
+        """
         return hciw.rng.geometric(p=self.prob)
 
     def __repr__(self):
+        """Return a string representation of the Geometric distribution."""
         return f"Geometric(prob={self.prob})"
 
     @property
     def mean(self):
+        """Return the mean of the Geometric distribution.
+
+        Returns:
+            float: The mean.
+        """
         return 1 / self.prob
 
     @property
     def variance(self):
+        """Return the variance of the Geometric distribution.
+
+        Returns:
+            float: The variance.
+        """
         return (1 - self.prob) / (self.prob ** 2)
     
     @property
     def median(self):
+        """Return the median of the Geometric distribution.
+
+        Returns:
+            float: The median.
+        """
         return math.ceil(-1 / math.log(1 - self.prob, 2))
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Geometric distribution.
+
+        Returns:
+            float: Infinity.
+        """
         return float('inf')
     
     @property
     def lower_limit(self):
+        """Return the lower limit of the Geometric distribution.
+
+        Returns:
+            float: Zero.
+        """
         return 0
 
 
 class Binomial(Distribution):
-    """
-    The Binomial distribution.
-    Note that this is a discrete integer distribution, for use with Batching.
+    """The Binomial distribution.
 
-    Takes:
-      - `n`   the total number of experiments
-      - `prob` the probability parameter
+    Note that this is a discrete integer distribution, for use with batching.
+
+    Attributes:
+        n (int): The total number of experiments.
+        prob (float): The probability parameter.
     """
     def __init__(self, n, prob):
+        """Initialize the Binomial distribution.
+
+        Args:
+            n (int): The total number of experiments.
+            prob (float): The probability parameter.
+
+        Raises:
+            ValueError: If ``prob`` is not strictly between 0 and 1.
+            ValueError: If ``n`` is not a positive integer.
+        """
         if prob <= 0.0 or prob >= 1:
             raise ValueError(
                 "Binomial distribution have probability parameter between 0 and 1."
@@ -1147,74 +1929,93 @@ class Binomial(Distribution):
         self.prob = prob
 
     def sample(self, t=None, ind=None):
+        """Sample from the Binomial distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            int: A sample from the distribution.
+        """
         return hciw.rng.binomial(n=self.n, p=self.prob)
 
     def __repr__(self):
+        """Return a string representation of the Binomial distribution."""
         return f"Binomial(n={self.n}, prob={self.prob})"
 
     @property
     def mean(self):
+        """Return the mean of the Binomial distribution.
+
+        Returns:
+            float: The mean.
+        """
         return self.n * self.prob
 
     @property
     def variance(self):
+        """Return the variance of the Binomial distribution.
+
+        Returns:
+            float: The variance.
+        """
         return self.n * self.prob * (1 - self.prob)
 
     @property
     def median(self):
+        """Return the median of the Binomial distribution.
+
+        Returns:
+            float: The rounded mean.
+        """
         return round(self.n * self.prob)
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the Binomial distribution.
+
+        Returns:
+            float: Infinity.
+        """
         return float('inf')
 
     @property
     def lower_limit(self):
+        """Return the lower limit of the Binomial distribution.
+
+        Returns:
+            float: Zero.
+        """
         return 0
 
 
 class MixtureDistribution(Distribution):
-    """
-    A mixture distribution combining multiple probability distributions.
+    """A mixture distribution combining multiple probability distributions.
 
-    Parameters
-    ----------
-    dists : List[Distribution]
-        A list of probability distributions to be combined in the mixture.
-    probs : List[float]
-        A list of weights corresponding to the importance of each distribution in the mixture.
-        The weights must sum to 1.
-
-    Attributes
-    ----------
-    probs : List[float]
-        List of weights assigned to each distribution in the mixture.
-    dists : List[Distribution]
-        List of probability distributions in the mixture.
-
-    Methods
-    -------
-    sample(t: float, ind: Individual = None) -> float:
-        Generate a random sample from the mixture distribution.
+    Attributes:
+        probs (List[float]): The weights of each distribution, summing to 1.
+        dists (List[Distribution]): The distributions in the mixture.
     """
     def __init__(self, dists: List[Distribution], probs: List[float]) -> NoReturn:
-        """
-        Initialize the MixtureDistribution.
+        """Initialize the MixtureDistribution.
 
-        Parameters
-        ----------
-        dists : List[Distribution]
-            A list of probability distributions to be combined in the mixture.
-        probs : List[float]
-            A list of weights corresponding to the importance of each distribution in the mixture.
-            The weights must sum to 1.
+        Args:
+            dists (List[Distribution]): The distributions to combine in the mixture.
+            probs (List[float]): The weights of each distribution, summing to 1.
         """
         self.probs = probs
         self.dists = dists
 
     def sample(self, t: float = None, ind: Individual = None) -> float:
-        """
-        Generate a random sample from the mixture distribution.
+        """Generate a random sample from the mixture distribution.
+
+        Args:
+            t (float, optional): The current time. Defaults to None.
+            ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A sample from one of the distributions, chosen by weight.
         """
         chosen_dist = random.choices(
             population=self.dists,
@@ -1225,16 +2026,27 @@ class MixtureDistribution(Distribution):
         return chosen_dist.sample(t, ind)
 
     def __repr__(self):
+        """Return a string representation of the mixture distribution."""
         return "MixtureDistribution"
 
     @property
     def mean(self):
+        """Return the mean of the mixture distribution.
+
+        Returns:
+            float: The weighted mean of the component distributions.
+        """
         return sum(
             p * dist.mean for p, dist in zip(self.probs, self.dists)
         )
 
     @property
     def variance(self):
+        """Return the variance of the mixture distribution.
+
+        Returns:
+            float: The weighted variance of the component distributions.
+        """
         mu = self.mean
         var = sum(
             p * (dist.variance + dist.mean ** 2) for p, dist in zip(self.probs, self.dists)
@@ -1243,12 +2055,22 @@ class MixtureDistribution(Distribution):
 
     @property
     def upper_limit(self):
+        """Return the upper limit of the mixture distribution.
+
+        Returns:
+            float: The largest component upper limit, or NaN if any is NaN.
+        """
         if any(math.isnan(dist.upper_limit) for dist in self.dists):
             return float('nan')
         return max(dist.upper_limit for dist in self.dists)
 
     @property
     def lower_limit(self):
+        """Return the lower limit of the mixture distribution.
+
+        Returns:
+            float: The smallest component lower limit, or NaN if any is NaN.
+        """
         if any(math.isnan(dist.lower_limit) for dist in self.dists):
             return float('nan')
         return min(dist.lower_limit for dist in self.dists)

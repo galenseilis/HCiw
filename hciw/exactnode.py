@@ -1,3 +1,5 @@
+"""Node classes with exact numerical precision."""
+
 from typing import List
 
 from .node import Node
@@ -7,28 +9,50 @@ from .server import Server
 
 
 class ExactNode(Node):
-    """Exact numerical precision node.
+    """Represent a node with exact numerical precision.
 
-    This class inherits from the Node class, and
-    implements a more precise version of addition to
-    fix discrepencies with floating point numbers.
+    This class inherits from `Node` and implements a more precise version of
+    addition to fix discrepancies with floating point numbers.
     """
     
     @property
     def now(self) -> Decimal:
-        """Get the current time."""
+        """Get the current simulation time.
+
+        Returns:
+            Decimal: The current simulation time.
+        """
         return Decimal(self.simulation.current_time)
 
     def create_starting_servers(self) -> List[Server]:
-        """Initialise the servers at this node."""
+        """Initialise the servers at this node.
+
+        Returns:
+            List[Server]: The newly created starting servers.
+        """
         return [Server(self, i + 1, Decimal("0.0")) for i in range(self.c)]
 
     def increment_time(self, original, increment) -> Decimal:
-        """Increment the original time by the increment."""
+        """Increment the original time by the increment.
+
+        Args:
+            original (float): The original time.
+            increment (float): The amount to add.
+
+        Returns:
+            Decimal: The incremented time.
+        """
         return Decimal(str(original)) + Decimal(str(increment))
 
     def get_service_time(self, ind) -> Decimal:
-        """Return a service time for the given customer class."""
+        """Return a service time for the given customer class.
+
+        Args:
+            ind (Individual): The individual being served.
+
+        Returns:
+            Decimal: The sampled service time.
+        """
         return Decimal(
             str(
                 self.simulation.service_times[self.id_number][
@@ -39,25 +63,33 @@ class ExactNode(Node):
 
 
 class ExactArrivalNode(ArrivalNode):
-    """Node with exact numerical time precision.
+    """Represent an arrival node with exact numerical precision.
 
-    Inherits from the ArrivalNode class, implements a
-    more precise version of addition to fix discrepencies
-    with floating point numbers.
+    Inherits from `ArrivalNode` and implements a more precise version of
+    addition to fix discrepancies with floating point numbers.
     """
 
     def increment_time(self, original, increment) -> Decimal:
-        """Increment the original time by the increment."""
+        """Increment the original time by the increment.
+
+        Args:
+            original (float): The original time.
+            increment (float): The amount to add.
+
+        Returns:
+            Decimal: The incremented time.
+        """
         return Decimal(str(original)) + Decimal(str(increment))
 
     def inter_arrival(self, nd, clss) -> Decimal:
-        """Samples the inter-arrival time for next class and node.
+        """Sample the inter-arrival time for the next class and node.
 
-        Parameters
-        ----------
-        nd (Node): Next node.
-        clss (Individual): Individual class to be selected next.
+        Args:
+            nd (Node): The next node.
+            clss (Individual): The individual class to select next.
 
+        Returns:
+            Decimal: The sampled inter-arrival time.
         """
         return Decimal(
             str(
