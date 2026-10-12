@@ -33,7 +33,7 @@ Priority depends on how valuable the feature is to healthcare simulation work.
 ## Documentation and branding
 
 - Give the documentation a style distinct from Ciw's. The docs currently inherit Ciw's Sphinx `classic` theme and styling (`docs/conf.py`, `docs/_static/style.css`) and read as a continuation of the upstream docs; choose and apply a theme/appearance that reflects HCiw's own identity.
-- Replace the logo and favicon with HCiw-specific artwork. `docs/_static/logo.png`, `logo.svg`, `logo.pdf`, `logo_small.png`, and `favicon.ico` are carried over from Ciw; design or commission new assets and update `html_logo` and `html_favicon` in `docs/conf.py`.
+- Replace the logo and favicon with HCiw-specific artwork. A placeholder is in place (`docs/_static/hciw-logo.svg`, `hciw-favicon.svg`, wired to `html_logo`/`html_favicon`), but final artwork should be designed or commissioned. The Ciw-derived assets (`logo.png`, `logo.svg`, `logo.pdf`, `logo_small.png`, `favicon.ico`) remain in `docs/_static/` unused and can be deleted once the final assets land.
 - (Context) The docs are already published to GitHub Pages via `.github/workflows/docs.yml` at https://galenseilis.github.io/HCiw/.
 
 ## Code and documentation style
