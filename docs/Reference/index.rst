@@ -11,8 +11,4 @@ Contents:
    distributions.rst
    routers.rst
    state_trackers.rst
-   citation.rst
-   contributing.rst
    glossary.rst
-   changelog.rst
-   authors.rst

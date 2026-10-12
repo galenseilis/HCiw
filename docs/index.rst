@@ -21,10 +21,10 @@ Contents:
    :maxdepth: 3
    :titlesonly:
    
-   installation.rst
    Tutorial/index.rst
    Guides/index.rst
    Reference/index.rst
+   Project/index.rst
    Background/index.rst
 
 

@@ -8,6 +8,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   installation.rst
    Simulation/index.rst
    Distributions/index.rst
    Arrivals/index.rst
