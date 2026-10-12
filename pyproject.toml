@@ -1,26 +1,48 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "hciw"
-version = "0.23.0"
-description = "A package for assisting in healthcare queueing network simulation."
+name = "HCiw"
+dynamic = ["version"]
+description = "A discrete event simulation library for open queueing networks, forked from Ciw"
+readme = "README.rst"
+requires-python = ">=3.12,<3.13"
+license = "MIT"
+license-files = ["LICENSE.txt"]
 authors = [
-    { name = "galenseilis", email = "galen.seilis@seilis.ca" }
+    { name = "Galen Seilis", email = "galen.seilis@seilis.ca" },
+    { name = "Geraint Palmer", email = "palmer.geraint@googlemail.com" },
+]
+keywords = ["simulation", "queueing", "discrete event simulation", "healthcare"]
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
 ]
 dependencies = [
-    "ciw>=3.2.1",
+    "networkx>=2.3",
+    "tqdm>=4.66.3",
+    "numpy>=1.21.6",
 ]
-readme = "README.md"
-requires-python = ">= 3.8"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[project.urls]
+Homepage = "https://github.com/galenseilis/HCiw"
+Repository = "https://github.com/galenseilis/HCiw"
+"Upstream Ciw" = "https://github.com/CiwPython/Ciw"
 
-[tool.rye]
-managed = true
-dev-dependencies = []
+[dependency-groups]
+dev = [
+    "hypothesis",
+    "coverage",
+    "pandas",
+    "sphinx>=5.0.0",
+]
 
-[tool.hatch.metadata]
-allow-direct-references = true
+[tool.setuptools]
+include-package-data = true
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/hciw"]
+[tool.setuptools.packages.find]
+include = ["hciw*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "hciw.version.__version__" }
