@@ -1,3 +1,4 @@
+"""This is an example"""
 from copy import copy
 from itertools import product
 from typing import Callable
