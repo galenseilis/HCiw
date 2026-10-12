@@ -100,8 +100,9 @@ exclude_patterns = ["_build"]
 # output. They are ignored by default.
 # show_authors = False
 
-# The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "colorful"
+# Syntax highlighting is provided by the Furo theme, which sets its own
+# Pygments styles for light and dark mode. See html_theme_options below.
+# pygments_style = "default"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -120,29 +121,26 @@ todo_include_todos = False
 html_baseurl = "https://galenseilis.github.io/HCiw/"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-html_theme = "classic"
+# a list of builtin themes. Furo gives HCiw a modern look distinct from the
+# upstream Ciw documentation, which uses Sphinx's classic theme.
+html_theme = "furo"
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
+# Theme options (see https://furo.readthedocs.io/en/stable/).
 html_theme_options = {
-    "footerbgcolor": "white",
-    "footertextcolor": "black",
-    "sidebarbgcolor": "#ffbe00",
-    "sidebarwidth": "300",
-    "sidebartextcolor": "#ba7002",
-    "sidebarlinkcolor": "black",
-    "relbarbgcolor": "#d19d00",
-    "headbgcolor": "#e0e0e0",
-    "headtextcolor": "black",
-    "linkcolor": "#ba7002",
-    "visitedlinkcolor": "#ba7002",
-    "bodyfont": "Arial",
-    "headfont": "Arial",
-    "codebgcolor": "#F7F7F7",
-    "body_min_width": 0,
-    "body_max_width": '92%',
+    # Add "Edit this page" / "View source" links to the docs.
+    "source_repository": "https://github.com/galenseilis/HCiw/",
+    "source_branch": "main",
+    "source_directory": "docs/",
+    # HCiw brand colour: deep blue for links and headings. Dark mode uses a
+    # lighter tint so it stays legible on dark backgrounds.
+    "light_css_variables": {
+        "color-brand-primary": "#164884",
+        "color-brand-content": "#164884",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#7fb3e8",
+        "color-brand-content": "#7fb3e8",
+    },
 }
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []

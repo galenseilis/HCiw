@@ -36,6 +36,7 @@ dev = [
     "coverage",
     "pandas",
     "sphinx>=5.0.0",
+    "furo",
 ]
 
 [tool.setuptools]

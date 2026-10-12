@@ -1,18 +1,12 @@
-* {
-	font-size: 101%;
-}
+/* HCiw documentation customisations.
+ *
+ * The Furo theme provides the base appearance and the deep-blue HCiw brand
+ * colour (see light_css_variables / dark_css_variables in docs/conf.py).
+ * Prefer editing those theme variables rather than adding raw colours here,
+ * so that both light and dark modes stay consistent. This file is for small,
+ * theme-safe adjustments only.
+ */
 
 pre {
-    border-top: 1px solid #ffbe00;
-    border-bottom: 1px solid #ffbe00;
-}
-
-th {
-    background-color: #FFE085;
-    font-size: 100%;
-}
-
-td {
-    font-size: 100%;
-    border: 1px solid #ddd !important;
+    border-radius: 0.2rem;
 }
