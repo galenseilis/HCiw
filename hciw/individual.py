@@ -1,5 +1,10 @@
 """The individual agent that flows through a queueing network."""
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hciw.server import Server
+
 
 class Individual(object):
     """Represent an individual agent in a queueing network simulation.
@@ -58,7 +63,7 @@ class Individual(object):
         """
         self.arrival_date = False
         self.service_start_date = False
-        self.service_time = False
+        self.service_time: float | bool | str = False
         self.service_end_date = False
         self.exit_date = False
         self.id_number = id_number
@@ -69,15 +74,26 @@ class Individual(object):
         self.prev_priority_class = priority_class
         self.original_class = customer_class
         self.is_blocked = False
-        self.server = False
-        self.queue_size_at_arrival = False
-        self.queue_size_at_departure = False
-        self.destination = False
+        self.server: Server | bool = False
+        self.queue_size_at_arrival: int | bool = False
+        self.queue_size_at_departure: int | bool = False
+        self.destination: int | bool = False
         self.interrupted = False
         self.node = False
         self.simulation = simulation
 
-    def __repr__(self):
+    next_class: str
+    class_change_date: float | bool
+    reneging_date: float | bool
+    starting_node: int
+    original_service_start_date: float | bool
+    original_service_time: float | bool | str
+    time_left: float | bool
+    route: list
+    with_server: bool
+    date_last_update: float | bool
+
+    def __repr__(self) -> str:
         """Return a string representation of the individual.
 
         Returns:

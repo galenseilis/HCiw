@@ -5,6 +5,7 @@ from math import isinf, nan
 import networkx as nx
 from .auxiliary import random_choice, flatten_list
 from .data_record import DataRecord
+from .individual import Individual
 from .server import Server
 from .schedules import *
 
@@ -27,13 +28,14 @@ class Node(object):
         node = self.simulation.network.service_centres[id_ - 1]
         self.server_priority_function = node.server_priority_function
         self.service_discipline = node.service_discipline
-        self.next_event_type = None
+        self.next_event_type: str | None = None
+        self.schedule: Schedule | Slotted | None
         if isinstance(node.number_of_servers, Schedule):
             self.schedule = node.number_of_servers
             self.schedule.initialise()
             self.c = self.schedule.c
-            if self.schedule.schedule_type == 'slotted':
-                self.slotted = True
+            if isinstance(self.schedule, Slotted):
+                self.slotted: bool = True
                 self.next_event_date = self.schedule.next_slot_date
                 self.next_event_type = 'slotted_service'
             else:
@@ -72,7 +74,7 @@ class Node(object):
         self.reneging = node.reneging
         self.dynamic_classes = node.class_change_time
         self.next_class_change_date = float("Inf")
-        self.next_individual = None
+        self.next_individual: list[Individual] | Individual | None = None
 
     @property
     def now(self):
@@ -179,6 +181,7 @@ class Node(object):
                 self.number_in_service += 1
                 self.reset_class_change(ind)
                 if not isinf(self.c):
+                    assert isinstance(free_server, Server)
                     free_server.next_end_service_date = ind.service_end_date
 
     def begin_interrupted_individuals_service(self, srvr):
@@ -298,6 +301,7 @@ class Node(object):
         decided if the priority class changes.
         """
         changing_individual = self.next_individual
+        assert isinstance(changing_individual, Individual)
         changing_individual.customer_class = changing_individual.next_class
         changing_individual.priority_class = self.simulation.network.priority_class_mapping[changing_individual.next_class]
         if changing_individual.priority_class != changing_individual.prev_priority_class:
@@ -323,6 +327,7 @@ class Node(object):
         Adds or deletes servers, or indicates which servers should go off
         duty, and begins any new services if there are free servers.
         """
+        assert self.schedule is not None
         self.schedule.get_next_shift()
         self.next_shift_change = self.schedule.next_shift_change_date
         self.c = self.schedule.c
@@ -336,6 +341,7 @@ class Node(object):
         Returns:
             int: The number of services to start.
         """
+        assert isinstance(self.schedule, Slotted)
         if self.schedule.capacitated:
             return min(max(self.schedule.slot_size - self.number_in_service, 0), self.number_of_individuals)
         return min(self.schedule.slot_size, self.number_of_individuals)
@@ -347,6 +353,7 @@ class Node(object):
         because of insufficient capacity at the current slot, and interrupts
         their services.
         """
+        assert isinstance(self.schedule, Slotted)
         if self.schedule.capacitated and self.schedule.preemption is not False:
             number_to_interrupt = self.number_in_service - self.schedule.slot_size
             if number_to_interrupt > 0:
@@ -364,6 +371,7 @@ class Node(object):
         Only the number of customers allowed by the current slot may have
         service at the exact time the method is called.
         """
+        assert isinstance(self.schedule, Slotted)
         number_of_slotted_services = self.find_number_of_slotted_services()
         self.interrupt_slotted_services()
         for i in range(number_of_slotted_services):
@@ -488,6 +496,7 @@ class Node(object):
             Individual: A randomly chosen individual when several finish at
                 the same time.
         """
+        assert isinstance(self.next_individual, list)
         if len(self.next_individual) > 1:
             next_individual = random_choice(self.next_individual)
         else:
@@ -526,6 +535,7 @@ class Node(object):
         next_node = self.next_node(next_individual)
         next_individual.destination = next_node.id_number
         if not isinf(self.c) and self.c > 0:
+            assert isinstance(next_individual.server, Server)
             next_individual.server.next_end_service_date = float("Inf")
         if next_node.number_of_individuals < next_node.node_capacity:
             self.release(next_individual, next_node)
@@ -774,7 +784,7 @@ class Node(object):
         """
         return self.simulation.service_times[self.id_number][ind.customer_class].sample(t=self.now, ind=ind)
 
-    def take_servers_off_duty(self, preemption=False):
+    def take_servers_off_duty(self, preemption: bool | str = False):
         """Gather the servers that should be deleted.
 
         Args:
@@ -809,6 +819,7 @@ class Node(object):
             individual (Individual): The individual being interrupted.
         """
         individual.original_service_time = individual.service_time
+        assert self.schedule is not None
         if self.schedule.preemption == 'reroute':
             self.reroute(individual)
         else:
@@ -881,7 +892,7 @@ class Node(object):
         if self.schedule is not None:
             if self.schedule.schedule_type == 'schedule':
                 self.possible_next_events['shift_change'] = (None, self.next_shift_change)
-            if self.schedule.schedule_type == 'slotted':
+            if isinstance(self.schedule, Slotted):
                 self.possible_next_events['slotted_service'] = (None, self.schedule.next_slot_date)
 
     def update_next_event_date(self):

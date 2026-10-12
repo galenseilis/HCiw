@@ -1,6 +1,6 @@
 """Server schedules for varying the number of servers over time."""
 
-from typing import List, Tuple, Union, Generator, NoReturn
+from typing import List, Tuple, Union, Generator
 
 class Schedule:
     """Store server schedule information and generate the next shifts.
@@ -13,7 +13,7 @@ class Schedule:
         cyclelength (float): The length of the schedule cycle.
         offset (float): The offset applied to the schedule.
     """
-    def __init__(self, numbers_of_servers: List[int], shift_end_dates: List[float], preemption: Union[bool, str] = False, offset: float = 0.0) -> NoReturn:
+    def __init__(self, numbers_of_servers: List[int], shift_end_dates: List[float], preemption: Union[bool, str] = False, offset: float = 0.0) -> None:
         """Initialise a ``Schedule`` instance.
 
         Args:
@@ -42,7 +42,7 @@ class Schedule:
         self.cyclelength = self.shift_end_dates[-1]
         self.offset = offset
 
-    def initialise(self) -> NoReturn:
+    def initialise(self) -> None:
         """Initialise the generator at the beginning of a simulation."""
         self.c = 0
         self.next_shift_change_date = self.offset
@@ -69,7 +69,7 @@ class Schedule:
             index += 1
             yield date, values[index % num_boundaries]
 
-    def get_next_shift(self) -> NoReturn:
+    def get_next_shift(self) -> None:
         """Update the next shift from the generator."""
         self.c = self.next_c
         date, c = next(self.schedule_generator)

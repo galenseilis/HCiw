@@ -24,7 +24,7 @@ class ArrivalNode:
         self.number_accepted_individuals = 0
         self.number_accepted_individuals_per_class = {clss: 0 for clss in self.simulation.network.customer_class_names}
         self.system_capacity = self.simulation.network.system_capacity
-        self.event_dates_dict = {
+        self.event_dates_dict: dict[int, dict[str, float | bool]] = {
             nd + 1: {clss: False for clss in self.simulation.network.customer_class_names
             } for nd in range(self.simulation.network.number_of_nodes)
         }
@@ -81,6 +81,8 @@ class ArrivalNode:
         relevant node, then updates the event dates dictionary.
         """
         batch = self.batch_size(self.next_node, self.next_class)
+        assert self.next_node is not None
+        assert self.next_class is not None
         for _ in range(batch):
             self.number_of_individuals += 1
             self.number_of_individuals_per_class[self.next_class] += 1

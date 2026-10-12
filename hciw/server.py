@@ -1,10 +1,12 @@
 """Server that processes individuals at a node."""
 
+from decimal import Decimal
+
 
 class Server(object):
     """Contain information about a server."""
 
-    def __init__(self, node, id_number, start_date=0.0):
+    def __init__(self, node, id_number, start_date: float | Decimal = 0.0):
         """Initialise the server.
 
         Args:

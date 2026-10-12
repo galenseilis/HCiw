@@ -22,7 +22,7 @@ class NoDetection:
         """
         pass
 
-    def detect_deadlock(self):
+    def detect_deadlock(self) -> bool:
         """Return whether deadlock has been reached.
 
         Returns:

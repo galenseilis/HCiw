@@ -24,18 +24,21 @@ from hciw.individual import Individual
 
 class Distribution(object):
     """A general distribution from which all other distributions inherit."""
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return a string representation of the distribution."""
         return "Distribution"
 
-    def sample(self, t=None, ind=None):
+    def sample(self, t: float | None = None, ind: Individual | None = None) -> float:
         """Sample a value from the distribution.
 
         Args:
             t (float, optional): The current time. Defaults to None.
             ind (Individual, optional): The individual being sampled. Defaults to None.
+
+        Returns:
+            float: A sampled value. The base class implements no sampling.
         """
-        pass
+        ...
 
     def _sample(self, t=None, ind=None):
         """
@@ -187,7 +190,7 @@ class CombinedDistribution(Distribution):
         return self.operator(s1, s2)
 
     @property
-    def mean(self):
+    def mean(self) -> float:
         """Return the combined mean of the two distributions.
 
         Returns:
@@ -205,9 +208,10 @@ class CombinedDistribution(Distribution):
             if m2 == 0:
                 return float('nan')
             return m1 / m2  # delta-method mean
+        return float('nan')
 
     @property
-    def variance(self):
+    def variance(self) -> float:
         """Return the combined variance of the two distributions.
 
         Returns:
@@ -230,6 +234,7 @@ class CombinedDistribution(Distribution):
             if m2 == 0:
                 return float('nan')
             return (v1 / (m2 ** 2)) + ((m1 ** 2) * v2) / (m2 ** 4)
+        return float('nan')
 
     @property
     def upper_limit(self):
@@ -1269,9 +1274,9 @@ class PhaseType(Distribution):
         self.states = tuple(range(len(initial_state))) 
         self.absorbing_matrix = absorbing_matrix 
 
-    def __repr__(self): 
+    def __repr__(self) -> str:
         """Return a string representation of the PhaseType distribution."""
-        return "PhaseType" 
+        return "PhaseType"
 
     def sample_transition(self, rate): 
         """Sample the time to a single transition.
@@ -1997,7 +2002,7 @@ class MixtureDistribution(Distribution):
         probs (List[float]): The weights of each distribution, summing to 1.
         dists (List[Distribution]): The distributions in the mixture.
     """
-    def __init__(self, dists: List[Distribution], probs: List[float]) -> NoReturn:
+    def __init__(self, dists: List[Distribution], probs: List[float]) -> None:
         """Initialize the MixtureDistribution.
 
         Args:
@@ -2007,7 +2012,7 @@ class MixtureDistribution(Distribution):
         self.probs = probs
         self.dists = dists
 
-    def sample(self, t: float = None, ind: Individual = None) -> float:
+    def sample(self, t: float | None = None, ind: Individual | None = None) -> float:
         """Generate a random sample from the mixture distribution.
 
         Args:

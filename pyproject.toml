@@ -37,7 +37,15 @@ dev = [
     "pandas",
     "sphinx>=5.0.0",
     "furo",
+    "pyright",
 ]
+
+[tool.pyright]
+include = ["hciw"]
+exclude = ["old", "docs", ".venv", "tests"]
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.12"
 
 [tool.setuptools]
 include-package-data = true
