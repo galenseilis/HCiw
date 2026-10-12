@@ -31,8 +31,8 @@ class PSNode(Node):
         self.last_occupancy = 0
         super().__init__(id_, simulation)
         self.ps_threshold = self.simulation.network.service_centres[id_ - 1].ps_threshold
-        self.ps_capacity = self.c
-        self.c = float("inf")
+        self.ps_capacity: int | float = self.c
+        self.c: float = float("inf")
 
     def update_all_service_end_dates(self):
         """Update projected service end dates for customers in service.
@@ -76,7 +76,7 @@ class PSNode(Node):
             next_individual.with_server = True
             self.update_all_service_end_dates()
 
-    def begin_service_if_possible_release(self, ind=None, server=None):
+    def begin_service_if_possible_release(self, next_individual=None, newly_free_server=None):
         """Begin service for an individual at a release point.
 
         Checks for individuals waiting for capacity, gives a start date and
@@ -84,14 +84,14 @@ class PSNode(Node):
         left, and updates all customers' service times.
 
         Args:
-            ind (Individual): The individual being released.
-            server (Server): The server freed by the release.
+            next_individual (Individual): The individual being released.
+            newly_free_server (Server): The server freed by the release.
         """
         if self.number_of_individuals >= self.ps_capacity:
-            ind = self.all_individuals[self.ps_capacity - 1]
-            ind.service_start_date = self.now
-            ind.date_last_update = self.now
-            ind.service_time = self.get_service_time(ind)
-            ind.time_left = ind.service_time
-            ind.with_server = True
+            next_individual = self.all_individuals[int(self.ps_capacity) - 1]
+            next_individual.service_start_date = self.now
+            next_individual.date_last_update = self.now
+            next_individual.service_time = self.get_service_time(next_individual)
+            next_individual.time_left = next_individual.service_time
+            next_individual.with_server = True
         self.update_all_service_end_dates()

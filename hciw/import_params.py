@@ -1,6 +1,7 @@
 """Build ``Network`` objects from user-supplied parameters."""
 
 import hciw.dists
+import hciw.disciplines
 from .network import *
 from .schedules import *
 from .routing import *
@@ -120,12 +121,14 @@ def create_network_from_dictionary(params_input):
     number_of_nodes = params["number_of_nodes"]
     if isinstance(params["priority_classes"], dict):
         preempt_priorities = [False] * number_of_nodes
-    if isinstance(params["priority_classes"], tuple):
+    elif isinstance(params["priority_classes"], tuple):
         preempt_priorities = params["priority_classes"][1]
         params["priority_classes"] = {
             clss: params["priority_classes"][0][clss]
             for clss in params["customer_class_names"]
         }
+    else:
+        preempt_priorities = [False] * number_of_nodes
     class_change_matrices = params.get(
         "class_change_matrices",
         [None] * number_of_nodes,

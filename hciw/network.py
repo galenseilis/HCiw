@@ -119,7 +119,9 @@ class Network(object):
         number_of_priority_classes (int): The number of distinct priority
             classes.
         priority_class_mapping (dict): Maps class names to priority classes.
+        system_capacity (float): The total capacity of the system.
     """
+    system_capacity: float
 
     def __init__(self, service_centres, customer_classes):
         """Initialise a ``Network`` object.

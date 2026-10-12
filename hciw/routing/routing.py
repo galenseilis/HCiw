@@ -221,11 +221,13 @@ class FlexibleProcessBased(ProcessBased):
             temp_router = JoinShortestQueue(destinations=subset)
             temp_router.initialise(self.simulation, None)
             nd = temp_router.next_node(ind)
+            assert nd is not None
             return nd.id_number
         if self.choice == 'lb':
             temp_router = LoadBalancing(destinations=subset)
             temp_router.initialise(self.simulation, None)
             nd = temp_router.next_node(ind)
+            assert nd is not None
             return nd.id_number
 
     def update_individual_route(self, ind, next_node_id):
@@ -278,6 +280,17 @@ class NodeRouting:
     def error_check_at_initialise(self):
         """Check the routing object is valid when it is initialised."""
         pass
+
+    def next_node(self, ind):
+        """Choose the next node for an individual.
+
+        Args:
+            ind (hciw.Individual): The individual being routed.
+
+        Returns:
+            hciw.Node: The next node.
+        """
+        raise NotImplementedError
 
     def next_node_for_rerouting(self, ind):
         """Choose the next node when rerouting a preempted customer.

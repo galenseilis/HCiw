@@ -98,7 +98,8 @@ class Simulation(object):
         self.show_simulation_to_distributions()
         self.number_of_priority_classes = self.network.number_of_priority_classes
         self.transitive_nodes = [node_type(i + 1, self) for i, node_type in enumerate(self.NodeTypes)]
-        self.nodes = [self.ArrivalNodeType(self)] + self.transitive_nodes + [self.ExitNodeType()]
+        self.exit_node = self.ExitNodeType()
+        self.nodes = [self.ArrivalNodeType(self)] + self.transitive_nodes + [self.exit_node]
         self.active_nodes = self.nodes[:-1]
         self.routers = self.find_and_initialise_routers()
         self.nodes[0].initialise()
@@ -216,7 +217,7 @@ class Simulation(object):
         """
         return [
             individual
-            for node in self.nodes[1:]
+            for node in [*self.transitive_nodes, self.exit_node]
             for individual in node.all_individuals
         ]
 
@@ -317,6 +318,7 @@ class Simulation(object):
         deadlocked = False
         next_active_node = self.find_next_active_node()
         self.current_time = next_active_node.next_event_date
+        time_of_deadlock = self.current_time
         while not deadlocked:
             next_active_node = self.event_and_return_nextnode(next_active_node)
             current_state = self.statetracker.hash_state()
@@ -400,9 +402,9 @@ class Simulation(object):
             self.progress_bar = tqdm.tqdm(total=max_customers)
 
         if method == "Complete":
-            check = lambda: self.nodes[-1].number_of_completed_individuals
+            check = lambda: self.exit_node.number_of_completed_individuals
         elif method == "Finish":
-            check = lambda: self.nodes[-1].number_of_individuals
+            check = lambda: self.exit_node.number_of_individuals
         elif method == "Arrive":
             check = lambda: self.nodes[0].number_of_individuals
         elif method == "Accept":
@@ -410,6 +412,7 @@ class Simulation(object):
         else:
             raise ValueError("Invalid 'method' for 'simulate_until_max_customers'.")
 
+        previous_time = self.current_time
         while check() < max_customers:
             old_check = check()
             next_active_node = self.event_and_return_nextnode(next_active_node)

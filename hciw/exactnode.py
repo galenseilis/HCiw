@@ -30,7 +30,7 @@ class ExactNode(Node):
         Returns:
             List[Server]: The newly created starting servers.
         """
-        return [Server(self, i + 1, Decimal("0.0")) for i in range(self.c)]
+        return [Server(self, i + 1, Decimal("0.0")) for i in range(int(self.c))]
 
     def increment_time(self, original, increment) -> Decimal:
         """Increment the original time by the increment.

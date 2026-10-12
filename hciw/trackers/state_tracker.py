@@ -67,7 +67,7 @@ class StateTracker:
         """
         pass
 
-    def hash_state(self):
+    def hash_state(self) -> object:
         """Return a hashable state.
 
         Returns:
@@ -101,6 +101,7 @@ class StateTracker:
         steady_state_dictionary = {}
         prev_date = self.history[0][0]
         prev_state = self.history[0][1]
+        date_diff = 0.0
 
         if start < 0 or end <= start:
             raise ValueError("Observation period need to be a positive interval above zero")
@@ -421,7 +422,8 @@ class NodeClassMatrix(StateTracker):
             class_ordering (list, optional): The order of the customer
                 classes. Defaults to ``None``.
         """
-        self.class_ordering = class_ordering
+        self.class_ordering: dict = {}
+        self._class_ordering_input = class_ordering
 
     def initialise(self, simulation):
         """Initialise the state tracker class.
@@ -430,12 +432,12 @@ class NodeClassMatrix(StateTracker):
             simulation (hciw.Simulation): The simulation being tracked.
         """
         self.simulation = simulation
-        
-        if self.class_ordering is not None:
-            self.class_ordering = {clss: i for i, clss in enumerate(self.class_ordering)}
+
+        if self._class_ordering_input is not None:
+            self.class_ordering = {clss: i for i, clss in enumerate(self._class_ordering_input)}
         else:
             self.class_ordering = {clss: i for i, clss in enumerate(self.simulation.network.customer_class_names)}
-        
+
         self.state = [
             [0 for cls in range(self.simulation.network.number_of_classes)]
             for i in range(self.simulation.network.number_of_nodes)

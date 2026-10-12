@@ -33,7 +33,7 @@ class Node(object):
         if isinstance(node.number_of_servers, Schedule):
             self.schedule = node.number_of_servers
             self.schedule.initialise()
-            self.c = self.schedule.c
+            self.c: int | float = self.schedule.c
             if isinstance(self.schedule, Slotted):
                 self.slotted: bool = True
                 self.next_event_date = self.schedule.next_slot_date
@@ -408,7 +408,7 @@ class Node(object):
         Returns:
             list: The newly created starting servers.
         """
-        return [self.simulation.ServerType(self, i + 1, 0.0) for i in range(self.c)]
+        return [self.simulation.ServerType(self, i + 1, 0.0) for i in range(int(self.c))]
 
     def decide_class_change(self, next_individual):
         """Decide the next class and class change date for an individual.
