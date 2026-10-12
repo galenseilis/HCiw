@@ -30,6 +30,12 @@ Priority depends on how valuable the feature is to healthcare simulation work.
 
 - Update Python support to the latest LTS version(s). The project currently targets 3.12 only (`requires-python = ">=3.12,<3.13"`, `.python-version = 3.12.3`); broaden the supported range to current LTS lines and drop end-of-life ones as they age. Validate the full `unittest` suite and the `.rst` doctests on every supported version, since version-specific breakage is real (e.g. the `TypeError: cannot pickle 'itertools.cycle' object` failure on 3.14 from deep-copying distributions in `Simulation.find_arrival_dists`).
 
+## Documentation and branding
+
+- Give the documentation a style distinct from Ciw's. The docs currently inherit Ciw's Sphinx `classic` theme and styling (`docs/conf.py`, `docs/_static/style.css`) and read as a continuation of the upstream docs; choose and apply a theme/appearance that reflects HCiw's own identity.
+- Replace the logo and favicon with HCiw-specific artwork. `docs/_static/logo.png`, `logo.svg`, `logo.pdf`, `logo_small.png`, and `favicon.ico` are carried over from Ciw; design or commission new assets and update `html_logo` and `html_favicon` in `docs/conf.py`.
+- (Context) The docs are already published to GitHub Pages via `.github/workflows/docs.yml` at https://galenseilis.github.io/HCiw/.
+
 ## Code and documentation style
 
 - Adopt Google's Python style for code and docstrings, following the `Google Python Style Guide <https://google.github.io/styleguide/pyguide.html>`_.
