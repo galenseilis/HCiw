@@ -28,16 +28,16 @@ Priority depends on how valuable the feature is to healthcare simulation work.
 
 ## Python and platform support
 
-- Update Python support to the latest LTS version(s). The project currently targets 3.12 only (`requires-python = ">=3.12,<3.13"`, `.python-version = 3.12.3`); broaden the supported range to current LTS lines and drop end-of-life ones as they age. Validate the full `unittest` suite and the `.rst` doctests on every supported version, since version-specific breakage is real (e.g. the `TypeError: cannot pickle 'itertools.cycle' object` failure on 3.14 from deep-copying distributions in `Simulation.find_arrival_dists`).
+- Update Python support to the latest LTS version(s). The project currently targets 3.12 only (`requires-python = ">=3.12,<3.13"`, `.python-version = 3.12.3`); broaden the supported range to current LTS lines and drop end-of-life ones as they age. Validate the full `unittest` suite and the `.md`/`.rst` doctests on every supported version, since version-specific breakage is real (e.g. the `TypeError: cannot pickle 'itertools.cycle' object` failure on 3.14 from deep-copying distributions in `Simulation.find_arrival_dists`).
 
 ## Documentation and branding
 
-- Give the documentation a style distinct from Ciw's. The docs currently inherit Ciw's Sphinx `classic` theme and styling (`docs/conf.py`, `docs/_static/style.css`) and read as a continuation of the upstream docs; choose and apply a theme/appearance that reflects HCiw's own identity.
-- Replace the logo and favicon with HCiw-specific artwork. A placeholder is in place (`docs/_static/hciw-logo.svg`, `hciw-favicon.svg`, wired to `html_logo`/`html_favicon`), but final artwork should be designed or commissioned. The Ciw-derived assets (`logo.png`, `logo.svg`, `logo.pdf`, `logo_small.png`, `favicon.ico`) remain in `docs/_static/` unused and can be deleted once the final assets land.
+- ~~Give the documentation a style distinct from Ciw's.~~ **Done:** the docs were migrated from Sphinx/rST to MkDocs with the Material theme (`mkdocs.yml`, `docs/javascripts/mathjax.js`), and `docs/_static/style.css` is now a small Material override rather than Ciw's Sphinx styling.
+- Replace the logo and favicon with HCiw-specific artwork. A placeholder is in place (`docs/_static/hciw-logo.svg`, `hciw-favicon.svg`, wired to `theme.logo`/`theme.favicon` in `mkdocs.yml`), but final artwork should be designed or commissioned. The Ciw-derived assets (`logo.png`, `logo.svg`, `logo.pdf`, `logo_small.png`, `favicon.ico`) remain in `docs/_static/` unused and can be deleted once the final assets land.
 - (Context) The docs are already published to GitHub Pages via `.github/workflows/docs.yml` at https://galenseilis.github.io/HCiw/.
 - Structure the documentation around **Diátaxis** (https://diataxis.fr/), which separates four modes: tutorials (learning-oriented), how-to guides (task-oriented), reference (information-oriented), and explanation (understanding-oriented). The existing tree already maps closely to this and should keep doing so: `docs/Tutorial/` (tutorials), `docs/Guides/` (how-to guides), `docs/Reference/` (reference), and `docs/Background/` (explanation). Keep each page in a single mode and split any page that blends a how-to with explanation as it is touched.
 - Keep the quadrants pure and site project meta outside them: citation, contributing, change log, and authors live in `docs/Project/`, not `docs/Reference/`, and installation is a how-to under `docs/Guides/`. `docs/Reference/` then holds only API-shaped reference (parameters, results, distributions, routers, state trackers) plus the glossary.
-- Generate the API reference from docstrings with Sphinx autodoc + Napoleon, and keep all public modules, classes, functions, and methods documented with **Google-style** docstrings so they render.
+- Generate the API reference from docstrings with MkDocs + [mkdocstrings](https://mkdocstrings.github.io/) (`docs/Reference/api.md`), and keep all public modules, classes, functions, and methods documented with **Google-style** docstrings so they render.
 
 ## Code and documentation style
 
@@ -45,11 +45,11 @@ Priority depends on how valuable the feature is to healthcare simulation work.
 - Convert docstrings to `Google style <https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings>`_ section headings (`Args:`, `Returns:`, `Raises:`, `Yields:`, `Attributes:`, `Examples:`, `Note:`, `Todo:`) rather than the current NumPy/Sphinx-style `Parameters`/`Returns` blocks. The `hciw/` sources are largely NumPy-style today; migrate opportunistically as files are touched, and prefer Google style for all new code.
 - Adopt the `Ruff formatter <https://docs.astral.sh/ruff/formatter/>`_ and the `Ruff linter <https://docs.astral.sh/ruff/linter/>`_ with as many applicable rules enabled as is practical. Start by enabling broad rule families (e.g. `E`, `F`, `W`, `I`, `UP`, `B`, `S`, `SIM`, `RUF`, and the `D` docstring rules) and narrow only where a family is incompatible with Google style or PEP 8. Configure under `[tool.ruff]` in `pyproject.toml` and wire it into local `uv run` tasks and, ideally, CI.
 - When enabling the `D` (pydocstyle) rules, select the `google` convention (`[tool.ruff.lint.pydocstyle] convention = "google"`); choose an opt-out for individual rules only where they conflict with the style guide rather than with preference.
-- When adopting, enable Sphinx's `napoleon` extension (`sphinx.ext.napoleon`) so Google-style docstrings render in the documentation.
+- Google-style docstrings render through mkdocstrings (`docstring_style: google` in `mkdocs.yml`), so no separate docstring-conversion extension is required.
 - Line length: use the Ruff formatter default of **88 columns**. Retire `.pylintrc` (`max-line-length=240`) once Ruff is authoritative. This overrides the Google guide's 80-column recommendation for this project.
 - **Tie-break policy (decided):** when neither the Google style guide nor PEP 8 decides a formatting/linting conflict, **Ruff defaults win**. Do not fight the formatter. Where a case genuinely matters, add a targeted suppression (`# noqa` / `per-file-ignores`) with a short, specific justification (e.g. a code comment or a note in this file). Record any lasting exception below.
 
 ## Conventions
 
-- Do not edit files under `old/`. When a candidate is pulled into `hciw/`, move it into the live tree and delete it from `old/`, keeping the fork attribution in `AUTHORS.rst`.
+- Do not edit files under `old/`. When a candidate is pulled into `hciw/`, move it into the live tree and delete it from `old/`, keeping the fork attribution in `AUTHORS.md`.
 - Keep the roadmap honest about origins: when integrating, credit the original Ciw code it is based on.

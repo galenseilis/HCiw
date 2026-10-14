@@ -26,13 +26,13 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Build Sphinx documentation
-        run: uv run --directory docs make html
+      - name: Build MkDocs documentation
+        run: uv run mkdocs build --strict
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: docs/_build/html
+          path: site
 
   deploy:
     needs: build

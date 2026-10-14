@@ -1,0 +1,188 @@
+site_name: HCiw
+site_description: A discrete event simulation library for open queueing networks, forked from Ciw.
+site_url: https://galenseilis.github.io/HCiw/
+repo_url: https://github.com/galenseilis/HCiw
+repo_name: galenseilis/HCiw
+edit_uri: edit/main/docs/
+copyright: >-
+  &copy; 2026 Galen Seilis; 2015 Geraint Palmer. HCiw is a fork of the
+  <a href="https://github.com/CiwPython/Ciw">Ciw</a> library, used under the MIT licence.
+
+theme:
+  name: material
+  logo: _static/hciw-logo.svg
+  favicon: _static/hciw-favicon.svg
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+extra_css:
+  - _static/style.css
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            docstring_options:
+              returns_named_value: false
+              warn_missing_types: false
+            members: true
+            filters: ["!^_"]
+            members_order: source
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            separate_signature: true
+            show_signature_annotations: true
+            merge_init_into_class: true
+
+not_in_nav: |
+  _static/**
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+
+nav:
+  - Home: index.md
+  - "Tutorials":
+    - Tutorial/index.md
+    - "Tutorial I - Getting Started":
+      - Tutorial/GettingStarted/index.md
+      - "Tutorial I: Part 1 - Defining & Running a Simulation": Tutorial/GettingStarted/part_1.md
+      - "Tutorial I: Part 2 - Exploring the Simulation Object": Tutorial/GettingStarted/part_2.md
+      - "Tutorial I: Part 3 - Collecting Results": Tutorial/GettingStarted/part_3.md
+      - "Tutorial I: Part 4 - Trials, Warm-up & Cool-down": Tutorial/GettingStarted/part_4.md
+    - "Tutorial II: A Network of Queues": Tutorial/tutorial_ii.md
+    - "Tutorial III: Restricted Networks": Tutorial/tutorial_iii.md
+    - "Tutorial IV: Multiple Classes of Customer": Tutorial/tutorial_iv.md
+  - "Guides":
+    - Guides/index.md
+    - "Installing HCiw": Guides/installation.md
+    - "Simulation":
+      - Guides/Simulation/index.md
+      - "How to Set a Seed": Guides/Simulation/seed.md
+      - "How to Simulate For a Certain Amount of Time": Guides/Simulation/sim_maxtime.md
+      - "How to Simulate For a Certain Number of Customers": Guides/Simulation/sim_numcusts.md
+      - "How to Pause and Restart the Simulation": Guides/Simulation/pause_restart.md
+      - "How to Collect Results": Guides/Simulation/results.md
+      - "How to Implement a Progress Bar": Guides/Simulation/progressbar.md
+      - "How to Parallelise Trials": Guides/Simulation/parallel_process.md
+      - "How to Implement Exact Arithmetic": Guides/Simulation/exact.md
+    - "Distributions":
+      - Guides/Distributions/index.md
+      - "How to Set Arrival & Service Distributions": Guides/Distributions/set_distributions.md
+      - "How to Set Phase-Type Distributions": Guides/Distributions/phasetype.md
+      - "How to Combine Distributions": Guides/Distributions/combining_distributions.md
+      - "How to Access Distributions' Summary Statistics": Guides/Distributions/summary_stats.md
+      - "How to Define Time and State Dependent Distributions": Guides/Distributions/time_dependent.md
+    - "Arrivals":
+      - Guides/Arrivals/index.md
+      - "How to Set Batch Arrivals": Guides/Arrivals/batching.md
+    - "Queues":
+      - Guides/Queues/index.md
+      - "How to Set Maximium Queue Capacities": Guides/Queues/queue_capacities.md
+      - "How to Set a Maximium Capacity for the Whole System": Guides/Queues/system_capacity.md
+    - "Services":
+      - Guides/Services/index.md
+      - "How to Change Service Discipline": Guides/Services/service_disciplines.md
+      - "How to Set Server Priorities": Guides/Services/server_priority.md
+      - "How to Set Server Schedules": Guides/Services/server_schedule.md
+      - "How to Set Slotted Services": Guides/Services/slotted.md
+      - "Pre-emptive Interruptions & Options for Resuming Service": Guides/Services/preemption.md
+      - "How to Simulate Processor Sharing": Guides/Services/processor-sharing.md
+    - "Routing":
+      - Guides/Routing/index.md
+      - "How to Define Routing with a Transition Matrix": Guides/Routing/transition_matrix.md
+      - "How to Use Routing Objects": Guides/Routing/routing_objects.md
+      - "How to Set Join-Shortest-Queue Routing": Guides/Routing/join_shortest_queue.md
+      - "How to Define Process-Based Routing": Guides/Routing/process_based.md
+      - "How to Define Custom Logical Routing": Guides/Routing/custom_routing.md
+    - "Customer Behaviour":
+      - Guides/CustomerBehaviour/index.md
+      - "How to Simulate Baulking Customers": Guides/CustomerBehaviour/baulking.md
+      - "How to Simulate Reneging Customers": Guides/CustomerBehaviour/reneging.md
+      - "How to Simulate Jockeying Customers": Guides/CustomerBehaviour/jockeying.md
+    - "Customer Classes":
+      - Guides/CustomerClasses/index.md
+      - "How to Set Multiple Classes of Customer": Guides/CustomerClasses/customer-classes.md
+      - "How to Set Priority Classes": Guides/CustomerClasses/priority.md
+      - "How to Change Customer Class After Service": Guides/CustomerClasses/change-class-after-service.md
+      - "How to Change Customer Class While Queueing": Guides/CustomerClasses/change-class-while-queueing.md
+    - "System":
+      - Guides/System/index.md
+      - "How to Track the System's State": Guides/System/state_trackers.md
+      - "How to Detect Deadlock": Guides/System/deadlock.md
+      - "How to Get More Custom Behaviour":
+        - Guides/System/behaviour/index.md
+        - "State-dependent Arrivals": Guides/System/behaviour/custom_arrivals.md
+        - "Variable Number of Servers": Guides/System/behaviour/custom_number_servers.md
+        - "Server-dependent Services": Guides/System/behaviour/server_dependent_dist.md
+        - "DES+SD Hybrid Simulation with HCiw": Guides/System/behaviour/hybrid.md
+  - "Reference":
+    - Reference/index.md
+    - "List of Parameters": Reference/parameters.md
+    - "List of Available Results": Reference/results.md
+    - "List of Supported Distributions": Reference/distributions.md
+    - "List of Routing Objects": Reference/routers.md
+    - "List of Implemented State Trackers": Reference/state_trackers.md
+    - "API Reference": Reference/api.md
+    - "Glossary": Reference/glossary.md
+  - "Project":
+    - Project/index.md
+    - "Citing the Library": Project/citation.md
+    - "How to Contribute": Project/contributing.md
+    - "Change Log": Project/changelog.md
+    - "Authors": Project/authors.md
+  - "Background":
+    - Background/index.md
+    - "Simulation Practice": Background/simulationpractice.md
+    - "Notes on HCiw's Mechanisms": Background/mechanisms.md
+    - "Kendall's Notation": Background/kendall.md
+    - "Other Computer Simulation Options": Background/other.md
+    - "Bibliography": Background/references.md

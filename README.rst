@@ -11,7 +11,7 @@ A discrete event simulation library for queueing networks, forked from `Ciw <htt
 HCiw is a fork of the `Ciw <https://github.com/CiwPython/Ciw>`_ discrete event simulation library for open queueing networks. Development of Ciw has slowed, so HCiw takes over that codebase as its starting point in order to keep developing it. The HCiw repository is at `github.com/galenseilis/HCiw <https://github.com/galenseilis/HCiw>`_.
 Its core features include the capability to simulate networks of queues, multiple customer classes, and implementation of Type I blocking for restricted networks.
 
-HCiw is a descendant of the ArC and Ciw line of queueing network simulation libraries. The `Ciw library <https://github.com/CiwPython/Ciw>`_ is released under the MIT licence; HCiw preserves that licence and credits the Ciw contributors in `AUTHORS.rst <AUTHORS.rst>`_ and `CHANGES.rst <CHANGES.rst>`_.
+HCiw is a descendant of the ArC and Ciw line of queueing network simulation libraries. The `Ciw library <https://github.com/CiwPython/Ciw>`_ is released under the MIT licence; HCiw preserves that licence and credits the Ciw contributors in `AUTHORS.md <AUTHORS.md>`_ and `CHANGES.md <CHANGES.md>`_.
 
 This project was also previously a healthcare-oriented wrapper around Ciw, named HCiw. That code is archived under :code:`old/` and its future is described in `ROADMAP.md <ROADMAP.md>`_.
 
@@ -85,4 +85,4 @@ HCiw requires Python 3.12 and is managed with `uv <https://docs.astral.sh/uv/>`_
     cd HCiw
     uv sync
 
-Contributions and a release checklist are documented in `CONTRIBUTING.rst <CONTRIBUTING.rst>`_ and `new_release_checklist.md <new_release_checklist.md>`_.
+Contributions and a release checklist are documented in `CONTRIBUTING.md <CONTRIBUTING.md>`_ and `new_release_checklist.md <new_release_checklist.md>`_.
