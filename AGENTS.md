@@ -13,16 +13,17 @@
 - Note: an upstream `Ciw 3.2.7` is installed in the user site-packages, so `import ciw` from outside this repo resolves to upstream, not this code. Always `import hciw` here.
 
 ## Test commands
-- Environment: `uv sync` creates `.venv` with the project (editable) plus the `dev` dependency group (hypothesis, coverage, pandas, mkdocs, mkdocs-material, mkdocstrings). The venv lives at repo root and is gitignored.
+- Environment: `uv sync` creates `.venv` with the project (editable) plus the `dev` dependency group (test, docs, and lint tooling: hypothesis, coverage, pandas, pyright, mkdocs, mkdocs-material, mkdocstrings, ruff). The venv lives at repo root and is gitignored.
 - Unit tests (365 tests): `uv run python -m unittest discover`
 - Doctests: `uv run python doctests.py` — runs every `>>>` block in all project `.md` and `.rst` files (README.rst, CHANGES.md, docs/...). Separate from `unittest discover`. `doctests.py` strips Markdown code-fence lines and prunes `.venv`, `site/`, hidden dirs, and `old/`; editing any `.md`/`.rst` can break doctests, so run this after doc changes.
+- Lint/format: `uv run ruff check` and `uv run ruff format --check` (Ruff is authoritative; config in `pyproject.toml`).
 - Coverage: `uv run coverage run --source=hciw -m unittest discover && uv run coverage report -m`
 - Docs build: `uv run mkdocs build` (add `--strict` to fail on warnings; output in `site/`).
 - Release procedure: see `new_release_checklist.md` (bump `hciw/version.py` — the single source of truth, read dynamically by `pyproject.toml` — then `uv lock`, update `CHANGES.md`, `uv build`, `uv publish`).
 
 ## Conventions
-- Max line length 240 (`.pylintrc`). Roadmap plan: move to the Ruff formatter at 88 columns and retire `.pylintrc`; once Ruff is configured, that becomes authoritative.
+- Ruff is authoritative: line length 88, with the formatter and linter configured under `[tool.ruff]` in `pyproject.toml`; the old `.pylintrc` (240 columns) has been retired. Run `uv run ruff check` and `uv run ruff format`.
 - Adopt Google's Python style (Google Python Style Guide) for code and docstrings; existing `hciw/` docstrings are mostly NumPy/Sphinx style, so prefer Google style for new code and migrate touched files. See the style section in `ROADMAP.md`.
 - `hciw/dists/.hypothesis/` is generated hypothesis state and gitignored — never commit it.
 - Keep the fork attribution honest in prose and citations: upstream Ciw, its authors, the MIT licence (see `LICENSE.txt`), and the published Ciw paper title must be referred to correctly ("Ciw", not "HCiw"). Don't remove Ciw's copyright notice.
-- Git history tracks the pre-refactor `hciw` tree; the current `hciw/`, restructured `tests/`, and `docs/` are uncommitted/untracked — the tree is mid-migration.
+- The documentation is MkDocs-based (`mkdocs.yml`); keep new work in logical commits.

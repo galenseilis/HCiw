@@ -43,11 +43,15 @@ Priority depends on how valuable the feature is to healthcare simulation work.
 
 - Adopt Google's Python style for code and docstrings, following the `Google Python Style Guide <https://google.github.io/styleguide/pyguide.html>`_.
 - Convert docstrings to `Google style <https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings>`_ section headings (`Args:`, `Returns:`, `Raises:`, `Yields:`, `Attributes:`, `Examples:`, `Note:`, `Todo:`) rather than the current NumPy/Sphinx-style `Parameters`/`Returns` blocks. The `hciw/` sources are largely NumPy-style today; migrate opportunistically as files are touched, and prefer Google style for all new code.
-- Adopt the `Ruff formatter <https://docs.astral.sh/ruff/formatter/>`_ and the `Ruff linter <https://docs.astral.sh/ruff/linter/>`_ with as many applicable rules enabled as is practical. Start by enabling broad rule families (e.g. `E`, `F`, `W`, `I`, `UP`, `B`, `S`, `SIM`, `RUF`, and the `D` docstring rules) and narrow only where a family is incompatible with Google style or PEP 8. Configure under `[tool.ruff]` in `pyproject.toml` and wire it into local `uv run` tasks and, ideally, CI.
+- ~~Adopt the `Ruff formatter <https://docs.astral.sh/ruff/formatter/>`_ and the `Ruff linter <https://docs.astral.sh/ruff/linter/>`_~~ **Done:** Ruff is authoritative, configured under `[tool.ruff]` in `pyproject.toml` with the `E`, `F`, `W`, `I`, `UP`, `B`, `S`, `SIM`, and `RUF` rule families at 88 columns; `uv run ruff check` and `uv run ruff format --check` are clean. Enabling the `D` docstring rules remains outstanding.
 - When enabling the `D` (pydocstyle) rules, select the `google` convention (`[tool.ruff.lint.pydocstyle] convention = "google"`); choose an opt-out for individual rules only where they conflict with the style guide rather than with preference.
 - Google-style docstrings render through mkdocstrings (`docstring_style: google` in `mkdocs.yml`), so no separate docstring-conversion extension is required.
-- Line length: use the Ruff formatter default of **88 columns**. Retire `.pylintrc` (`max-line-length=240`) once Ruff is authoritative. This overrides the Google guide's 80-column recommendation for this project.
+- Line length: the Ruff formatter's default of **88 columns** is now authoritative; `.pylintrc` (`max-line-length=240`) has been retired. This overrides the Google guide's 80-column recommendation for this project.
 - **Tie-break policy (decided):** when neither the Google style guide nor PEP 8 decides a formatting/linting conflict, **Ruff defaults win**. Do not fight the formatter. Where a case genuinely matters, add a targeted suppression (`# noqa` / `per-file-ignores`) with a short, specific justification (e.g. a code comment or a note in this file). Record any lasting exception below.
+
+### Ruff exceptions
+
+- `S101` (`assert`) is ignored globally: `assert` is used throughout `hciw/` for internal invariants and for type narrowing, and is stripped under `-O`.
 
 ## Conventions
 
