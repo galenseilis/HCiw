@@ -1,9 +1,4 @@
-
-import hciw.deadlock
-import hciw.disciplines
-import hciw.dists
-import hciw.trackers
-
+from . import deadlock, disciplines, dists, trackers
 from .arrival_node import ArrivalNode
 from .auxiliary import *
 from .data_record import DataRecord
@@ -30,8 +25,12 @@ __all__ = [
     "Simulation",
     "__version__",
     "create_network",
+    "deadlock",
+    "disciplines",
+    "dists",
     "rng",
     "seed",
+    "trackers",
 ]
 
 rng = np.random.default_rng()

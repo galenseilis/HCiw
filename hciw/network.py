@@ -140,8 +140,7 @@ class Network:
             set([clss.priority_class for clss in customer_classes.values()])
         )
         self.priority_class_mapping = {
-            clss: customer_classes[clss].priority_class
-            for clss in customer_classes
+            clss: customer_classes[clss].priority_class for clss in customer_classes
         }
         for nd_id, node in enumerate(self.service_centres):
             if all(

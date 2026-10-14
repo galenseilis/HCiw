@@ -15,15 +15,12 @@ import hciw
 
 
 def import_empirical(dist_file):
-    """
-    Imports an empirical distribution from a .csv file
-    """
+    """Import an empirical distribution from a .csv file."""
     root = os.getcwd()
     file_name = root + "/" + dist_file
-    empirical_file = open(file_name)
-    rdr = reader(empirical_file)
-    empirical_dist = next([float(x) for x in row] for row in rdr)
-    empirical_file.close()
+    with open(file_name) as empirical_file:
+        rdr = reader(empirical_file)
+        empirical_dist = next([float(x) for x in row] for row in rdr)
     return empirical_dist
 
 
@@ -1651,7 +1648,8 @@ class TestSampling(unittest.TestCase):
         )
 
         many_samples = [round(Hx.sample(), 2) for _ in range(1000)]
-        # We would expect this to be sum of the element-wise division of probabilities and rates:
+        # We would expect this to be the sum of the element-wise division of
+        # probabilities and rates:
         # (0.4 / 5) + (0.1 / 7) + (0.3 / 2) + (0.2 / 1) = 0.4442857142857143
         self.assertEqual(round(sum(many_samples) / 1000, 4), 0.416)
 
@@ -1693,7 +1691,8 @@ class TestSampling(unittest.TestCase):
 
         expected_mean = sum(p / r for p, r in zip(probs, rates, strict=False))
         expected_variance = (
-            sum(2 * p / (r**2) for p, r in zip(probs, rates, strict=False)) - expected_mean**2
+            sum(2 * p / (r**2) for p, r in zip(probs, rates, strict=False))
+            - expected_mean**2
         )
 
         self.assertEqual(Hx.mean, expected_mean)
@@ -1742,7 +1741,8 @@ class TestSampling(unittest.TestCase):
         )
 
         many_samples = [round(Hg.sample(), 2) for _ in range(1000)]
-        # We would expect this to be sum of the element-wise multiplication of probabilities, inverse rates, and subphase lengths:
+        # We would expect this to be the sum of the element-wise multiplication
+        # of probabilities, inverse rates, and subphase lengths:
         # (0.5 * 3 / 5) + (0.3 * 2 / 7) + (0.2 * 5 / 2) = 0.8857142857142857
         self.assertEqual(round(sum(many_samples) / 1000, 4), 0.8744)
 
@@ -1783,9 +1783,12 @@ class TestSampling(unittest.TestCase):
         probs = [0.3, 0.5, 0.2]
         lengths = [3, 2, 4]  # k_i (number of Erlang phases per branch)
         He = hciw.dists.HyperErlang(rates=rates, probs=probs, phase_lengths=lengths)
-        expected_mean = sum(p * k / r for p, r, k in zip(probs, rates, lengths, strict=False))
+        expected_mean = sum(
+            p * k / r for p, r, k in zip(probs, rates, lengths, strict=False)
+        )
         expected_second_moment = sum(
-            p * (k * (k + 1)) / (r**2) for p, r, k in zip(probs, rates, lengths, strict=False)
+            p * (k * (k + 1)) / (r**2)
+            for p, r, k in zip(probs, rates, lengths, strict=False)
         )
         expected_variance = expected_second_moment - expected_mean**2
         self.assertEqual(He.mean, expected_mean)
@@ -1825,9 +1828,10 @@ class TestSampling(unittest.TestCase):
         )
 
         many_samples = [round(Cx.sample(), 2) for _ in range(1000)]
-        # We would expect this to be expected time to absorption of the underlying absobring Markov chain.
+        # We would expect this to be the expected time to absorption of the
+        # underlying absorbing Markov chain.
         # We can calculate this using Numpy:
-        # >>> (np.linalg.inv(np.eye(4) - (np.matrix(absorbing_matrix) / 7 + np.eye(5))[:-1, :-1]) @ np.ones(4))[0, 0] / 7
+        # >>> (np.linalg.inv(np.eye(4) - (np.matrix(absorbing_matrix) / 7 + np.eye(5))[:-1, :-1]) @ np.ones(4))[0, 0] / 7  # noqa: E501
         # 0.5971428571428571
         self.assertEqual(round(sum(many_samples) / 1000, 4), 0.6035)
 
@@ -1970,9 +1974,9 @@ class TestSampling(unittest.TestCase):
         rates = [5, 1.5, 3]
         endpoints = [3.2, 7.9, 10]
         max_sample_date = 20
-        (0.0, 3.2) --- Two lots of intervals of length 3.2, with rate 5.   Expected: 5x3.2x2 = 32
-        (3.2, 7.9) --- Two lots of intervals of length 4.7, with rate 1.5. Expected: 1.5x4.7x2 = 14.1
-        (7.9, 10)  --- Two lots of intervals of length 2.1, with rate 3.   Expected: 3x2.1x2 = 12.6
+        (0.0, 3.2) --- 2 intervals of length 3.2, rate 5.   Sums to 5x3.2x2 = 32
+        (3.2, 7.9) --- 2 intervals of length 4.7, rate 1.5. Sums to 1.5x4.7x2 = 14.1
+        (7.9, 10)  --- 2 intervals of length 2.1, rate 3.   Sums to 3x2.1x2 = 12.6
         """
         hciw.seed(0)
         n = 250
@@ -2028,11 +2032,11 @@ class TestSampling(unittest.TestCase):
         rates = [2, 0.6, 0.8, 12, 3]
         endpoints = [0.5, 10, 32, 40.3, 50]
         max_sample_date = 100
-        (0.0, 0.5) --- Two lots of intervals of length 0.5, with rate 2.   Expected: 0.5x2x2 = 2
-        (0.5, 10)  --- Two lots of intervals of length 9.5, with rate 0.6. Expected: 9.5x0.6x2 = 11.4
-        (10, 32)   --- Two lots of intervals of length 22, with rate 0.8.  Expected: 22x0.8x2 = 35.2
-        (32, 40.3) --- Two lots of intervals of length 8.3, with rate 12.  Expected: 8.3x12x2 = 199.2
-        (40.3, 50) --- Two lots of intervals of length 9.7, with rate 3.   Expected: 9.7x3x2 = 58.2
+        (0.0, 0.5) --- 2 intervals of length 0.5, rate 2.  Sums to 0.5x2x2 = 2
+        (0.5, 10)  --- 2 intervals of length 9.5, rate 0.6. Sums to 9.5x0.6x2 = 11.4
+        (10, 32)   --- 2 intervals of length 22, rate 0.8.  Sums to 22x0.8x2 = 35.2
+        (32, 40.3) --- 2 intervals of length 8.3, rate 12.  Sums to 8.3x12x2 = 199.2
+        (40.3, 50) --- 2 intervals of length 9.7, rate 3.   Sums to 9.7x3x2 = 58.2
         """
         hciw.seed(0)
         n = 250

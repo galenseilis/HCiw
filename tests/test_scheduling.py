@@ -465,11 +465,14 @@ class TestScheduling(unittest.TestCase):
 
     def test_priority_preemption_when_zero_servers(self):
         """
-        Test whether pre-emptive priorities and server schedules where there are zero servers work well together.
+        Test whether pre-emptive priorities and server schedules where there are
+        zero servers work well together.
 
         We will show two scenarios.
-            - The first where the one server goes off and back on duty while there are no customers present.
-            - The second where the server goes off duty but back on duty while there are customers waiting.
+            - The first where the one server goes off and back on duty while
+              there are no customers present.
+            - The second where the server goes off duty but back on duty while
+              there are customers waiting.
         """
         # First scenario
         N = hciw.create_network(
@@ -757,7 +760,8 @@ class TestScheduling(unittest.TestCase):
         """
         Arrivals occur at times [0.7, 1.4, 2.6, 2.9, 4.3, 5.5, 6.1, 15.0]
         All services last 0.2 time units
-        Services are slotted at times [1.5, 4.4, 5.9, 8.8, 10.3, 13.2, 14.7, 17.6, etc...]
+        Services are slotted at times
+        [1.5, 4.4, 5.9, 8.8, 10.3, 13.2, 14.7, 17.6, ...]
         Slotted services have capacities [1, 3, 1, 3, 1, 3, 1, 3 etc....]
         """
         N = hciw.create_network(
@@ -812,8 +816,11 @@ class TestScheduling(unittest.TestCase):
         Tests when the service times of slotted services last longer
         than the gap between the slots.
         Two options
-          - capacitated=False : allows `slot_size` to be served, even if previous customers are still in service
-          - capacitated=True  : only allows `slot_size` customers to be served, at a time, so if previous customers are still in service, less than `slot_size` new customers will be served.
+          - capacitated=False : serves `slot_size`, even if previous
+            customers are still in service
+          - capacitated=True  : only serves `slot_size` customers at a time, so
+            if previous customers are still in service, fewer than `slot_size`
+            new customers are served.
 
         Example:
           - Arrival times = [0.5, 1.1, 1.5, 1.7, 2.5]

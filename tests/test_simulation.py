@@ -134,10 +134,8 @@ class TestSimulation(unittest.TestCase):
 
     def test_find_next_active_node_method(self):
         Q = hciw.Simulation(N_params)
-        i = 0
-        for node in Q.nodes[:-1]:
+        for i, node in enumerate(Q.nodes[:-1]):
             node.next_event_date = i
-            i += 1
         self.assertEqual(str(Q.find_next_active_node()), "Arrival Node")
 
         Q = hciw.Simulation(N_params)
@@ -1947,7 +1945,7 @@ class TestSimulation(unittest.TestCase):
           1    0.6       2    1.3
           4    1.2       2    rejected
           3    1.8       2    2.5
-          6    2.1       1    (2.5 + 0.7 =) 3.2 (individual is accepted even though a queue capacity of 0)
+          6    2.1       1    3.2  (accepted despite a queue capacity of 0)
           8    2.4       2    rejected
         """
 

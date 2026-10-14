@@ -110,9 +110,11 @@ class Simulation:
             node_type(i + 1, self) for i, node_type in enumerate(self.NodeTypes)
         ]
         self.exit_node = self.ExitNodeType()
-        self.nodes = (
-            [self.ArrivalNodeType(self), *self.transitive_nodes, self.exit_node]
-        )
+        self.nodes = [
+            self.ArrivalNodeType(self),
+            *self.transitive_nodes,
+            self.exit_node,
+        ]
         self.active_nodes = self.nodes[:-1]
         self.routers = self.find_and_initialise_routers()
         self.nodes[0].initialise()
@@ -270,9 +272,9 @@ class Simulation:
                 if record.record_type in only:
                     records.append(record)
             if include_incomplete and individual.node != -1:
-                incomplete_record = self.nodes[
-                    individual.node
-                ].write_incomplete_record(individual)
+                incomplete_record = self.nodes[individual.node].write_incomplete_record(
+                    individual
+                )
                 records.append(incomplete_record)
         self.all_records = records
         return records
@@ -440,15 +442,19 @@ class Simulation:
             self.progress_bar = tqdm.tqdm(total=max_customers)
 
         if method == "Complete":
+
             def check():
                 return self.exit_node.number_of_completed_individuals
         elif method == "Finish":
+
             def check():
                 return self.exit_node.number_of_individuals
         elif method == "Arrive":
+
             def check():
                 return self.nodes[0].number_of_individuals
         elif method == "Accept":
+
             def check():
                 return self.nodes[0].number_accepted_individuals
         else:

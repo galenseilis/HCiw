@@ -3,7 +3,6 @@
 import doctest
 import os
 import unittest
-import sys
 from typing import Any
 
 
@@ -24,49 +23,42 @@ class _FenceStrippingParser(doctest.DocTestParser):
         lineno: int | None,
     ) -> doctest.DocTest:
         string = "\n".join(
-            line for line in string.splitlines()
-            if not line.lstrip().startswith("```")
+            line for line in string.splitlines() if not line.lstrip().startswith("```")
         )
         return super().get_doctest(string, globs, name, filename, lineno)
 
 
-def load_tests(loader: unittest.TestLoader, tests: unittest.TestSuite, ignorex: Any) -> unittest.TestSuite:
-    """
-    Discover and add all Markdown (.md) and reStructuredText (.rst) doctest files within the current directory tree to the test suite.
+def load_tests(
+    loader: unittest.TestLoader, tests: unittest.TestSuite, ignorex: Any
+) -> unittest.TestSuite:
+    """Add doctests from Markdown and reStructuredText files to the suite.
 
-    Parameters
-    ----------
-    loader : unittest.TestLoader
-        The test loader instance used to load the tests.
-    tests : unittest.TestSuite
-        The existing test suite to which doctest suites will be added.
-    ignorex : Any
-        A placeholder parameter (typically unused) required by the unittest framework.
+    Discovers every ``.md`` and ``.rst`` file in the directory tree and adds
+    its doctests to the test suite. Used by the ``unittest`` framework.
 
-    Returns
-    -------
-    unittest.TestSuite
-        The updated test suite including all discovered .md and .rst doctest files.
+    Args:
+        loader: The test loader instance used to load the tests.
+        tests: The existing test suite to which doctest suites will be added.
+        ignorex: Unused placeholder required by the unittest framework.
 
-    Notes
-    -----
-    This function is used by the unittest framework to discover and include additional doctests
-    in the test suite during test discovery.
+    Returns:
+        The updated test suite including all discovered doctest files.
 
-    Examples
-    --------
-    When placed in a test module, unittest will automatically call `load_tests` if it exists.
+    Examples:
+        When placed in a test module, unittest will automatically call
+        ``load_tests`` if it exists.
 
-    >>> import unittest
-    >>> suite = unittest.TestSuite()
-    >>> loader = unittest.TestLoader()
-    >>> load_tests(loader, suite, None)  # doctest: +ELLIPSIS
-    <unittest.suite.TestSuite tests=[...]
+        >>> import unittest
+        >>> suite = unittest.TestSuite()
+        >>> loader = unittest.TestLoader()
+        >>> load_tests(loader, suite, None)  # doctest: +ELLIPSIS
+        <unittest.suite.TestSuite tests=[...]
     """
     skip_dirs = {"__pycache__", "_build", "build", "dist", "site"}
     for root, dirs, files in os.walk("."):
         dirs[:] = [
-            d for d in dirs
+            d
+            for d in dirs
             if d not in skip_dirs and not d.startswith(".") and d != "old"
         ]
         for f in files:
@@ -82,6 +74,4 @@ def load_tests(loader: unittest.TestLoader, tests: unittest.TestSuite, ignorex: 
 
 
 if __name__ == "__main__":
-    if sys.version_info >= (3, 6):
-        unittest.main()
-
+    unittest.main()

@@ -56,6 +56,9 @@ extend-exclude = ["old", "docs", ".venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "S", "SIM", "RUF"]
+# `assert` is used throughout the library for internal invariants and for type
+# narrowing; these are intentional and are stripped under `-O`.
+ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
 # Star imports are the project's intentional re-export pattern; F403/F405 are

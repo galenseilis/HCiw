@@ -1088,7 +1088,9 @@ class TestNode(unittest.TestCase):
         expected_times_node_1 = [256.2457715650031, 257.59339967047254]
         expected_times_node_2 = [157.35577182806387, 356.41473247082365]
 
-        for i, (srv_1, srv_2) in enumerate(zip(Q.nodes[1].servers, Q.nodes[2].servers, strict=False)):
+        for i, (srv_1, srv_2) in enumerate(
+            zip(Q.nodes[1].servers, Q.nodes[2].servers, strict=False)
+        ):
             self.assertEqual(srv_1.busy_time, expected_times_node_1[i])
             self.assertEqual(srv_2.busy_time, expected_times_node_2[i])
 

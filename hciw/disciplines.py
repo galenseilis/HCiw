@@ -1,6 +1,5 @@
 """Service disciplines for selecting the next individual from a queue."""
 
-
 from hciw.auxiliary import random_choice
 from hciw.individual import Individual
 

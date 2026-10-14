@@ -1492,10 +1492,9 @@ class HyperExponential(PhaseType):
             float: The variance.
         """
         mean = self.mean
-        return (
-            sum(2 * p / (r**2) for p, r in zip(self.probs, self.rates, strict=False))
-            - (mean**2)
-        )
+        return sum(
+            2 * p / (r**2) for p, r in zip(self.probs, self.rates, strict=False)
+        ) - (mean**2)
 
 
 class HyperErlang(PhaseType):
@@ -1568,7 +1567,7 @@ class HyperErlang(PhaseType):
         Returns:
             float: The variance.
         """
-        mean = self.mean  # âˆ‘ p * k / r
+        mean = self.mean  # sum p * k / r
         #  second moment for Erlang(k, r) is k*(k+1)/r^2
         second_moment = sum(
             p * (k * (k + 1)) / (r**2)

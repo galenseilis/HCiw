@@ -209,18 +209,21 @@ def fill_out_dictionary(params):
                     )
         else:
             params["routing"] = {"Customer": params["routing"]}
-    if "baulking_functions" in params:
-        if isinstance(params["baulking_functions"], list):
-            blk_fncs = params["baulking_functions"]
-            params["baulking_functions"] = {"Customer": blk_fncs}
-    if "batching_distributions" in params:
-        if isinstance(params["batching_distributions"], list):
-            btch_dists = params["batching_distributions"]
-            params["batching_distributions"] = {"Customer": btch_dists}
-    if "reneging_time_distributions" in params:
-        if isinstance(params["reneging_time_distributions"], list):
-            reneging_dists = params["reneging_time_distributions"]
-            params["reneging_time_distributions"] = {"Customer": reneging_dists}
+    if "baulking_functions" in params and isinstance(
+        params["baulking_functions"], list
+    ):
+        blk_fncs = params["baulking_functions"]
+        params["baulking_functions"] = {"Customer": blk_fncs}
+    if "batching_distributions" in params and isinstance(
+        params["batching_distributions"], list
+    ):
+        btch_dists = params["batching_distributions"]
+        params["batching_distributions"] = {"Customer": btch_dists}
+    if "reneging_time_distributions" in params and isinstance(
+        params["reneging_time_distributions"], list
+    ):
+        reneging_dists = params["reneging_time_distributions"]
+        params["reneging_time_distributions"] = {"Customer": reneging_dists}
 
     class_names = sorted(params["arrival_distributions"].keys())
     params["customer_class_names"] = class_names

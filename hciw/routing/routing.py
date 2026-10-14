@@ -24,7 +24,9 @@ class NetworkRouting:
                 to.
         """
         self.simulation = simulation
-        for router, node in zip(self.routers, self.simulation.transitive_nodes, strict=False):
+        for router, node in zip(
+            self.routers, self.simulation.transitive_nodes, strict=False
+        ):
             router.initialise(self.simulation, node)
 
     def initialise_individual(self, ind):
@@ -105,7 +107,8 @@ class TransitionMatrix(NetworkRouting):
         super().initialise(simulation)
         if len(self.routers) != simulation.network.number_of_nodes:
             raise ValueError(
-                "Ensure a transition matrix is given, and that the number of rows is equal to the number of nodes in the network."
+                "Ensure a transition matrix is given, and that the number of rows "
+                "is equal to the number of nodes in the network."
             )
 
 
@@ -357,7 +360,8 @@ class Probabilistic(NodeRouting):
         """
         if len(self.probs) != len(self.destinations):
             raise ValueError(
-                "Routing probabilities should correspond to destinations, and so should be lists of the same length."
+                "Routing probabilities should correspond to destinations, and so "
+                "should be lists of the same length."
             )
         if not set(self.destinations).issubset(
             set([nd.id_number for nd in self.simulation.nodes[1:]])
