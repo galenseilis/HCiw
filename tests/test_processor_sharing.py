@@ -1,4 +1,5 @@
 import unittest
+
 import hciw
 
 N_params = hciw.create_network(
@@ -79,8 +80,14 @@ N_classchange = hciw.create_network(
     },
     routing={"Class 0": [[0.8, 0.1], [0.0, 0.0]], "Class 1": [[0.8, 0.1], [0.2, 0.0]]},
     class_change_matrices=[
-        {'Class 0': {'Class 0': 0.5, 'Class 1': 0.5}, 'Class 1': {'Class 0': 0.5, 'Class 1': 0.5}},
-        {'Class 0': {'Class 0': 1.0, 'Class 1': 0.0}, 'Class 1': {'Class 0': 0.0, 'Class 1': 1.0}}
+        {
+            "Class 0": {"Class 0": 0.5, "Class 1": 0.5},
+            "Class 1": {"Class 0": 0.5, "Class 1": 0.5},
+        },
+        {
+            "Class 0": {"Class 0": 1.0, "Class 1": 0.0},
+            "Class 1": {"Class 0": 0.0, "Class 1": 1.0},
+        },
     ],
 )
 
@@ -104,7 +111,12 @@ N_schedule = hciw.create_network(
         "Class 0": [hciw.dists.Exponential(0.05), hciw.dists.Exponential(0.04)],
         "Class 1": [hciw.dists.Exponential(0.04), hciw.dists.Exponential(0.06)],
     },
-    number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 2, 1, 3], shift_end_dates=[30, 60, 90, 100]), 3],
+    number_of_servers=[
+        hciw.Schedule(
+            numbers_of_servers=[1, 2, 1, 3], shift_end_dates=[30, 60, 90, 100]
+        ),
+        3,
+    ],
     queue_capacities=[float("Inf"), 10],
     service_distributions={
         "Class 0": [hciw.dists.Deterministic(5.0), hciw.dists.Exponential(0.2)],
@@ -135,18 +147,42 @@ class TestProcessorSharing(unittest.TestCase):
         self.assertEqual(router2.routers[1].destinations, [1, 2, 3, 4, -1])
         self.assertEqual(router2.routers[2].destinations, [1, 2, 3, 4, -1])
         self.assertEqual(router2.routers[3].destinations, [1, 2, 3, 4, -1])
-        self.assertEqual([round(p, 2) for p in router0.routers[0].probs], [0.1, 0.2, 0.1, 0.4, 0.2])
-        self.assertEqual([round(p, 2) for p in router0.routers[1].probs], [0.2, 0.2, 0.0, 0.1, 0.5])
-        self.assertEqual([round(p, 2) for p in router0.routers[2].probs], [0.0, 0.8, 0.1, 0.1, 0.0])
-        self.assertEqual([round(p, 2) for p in router0.routers[3].probs], [0.4, 0.1, 0.1, 0.0, 0.4])
-        self.assertEqual([round(p, 2) for p in router1.routers[0].probs], [0.6, 0.0, 0.0, 0.2, 0.2])
-        self.assertEqual([round(p, 2) for p in router1.routers[1].probs], [0.1, 0.1, 0.2, 0.2, 0.4])
-        self.assertEqual([round(p, 2) for p in router1.routers[2].probs], [0.9, 0.0, 0.0, 0.0, 0.1])
-        self.assertEqual([round(p, 2) for p in router1.routers[3].probs], [0.2, 0.1, 0.1, 0.1, 0.5])
-        self.assertEqual([round(p, 2) for p in router2.routers[0].probs], [0.0, 0.0, 0.4, 0.3, 0.3])
-        self.assertEqual([round(p, 2) for p in router2.routers[1].probs], [0.1, 0.1, 0.1, 0.1, 0.6])
-        self.assertEqual([round(p, 2) for p in router2.routers[2].probs], [0.1, 0.3, 0.2, 0.2, 0.2])
-        self.assertEqual([round(p, 2) for p in router2.routers[3].probs], [0.0, 0.0, 0.0, 0.3, 0.7])
+        self.assertEqual(
+            [round(p, 2) for p in router0.routers[0].probs], [0.1, 0.2, 0.1, 0.4, 0.2]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router0.routers[1].probs], [0.2, 0.2, 0.0, 0.1, 0.5]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router0.routers[2].probs], [0.0, 0.8, 0.1, 0.1, 0.0]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router0.routers[3].probs], [0.4, 0.1, 0.1, 0.0, 0.4]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router1.routers[0].probs], [0.6, 0.0, 0.0, 0.2, 0.2]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router1.routers[1].probs], [0.1, 0.1, 0.2, 0.2, 0.4]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router1.routers[2].probs], [0.9, 0.0, 0.0, 0.0, 0.1]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router1.routers[3].probs], [0.2, 0.1, 0.1, 0.1, 0.5]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router2.routers[0].probs], [0.0, 0.0, 0.4, 0.3, 0.3]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router2.routers[1].probs], [0.1, 0.1, 0.1, 0.1, 0.6]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router2.routers[2].probs], [0.1, 0.3, 0.2, 0.2, 0.2]
+        )
+        self.assertEqual(
+            [round(p, 2) for p in router2.routers[3].probs], [0.0, 0.0, 0.0, 0.3, 0.7]
+        )
 
         self.assertEqual(N.next_event_date, float("inf"))
         self.assertEqual(N.all_individuals, [])
@@ -156,9 +192,21 @@ class TestProcessorSharing(unittest.TestCase):
 
         Q = hciw.Simulation(N_classchange, node_class=hciw.PSNode)
         N1 = Q.transitive_nodes[0]
-        self.assertEqual(N1.class_change, {'Class 0': {'Class 0': 0.5, 'Class 1': 0.5}, 'Class 1': {'Class 0': 0.5, 'Class 1': 0.5}})
+        self.assertEqual(
+            N1.class_change,
+            {
+                "Class 0": {"Class 0": 0.5, "Class 1": 0.5},
+                "Class 1": {"Class 0": 0.5, "Class 1": 0.5},
+            },
+        )
         N2 = Q.transitive_nodes[1]
-        self.assertEqual(N2.class_change, {'Class 0': {'Class 0': 1.0, 'Class 1': 0.0}, 'Class 1': {'Class 0': 0.0, 'Class 1': 1.0}})
+        self.assertEqual(
+            N2.class_change,
+            {
+                "Class 0": {"Class 0": 1.0, "Class 1": 0.0},
+                "Class 1": {"Class 0": 0.0, "Class 1": 1.0},
+            },
+        )
         self.assertEqual(N.interrupted_individuals, [])
 
         Q = hciw.Simulation(N_priorities, node_class=hciw.PSNode)
@@ -167,7 +215,7 @@ class TestProcessorSharing(unittest.TestCase):
         N.update_next_event_date()
         self.assertEqual(N.ps_capacity, 4)
         self.assertEqual(N.c, float("inf"))
-        self.assertEqual(Q.network.priority_class_mapping, {'Class 0': 0, 'Class 1': 1})
+        self.assertEqual(Q.network.priority_class_mapping, {"Class 0": 0, "Class 1": 1})
         self.assertEqual(Q.number_of_priority_classes, 2)
         self.assertEqual(N.interrupted_individuals, [])
         self.assertEqual(N.last_occupancy, 0)
@@ -182,7 +230,9 @@ class TestProcessorSharing(unittest.TestCase):
         self.assertEqual(Q.current_time, 0.0)
         Q.current_time = 0.5
         self.assertEqual(Q.current_time, 0.5)
-        ind1 = hciw.Individual(1, customer_class='Customer', priority_class=0, simulation=Q)
+        ind1 = hciw.Individual(
+            1, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind1)
         self.assertEqual(round(ind1.arrival_date, 10), 0.5)
         self.assertEqual(round(ind1.service_time, 10), 1.0)
@@ -192,7 +242,9 @@ class TestProcessorSharing(unittest.TestCase):
         self.assertEqual(round(ind1.service_start_date, 10), 0.5)
         self.assertEqual(round(ind1.service_end_date, 10), 1.5)
         Q.current_time = 0.7
-        ind2 = hciw.Individual(2, customer_class='Customer', priority_class=0, simulation=Q)
+        ind2 = hciw.Individual(
+            2, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind2)
         self.assertEqual(round(ind1.arrival_date, 10), 0.5)
         self.assertEqual(round(ind1.service_time, 10), 1.0)
@@ -209,7 +261,9 @@ class TestProcessorSharing(unittest.TestCase):
         self.assertEqual(round(ind2.service_start_date, 10), 0.7)
         self.assertEqual(round(ind2.service_end_date, 10), 2.7)
         Q.current_time = 2.0
-        ind3 = hciw.Individual(3, customer_class='Customer', priority_class=0, simulation=Q)
+        ind3 = hciw.Individual(
+            3, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind3)
         self.assertEqual(round(ind1.arrival_date, 10), 0.5)
         self.assertEqual(round(ind1.service_time, 10), 1.0)
@@ -243,11 +297,17 @@ class TestProcessorSharing(unittest.TestCase):
         self.assertEqual(Q.current_time, 0.0)
         Q.current_time = 0.5
         self.assertEqual(Q.current_time, 0.5)
-        ind1 = hciw.Individual(1, customer_class='Customer', priority_class=0, simulation=Q)
+        ind1 = hciw.Individual(
+            1, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind1)
-        ind2 = hciw.Individual(2, customer_class='Customer', priority_class=0, simulation=Q)
+        ind2 = hciw.Individual(
+            2, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind2)
-        ind3 = hciw.Individual(3, customer_class='Customer', priority_class=0, simulation=Q)
+        ind3 = hciw.Individual(
+            3, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind3)
         self.assertEqual(round(ind1.arrival_date, 10), 0.5)
         self.assertEqual(round(ind1.service_time, 10), 1.0)
@@ -312,7 +372,11 @@ class TestProcessorSharing(unittest.TestCase):
             Q = hciw.Simulation(N, node_class=hciw.PSNode)
             Q.simulate_until_max_time(250)
             recs = Q.get_all_records()
-            obs_services = [r.service_time for r in recs if r.arrival_date > 30 and r.arrival_date < 370]
+            obs_services = [
+                r.service_time
+                for r in recs
+                if r.arrival_date > 30 and r.arrival_date < 370
+            ]
             average_service_times.append(sum(obs_services) / len(obs_services))
         expected = 1 / (mu - lmbda)
         observed = sum(average_service_times) / len(average_service_times)
@@ -331,7 +395,11 @@ class TestProcessorSharing(unittest.TestCase):
             Q = hciw.Simulation(N, node_class=hciw.PSNode)
             Q.simulate_until_max_time(250)
             recs = Q.get_all_records()
-            obs_services = [r.service_time for r in recs if r.arrival_date > 30 and r.arrival_date < 370]
+            obs_services = [
+                r.service_time
+                for r in recs
+                if r.arrival_date > 30 and r.arrival_date < 370
+            ]
             average_service_times.append(sum(obs_services) / len(obs_services))
         expected = 1 / (mu - lmbda)
         observed = sum(average_service_times) / len(average_service_times)
@@ -367,17 +435,23 @@ class TestProcessorSharing(unittest.TestCase):
             number_of_servers=[float("inf")],
         )
         Q = hciw.Simulation(N, node_class=hciw.PSNode)
-        ind1 = hciw.Individual(1, customer_class='Customer', priority_class=0, simulation=Q)
+        ind1 = hciw.Individual(
+            1, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind1)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 1.0)
-        ind2 = hciw.Individual(2, customer_class='Customer', priority_class=0, simulation=Q)
+        ind2 = hciw.Individual(
+            2, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind2)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 2.0)
         self.assertEqual(ind2.with_server, True)
         self.assertEqual(ind2.service_end_date, 2.0)
-        ind3 = hciw.Individual(3, customer_class='Customer', priority_class=0, simulation=Q)
+        ind3 = hciw.Individual(
+            3, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind3)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 3.0)
@@ -385,7 +459,9 @@ class TestProcessorSharing(unittest.TestCase):
         self.assertEqual(ind2.service_end_date, 3.0)
         self.assertEqual(ind3.with_server, True)
         self.assertEqual(ind3.service_end_date, 3.0)
-        ind4 = hciw.Individual(4, customer_class='Customer', priority_class=0, simulation=Q)
+        ind4 = hciw.Individual(
+            4, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind4)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 4.0)
@@ -402,17 +478,23 @@ class TestProcessorSharing(unittest.TestCase):
             number_of_servers=[4],
         )
         Q = hciw.Simulation(N, node_class=hciw.PSNode)
-        ind1 = hciw.Individual(1, customer_class='Customer', priority_class=0, simulation=Q)
+        ind1 = hciw.Individual(
+            1, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind1)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 1.0)
-        ind2 = hciw.Individual(2, customer_class='Customer', priority_class=0, simulation=Q)
+        ind2 = hciw.Individual(
+            2, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind2)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 2.0)
         self.assertEqual(ind2.with_server, True)
         self.assertEqual(ind2.service_end_date, 2.0)
-        ind3 = hciw.Individual(3, customer_class='Customer', priority_class=0, simulation=Q)
+        ind3 = hciw.Individual(
+            3, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind3)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 3.0)
@@ -420,7 +502,9 @@ class TestProcessorSharing(unittest.TestCase):
         self.assertEqual(ind2.service_end_date, 3.0)
         self.assertEqual(ind3.with_server, True)
         self.assertEqual(ind3.service_end_date, 3.0)
-        ind4 = hciw.Individual(4, customer_class='Customer', priority_class=0, simulation=Q)
+        ind4 = hciw.Individual(
+            4, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind4)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 4.0)
@@ -437,17 +521,23 @@ class TestProcessorSharing(unittest.TestCase):
             number_of_servers=[3],
         )
         Q = hciw.Simulation(N, node_class=hciw.PSNode)
-        ind1 = hciw.Individual(1, customer_class='Customer', priority_class=0, simulation=Q)
+        ind1 = hciw.Individual(
+            1, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind1)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 1.0)
-        ind2 = hciw.Individual(2, customer_class='Customer', priority_class=0, simulation=Q)
+        ind2 = hciw.Individual(
+            2, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind2)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 2.0)
         self.assertEqual(ind2.with_server, True)
         self.assertEqual(ind2.service_end_date, 2.0)
-        ind3 = hciw.Individual(3, customer_class='Customer', priority_class=0, simulation=Q)
+        ind3 = hciw.Individual(
+            3, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind3)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 3.0)
@@ -455,7 +545,9 @@ class TestProcessorSharing(unittest.TestCase):
         self.assertEqual(ind2.service_end_date, 3.0)
         self.assertEqual(ind3.with_server, True)
         self.assertEqual(ind3.service_end_date, 3.0)
-        ind4 = hciw.Individual(4, customer_class='Customer', priority_class=0, simulation=Q)
+        ind4 = hciw.Individual(
+            4, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind4)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 3.0)
@@ -471,24 +563,32 @@ class TestProcessorSharing(unittest.TestCase):
             number_of_servers=[2],
         )
         Q = hciw.Simulation(N, node_class=hciw.PSNode)
-        ind1 = hciw.Individual(1, customer_class='Customer', priority_class=0, simulation=Q)
+        ind1 = hciw.Individual(
+            1, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind1)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 1.0)
-        ind2 = hciw.Individual(2, customer_class='Customer', priority_class=0, simulation=Q)
+        ind2 = hciw.Individual(
+            2, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind2)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 2.0)
         self.assertEqual(ind2.with_server, True)
         self.assertEqual(ind2.service_end_date, 2.0)
-        ind3 = hciw.Individual(3, customer_class='Customer', priority_class=0, simulation=Q)
+        ind3 = hciw.Individual(
+            3, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind3)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 2.0)
         self.assertEqual(ind2.with_server, True)
         self.assertEqual(ind2.service_end_date, 2.0)
         self.assertEqual(ind3.with_server, False)
-        ind4 = hciw.Individual(4, customer_class='Customer', priority_class=0, simulation=Q)
+        ind4 = hciw.Individual(
+            4, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind4)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 2.0)
@@ -503,22 +603,30 @@ class TestProcessorSharing(unittest.TestCase):
             number_of_servers=[1],
         )
         Q = hciw.Simulation(N, node_class=hciw.PSNode)
-        ind1 = hciw.Individual(1, customer_class='Customer', priority_class=0, simulation=Q)
+        ind1 = hciw.Individual(
+            1, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind1)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 1.0)
-        ind2 = hciw.Individual(2, customer_class='Customer', priority_class=0, simulation=Q)
+        ind2 = hciw.Individual(
+            2, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind2)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 1.0)
         self.assertEqual(ind2.with_server, False)
-        ind3 = hciw.Individual(3, customer_class='Customer', priority_class=0, simulation=Q)
+        ind3 = hciw.Individual(
+            3, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind3)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 1.0)
         self.assertEqual(ind2.with_server, False)
         self.assertEqual(ind3.with_server, False)
-        ind4 = hciw.Individual(4, customer_class='Customer', priority_class=0, simulation=Q)
+        ind4 = hciw.Individual(
+            4, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind4)
         self.assertEqual(ind1.with_server, True)
         self.assertEqual(ind1.service_end_date, 1.0)
@@ -536,11 +644,17 @@ class TestProcessorSharing(unittest.TestCase):
         self.assertEqual(Q.current_time, 0.0)
         Q.current_time = 0.5
         self.assertEqual(Q.current_time, 0.5)
-        ind1 = hciw.Individual(1, customer_class='Customer', priority_class=0, simulation=Q)
+        ind1 = hciw.Individual(
+            1, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind1)
-        ind2 = hciw.Individual(2, customer_class='Customer', priority_class=0, simulation=Q)
+        ind2 = hciw.Individual(
+            2, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind2)
-        ind3 = hciw.Individual(3, customer_class='Customer', priority_class=0, simulation=Q)
+        ind3 = hciw.Individual(
+            3, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind3)
         self.assertEqual(round(ind1.arrival_date, 10), 0.5)
         self.assertEqual(round(ind1.service_time, 10), 1.0)
@@ -564,7 +678,9 @@ class TestProcessorSharing(unittest.TestCase):
         self.assertEqual(round(ind3.service_start_date, 10), 0.5)
         self.assertEqual(round(ind3.service_end_date, 10), 9.5)
         Q.current_time = 1.5
-        ind4 = hciw.Individual(4, customer_class='Customer', priority_class=0, simulation=Q)
+        ind4 = hciw.Individual(
+            4, customer_class="Customer", priority_class=0, simulation=Q
+        )
         Q.nodes[1].accept(ind4)
         self.assertEqual(round(ind1.arrival_date, 10), 0.5)
         self.assertEqual(round(ind1.service_time, 10), 1.0)
@@ -647,7 +763,9 @@ class TestProcessorSharing(unittest.TestCase):
             ps_thresholds=[3],
         )
         hciw.seed(0)
-        Q = hciw.Simulation(N, node_class=hciw.PSNode, tracker=hciw.trackers.SystemPopulation())
+        Q = hciw.Simulation(
+            N, node_class=hciw.PSNode, tracker=hciw.trackers.SystemPopulation()
+        )
         Q.simulate_until_max_time(500)
         probs = Q.statetracker.state_probabilities()
         self.assertEqual(round(probs[0], 7), 0.4287092)

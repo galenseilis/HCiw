@@ -1,15 +1,17 @@
-import unittest
-import hciw
 import math
-from math import sqrt, exp, pi, erf
-import numpy as np
-import statistics as st
-from csv import reader
-from random import random, choice
-from hypothesis import given
-from hypothesis.strategies import floats, integers, lists, random_module, text
 import os
+import statistics as st
+import unittest
+from csv import reader
+from math import erf, exp, pi, sqrt
+from random import random
+
+import numpy as np
 import tqdm
+from hypothesis import given
+from hypothesis.strategies import floats, integers, lists, random_module
+
+import hciw
 
 
 def import_empirical(dist_file):
@@ -18,9 +20,9 @@ def import_empirical(dist_file):
     """
     root = os.getcwd()
     file_name = root + "/" + dist_file
-    empirical_file = open(file_name, "r")
+    empirical_file = open(file_name)
     rdr = reader(empirical_file)
-    empirical_dist = [[float(x) for x in row] for row in rdr][0]
+    empirical_dist = next([float(x) for x in row] for row in rdr)
     empirical_file.close()
     return empirical_dist
 
@@ -120,7 +122,9 @@ class TestSampling(unittest.TestCase):
         Hx = hciw.dists.HyperExponential([4, 7, 2], [0.3, 0.1, 0.6])
         He = hciw.dists.HyperErlang([4, 7, 2], [0.3, 0.1, 0.6], [2, 2, 7])
         Cx = hciw.dists.Coxian([4, 7, 2], [0.3, 0.2, 1.0])
-        Pi = hciw.dists.PoissonIntervals(rates=[5, 1.5, 3], endpoints=[3.2, 7.9, 10], max_sample_date=15)
+        Pi = hciw.dists.PoissonIntervals(
+            rates=[5, 1.5, 3], endpoints=[3.2, 7.9, 10], max_sample_date=15
+        )
         Po = hciw.dists.Poisson(rate=1.5)
         Ge = hciw.dists.Geometric(prob=0.3)
         Bi = hciw.dists.Binomial(n=20, prob=0.7)
@@ -173,14 +177,16 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nu.simulation.service_times[Nu.id_number]['Customer']._sample(), 2)
+            round(Nu.simulation.service_times[Nu.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [2.89, 3.02, 3.07, 3.24, 3.01]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nu.simulation.inter_arrival_times[Nu.id_number]['Customer']._sample(), 2)
+            round(
+                Nu.simulation.inter_arrival_times[Nu.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [3.21, 2.23, 2.71, 3.24, 2.91]
@@ -201,14 +207,18 @@ class TestSampling(unittest.TestCase):
         )
         Q = hciw.Simulation(N)
         Nu = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
+        for _itr in range(10):  # Because repition happens in the simulation
             self.assertTrue(
-                ul <= Nu.simulation.service_times[Nu.id_number]['Customer']._sample() <= uh
+                ul
+                <= Nu.simulation.service_times[Nu.id_number]["Customer"]._sample()
+                <= uh
             )
             self.assertTrue(
-                ul <= Nu.simulation.inter_arrival_times[Nu.id_number]['Customer']._sample() <= uh
+                ul
+                <= Nu.simulation.inter_arrival_times[Nu.id_number]["Customer"]._sample()
+                <= uh
             )
-    
+
     def test_uniform_summary_stats(self):
         """
         Test that the mean of a Uniform distribution is computed correctly.
@@ -242,14 +252,16 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nd.simulation.service_times[Nd.id_number]['Customer']._sample(), 2)
+            round(Nd.simulation.service_times[Nd.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [4.40, 4.40, 4.40, 4.40, 4.40]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nd.simulation.inter_arrival_times[Nd.id_number]['Customer']._sample(), 2)
+            round(
+                Nd.simulation.inter_arrival_times[Nd.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [4.40, 4.40, 4.40, 4.40, 4.40]
@@ -264,10 +276,12 @@ class TestSampling(unittest.TestCase):
         )
         Q = hciw.Simulation(N)
         Nd = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
-            self.assertEqual(Nd.simulation.service_times[Nd.id_number]['Customer']._sample(), d)
+        for _itr in range(10):  # Because repition happens in the simulation
             self.assertEqual(
-                Nd.simulation.inter_arrival_times[Nd.id_number]['Customer']._sample(), d
+                Nd.simulation.service_times[Nd.id_number]["Customer"]._sample(), d
+            )
+            self.assertEqual(
+                Nd.simulation.inter_arrival_times[Nd.id_number]["Customer"]._sample(), d
             )
 
     def test_deterministic_summary_stats(self):
@@ -300,21 +314,25 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nt.simulation.service_times[Nt.id_number]['Customer']._sample(), 2)
+            round(Nt.simulation.service_times[Nt.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [3.35, 3.91, 4.20, 5.33, 3.90]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nt.simulation.inter_arrival_times[Nt.id_number]['Customer']._sample(), 2)
+            round(
+                Nt.simulation.inter_arrival_times[Nt.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [5.12, 1.35, 2.73, 5.34, 3.46]
         self.assertEqual(samples, expected)
 
     @given(
-        t=lists(floats(min_value=0.0, max_value=10000), min_size=3, max_size=3, unique=True).map(sorted),
+        t=lists(
+            floats(min_value=0.0, max_value=10000), min_size=3, max_size=3, unique=True
+        ).map(sorted),
         rm=random_module(),
     )
     def test_sampling_triangular_dist_hypothesis(self, t, rm):
@@ -326,32 +344,39 @@ class TestSampling(unittest.TestCase):
         )
         Q = hciw.Simulation(N)
         Nt = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
-            self.assertTrue(tl <= Nt.simulation.service_times[Nt.id_number]['Customer']._sample() <= th)
-            self.assertTrue(tl <= Nt.simulation.inter_arrival_times[Nt.id_number]['Customer']._sample() <= th)
+        for _itr in range(10):  # Because repition happens in the simulation
+            self.assertTrue(
+                tl
+                <= Nt.simulation.service_times[Nt.id_number]["Customer"]._sample()
+                <= th
+            )
+            self.assertTrue(
+                tl
+                <= Nt.simulation.inter_arrival_times[Nt.id_number]["Customer"]._sample()
+                <= th
+            )
 
     def test_triangular_summary_stats(self):
         a, b, c = 1.1, 6.6, 2.2
         T = hciw.dists.Triangular(a, c, b)
         expected_mean = (1.1 + 2.2 + 6.6) / 3
         self.assertEqual(T.mean, expected_mean)
-        expected_variance = (a**2 + b**2 + c**2 - a*b - a*c - b*c) / 18
+        expected_variance = (a**2 + b**2 + c**2 - a * b - a * c - b * c) / 18
         self.assertEqual(T.variance, expected_variance)
         self.assertEqual(T.sd, math.sqrt(expected_variance))
-        mid = (a + b) / 2.0
+        (a + b) / 2.0
         expected_median = b - math.sqrt((b - a) * (b - c) / 2.0)
         self.assertEqual(T.median, expected_median)
         self.assertEqual(T.upper_limit, b)
         self.assertEqual(T.lower_limit, a)
 
     def test_triangular_median_right_mode_branch(self):
-        a, b, c = 1.0, 8.0, 7.0   # mode c is to the right of the midpoint
+        a, b, c = 1.0, 8.0, 7.0  # mode c is to the right of the midpoint
         T = hciw.dists.Triangular(a, c, b)
         mid = (a + b) / 2.0
-        self.assertTrue(c >= mid)  
+        self.assertTrue(c >= mid)
         expected = a + math.sqrt((b - a) * (c - a) / 2.0)
         self.assertEqual(T.median, expected)
-
 
     def test_exponential_dist_object(self):
         E = hciw.dists.Exponential(4.4)
@@ -374,14 +399,16 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Ne.simulation.service_times[Ne.id_number]['Customer']._sample(), 2)
+            round(Ne.simulation.service_times[Ne.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [0.22, 0.31, 0.36, 0.65, 0.31]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Ne.simulation.inter_arrival_times[Ne.id_number]['Customer']._sample(), 2)
+            round(
+                Ne.simulation.inter_arrival_times[Ne.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [0.58, 0.01, 0.14, 0.65, 0.24]
@@ -396,13 +423,15 @@ class TestSampling(unittest.TestCase):
         )
         Q = hciw.Simulation(N)
         Ne = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
+        for _itr in range(10):  # Because repition happens in the simulation
             self.assertTrue(
-                Ne.simulation.service_times[Ne.id_number]['Customer']._sample() >= 0.0
+                Ne.simulation.service_times[Ne.id_number]["Customer"]._sample() >= 0.0
             )
             self.assertTrue(
-                Ne.simulation.inter_arrival_times[Ne.id_number]['Customer']._sample() >= 0.0
+                Ne.simulation.inter_arrival_times[Ne.id_number]["Customer"]._sample()
+                >= 0.0
             )
+
     def test_exponential_summary_stats(self):
         """
         Test that the mean of the Exponential distribution is computed correctly.
@@ -410,7 +439,7 @@ class TestSampling(unittest.TestCase):
         E = hciw.dists.Exponential(4.4)
         expected_mean = 1 / 4.4
         self.assertEqual(E.mean, expected_mean)
-        expected_variance = 1 / (4.4 ** 2)
+        expected_variance = 1 / (4.4**2)
         self.assertEqual(E.variance, expected_variance)
         self.assertEqual(E.sd, 1.0 / 4.4)
         self.assertEqual(E.median, math.log(2.0) / 4.4)
@@ -435,14 +464,16 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Ng.simulation.service_times[Ng.id_number]['Customer']._sample(), 2)
+            round(Ng.simulation.service_times[Ng.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [0.0, 2.59, 1.92, 0.47, 0.61]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Ng.simulation.inter_arrival_times[Ng.id_number]['Customer']._sample(), 2)
+            round(
+                Ng.simulation.inter_arrival_times[Ng.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [0.00, 1.07, 1.15, 0.75, 0.00]
@@ -461,18 +492,18 @@ class TestSampling(unittest.TestCase):
         )
         Q = hciw.Simulation(N)
         Ng = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
+        for _itr in range(10):  # Because repition happens in the simulation
             self.assertTrue(
-                Ng.simulation.service_times[Ng.id_number]['Customer']._sample() >= 0.0
+                Ng.simulation.service_times[Ng.id_number]["Customer"]._sample() >= 0.0
             )
             self.assertTrue(
-                Ng.simulation.inter_arrival_times[Ng.id_number]['Customer']._sample() >= 0.0
+                Ng.simulation.inter_arrival_times[Ng.id_number]["Customer"]._sample()
+                >= 0.0
             )
-    
+
     def test_gamma_summary_stats(self):
         G = hciw.dists.Gamma(0.6, 1.2)
-        expected_mean = 0.6 * 1.2
-        expected_variance = 0.6 * (1.2 ** 2)
+        0.6 * (1.2**2)
         self.assertEqual(G.sd, math.sqrt(G.variance))
         self.assertTrue(math.isnan(G.median))
         self.assertTrue(math.isinf(G.upper_limit))
@@ -496,14 +527,16 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nl.simulation.service_times[Nl.id_number]['Customer']._sample(), 2)
+            round(Nl.simulation.service_times[Nl.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [2.62, 1.64, 2.19, 2.31, 2.48]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nl.simulation.inter_arrival_times[Nl.id_number]['Customer']._sample(), 2)
+            round(
+                Nl.simulation.inter_arrival_times[Nl.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [2.51, 2.33, 1.96, 2.32, 2.70]
@@ -522,17 +555,22 @@ class TestSampling(unittest.TestCase):
         )
         Q = hciw.Simulation(N)
         Nl = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
-            self.assertTrue(Nl.simulation.service_times[Nl.id_number]['Customer']._sample() >= 0.0)
-            self.assertTrue(Nl.simulation.inter_arrival_times[Nl.id_number]['Customer']._sample() >= 0.0)
+        for _itr in range(10):  # Because repition happens in the simulation
+            self.assertTrue(
+                Nl.simulation.service_times[Nl.id_number]["Customer"]._sample() >= 0.0
+            )
+            self.assertTrue(
+                Nl.simulation.inter_arrival_times[Nl.id_number]["Customer"]._sample()
+                >= 0.0
+            )
 
     def test_lognormal_summary_stats(self):
         mu = 0.7
         sigma = 0.4
         L = hciw.dists.Lognormal(mu, sigma)
 
-        expected_mean = math.exp(mu + (sigma ** 2) / 2)
-        expected_variance = (math.exp(sigma ** 2) - 1) * math.exp(2 * mu + sigma ** 2)
+        expected_mean = math.exp(mu + (sigma**2) / 2)
+        expected_variance = (math.exp(sigma**2) - 1) * math.exp(2 * mu + sigma**2)
         self.assertEqual(L.mean, expected_mean)
         self.assertEqual(L.variance, expected_variance)
         self.assertEqual(L.sd, math.sqrt(L.variance))
@@ -558,14 +596,16 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nw.simulation.service_times[Nw.id_number]['Customer']._sample(), 2)
+            round(Nw.simulation.service_times[Nw.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [0.87, 1.31, 1.60, 3.34, 1.31]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nw.simulation.inter_arrival_times[Nw.id_number]['Customer']._sample(), 2)
+            round(
+                Nw.simulation.inter_arrival_times[Nw.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [2.91, 0.01, 0.50, 3.36, 0.95]
@@ -584,20 +624,21 @@ class TestSampling(unittest.TestCase):
         )
         Q = hciw.Simulation(N)
         Nw = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
+        for _itr in range(10):  # Because repition happens in the simulation
             self.assertTrue(
-                Nw.simulation.service_times[Nw.id_number]['Customer']._sample() >= 0.0
+                Nw.simulation.service_times[Nw.id_number]["Customer"]._sample() >= 0.0
             )
             self.assertTrue(
-                Nw.simulation.inter_arrival_times[Nw.id_number]['Customer']._sample() >= 0.0
+                Nw.simulation.inter_arrival_times[Nw.id_number]["Customer"]._sample()
+                >= 0.0
             )
 
     def test_weibull_summary_stats(self):
         W = hciw.dists.Weibull(0.8, 0.9)
-        expected_mean = 0.8 * math.gamma(1 + 1 / 0.9)
+        0.8 * math.gamma(1 + 1 / 0.9)
         g1 = math.gamma(1 + 1 / 0.9)
         g2 = math.gamma(1 + 2 / 0.9)
-        expected_variance = (0.8 ** 2) * (g2 - g1 ** 2)
+        expected_variance = (0.8**2) * (g2 - g1**2)
         self.assertEqual(W.variance, expected_variance)
         self.assertEqual(W.sd, math.sqrt(W.variance))
         self.assertEqual(W.median, 0.8 * (math.log(2) ** (1.0 / 0.9)))
@@ -623,14 +664,16 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nn.simulation.service_times[Nn.id_number]['Customer']._sample(), 2)
+            round(Nn.simulation.service_times[Nn.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [0.58, 0.35, 0.49, 0.52, 0.55]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nn.simulation.inter_arrival_times[Nn.id_number]['Customer']._sample(), 2)
+            round(
+                Nn.simulation.inter_arrival_times[Nn.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [0.56, 0.52, 0.44, 0.52, 0.60]
@@ -650,10 +693,15 @@ class TestSampling(unittest.TestCase):
         )
         Q = hciw.Simulation(N)
         Nw = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
-            self.assertTrue(Nw.simulation.service_times[Nw.id_number]['Customer']._sample() >= 0.0)
-            self.assertTrue(Nw.simulation.inter_arrival_times[Nw.id_number]['Customer']._sample() >= 0.0)
-    
+        for _itr in range(10):  # Because repition happens in the simulation
+            self.assertTrue(
+                Nw.simulation.service_times[Nw.id_number]["Customer"]._sample() >= 0.0
+            )
+            self.assertTrue(
+                Nw.simulation.inter_arrival_times[Nw.id_number]["Customer"]._sample()
+                >= 0.0
+            )
+
     def test_normal_truncated_summary_stats(self):
         N = hciw.dists.Normal(5.0, 1.0)
         mu = N._mean
@@ -662,7 +710,7 @@ class TestSampling(unittest.TestCase):
         phi = (1 / sqrt(2 * pi)) * exp(-0.5 * z**2)
         Phi = 0.5 * (1 + erf(z / sqrt(2)))
         expected_mean = mu + sd * (phi / Phi)
-        expected_variance = sd**2 * (1 - z * (phi / Phi) - (phi / Phi)**2)
+        expected_variance = sd**2 * (1 - z * (phi / Phi) - (phi / Phi) ** 2)
         self.assertEqual(N.mean, expected_mean)
         self.assertEqual(N.variance, expected_variance)
         self.assertEqual(N.sd, math.sqrt(N.variance))
@@ -684,7 +732,11 @@ class TestSampling(unittest.TestCase):
     def test_sampling_empirical_dist(self):
         my_empirical_dist = [8.0, 8.0, 8.0, 8.8, 8.8, 12.3]
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Empirical(import_empirical("tests/sample_empirical_dist.csv"))],
+            arrival_distributions=[
+                hciw.dists.Empirical(
+                    import_empirical("tests/sample_empirical_dist.csv")
+                )
+            ],
             service_distributions=[hciw.dists.Empirical(my_empirical_dist)],
             number_of_servers=[1],
         )
@@ -693,14 +745,17 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nem.simulation.service_times[Nem.id_number]['Customer']._sample(), 2)
+            round(Nem.simulation.service_times[Nem.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [8.8, 8.8, 8.8, 12.3, 8.8]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nem.simulation.inter_arrival_times[Nem.id_number]['Customer']._sample(), 2)
+            round(
+                Nem.simulation.inter_arrival_times[Nem.id_number]["Customer"]._sample(),
+                2,
+            )
             for _ in range(5)
         ]
         expected = [7.3, 7.0, 7.7, 7.3, 7.1]
@@ -714,18 +769,22 @@ class TestSampling(unittest.TestCase):
         my_empirical_dist = dist
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Empirical(my_empirical_dist)],
-            service_distributions=[hciw.dists.Empirical(import_empirical("tests/sample_empirical_dist.csv"))],
+            service_distributions=[
+                hciw.dists.Empirical(
+                    import_empirical("tests/sample_empirical_dist.csv")
+                )
+            ],
             number_of_servers=[1],
         )
         Q = hciw.Simulation(N)
         Nem = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
+        for _itr in range(10):  # Because repition happens in the simulation
             self.assertTrue(
-                Nem.simulation.service_times[Nem.id_number]['Customer']._sample()
+                Nem.simulation.service_times[Nem.id_number]["Customer"]._sample()
                 in set([7.0, 7.1, 7.2, 7.3, 7.7, 7.8])
             )
             self.assertTrue(
-                Nem.simulation.inter_arrival_times[Nem.id_number]['Customer']._sample()
+                Nem.simulation.inter_arrival_times[Nem.id_number]["Customer"]._sample()
                 in set(my_empirical_dist)
             )
 
@@ -748,10 +807,10 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(Em.median, 2.5)
         self.assertEqual(Em.mean, 3)
         # odd
-        values = [5.0, 7.0, 9.0]  
+        values = [5.0, 7.0, 9.0]
         E = hciw.dists.Empirical(values)
-        self.assertEqual(E.median, 7.0) 
-        self.assertEqual(E.mean, 7.0) 
+        self.assertEqual(E.median, 7.0)
+        self.assertEqual(E.mean, 7.0)
 
     def test_pmf_object(self):
         Pmf = hciw.dists.Pmf([3.7, 3.8, 4.1], [0.2, 0.5, 0.3])
@@ -768,8 +827,12 @@ class TestSampling(unittest.TestCase):
         custom_dist_values = [3.7, 3.8, 4.1]
         custom_dist_probs = [0.2, 0.5, 0.3]
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Pmf(custom_dist_values, custom_dist_probs)],
-            service_distributions=[hciw.dists.Pmf(custom_dist_values, custom_dist_probs)],
+            arrival_distributions=[
+                hciw.dists.Pmf(custom_dist_values, custom_dist_probs)
+            ],
+            service_distributions=[
+                hciw.dists.Pmf(custom_dist_values, custom_dist_probs)
+            ],
             number_of_servers=[1],
         )
         Q = hciw.Simulation(N)
@@ -777,14 +840,16 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nc.simulation.service_times[Nc.id_number]['Customer']._sample(), 2)
+            round(Nc.simulation.service_times[Nc.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [3.8, 4.1, 4.1, 4.1, 4.1]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nc.simulation.inter_arrival_times[Nc.id_number]['Customer']._sample(), 2)
+            round(
+                Nc.simulation.inter_arrival_times[Nc.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [4.1, 3.7, 3.8, 4.1, 3.8]
@@ -806,18 +871,25 @@ class TestSampling(unittest.TestCase):
         )
         Q = hciw.Simulation(N)
         Nc = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
-            self.assertTrue(Nc.simulation.service_times[Nc.id_number]['Customer']._sample() in set(cust_vals))
-            self.assertTrue(Nc.simulation.inter_arrival_times[Nc.id_number]['Customer']._sample() in set(cust_vals))
-
+        for _itr in range(10):  # Because repition happens in the simulation
+            self.assertTrue(
+                Nc.simulation.service_times[Nc.id_number]["Customer"]._sample()
+                in set(cust_vals)
+            )
+            self.assertTrue(
+                Nc.simulation.inter_arrival_times[Nc.id_number]["Customer"]._sample()
+                in set(cust_vals)
+            )
 
     def test_pmf_summary_stats(self):
         values = [3.7, 3.8, 4.1]
         probs = [0.2, 0.5, 0.3]
         P = hciw.dists.Pmf(values, probs)
-        expected_mean = sum(v * p for v, p in zip(values, probs))
+        expected_mean = sum(v * p for v, p in zip(values, probs, strict=False))
         self.assertEqual(P.mean, expected_mean)
-        expected_variance = sum(p * (v - expected_mean) ** 2 for v, p in zip(values, probs))
+        expected_variance = sum(
+            p * (v - expected_mean) ** 2 for v, p in zip(values, probs, strict=False)
+        )
         self.assertEqual(P.variance, expected_variance)
         self.assertEqual(P.sd, math.sqrt(P.variance))
         self.assertEqual(P.median, 3.8)
@@ -826,11 +898,10 @@ class TestSampling(unittest.TestCase):
 
     def test_pmf_median_fallback(self):
         # Force sum of probs < 1.0 to trigger fallback
-        P = hciw.dists.Pmf.__new__(hciw.dists.Pmf) 
+        P = hciw.dists.Pmf.__new__(hciw.dists.Pmf)
         P.values = [1.0, 2.0, 3.0]
         P.probs = [0.1, 0.1, 0.1]  # sum = 0.3, so cumulative never reaches 0.5
-        self.assertEqual(P.median, 3.0)  
-
+        self.assertEqual(P.median, 3.0)
 
     def test_custom_dist_object(self):
         CD = CustomDist()
@@ -852,28 +923,32 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(N1.simulation.service_times[N1.id_number]['Customer']._sample(), 2)
+            round(N1.simulation.service_times[N1.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [1.25, 0.37, 0.4, 0.47, 0.37]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(N2.simulation.service_times[N2.id_number]['Customer']._sample(), 2)
+            round(N2.simulation.service_times[N2.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [0.46, 0.06, 0.93, 0.47, 1.30]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(N1.simulation.inter_arrival_times[N1.id_number]['Customer']._sample(), 2)
+            round(
+                N1.simulation.inter_arrival_times[N1.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [0.45, 0.06, 0.94, 0.49, 0.27]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(N2.simulation.inter_arrival_times[N2.id_number]['Customer']._sample(), 2)
+            round(
+                N2.simulation.inter_arrival_times[N2.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [0.29, 0.03, 0.43, 0.56, 0.46]
@@ -911,13 +986,21 @@ class TestSampling(unittest.TestCase):
 
         samples = []
         for t in [3.0, 9.0, 9.0, 11.0, 11.0]:
-            samples.append(round(N1.simulation.service_times[N1.id_number]['Customer']._sample(t), 2))
+            samples.append(
+                round(
+                    N1.simulation.service_times[N1.id_number]["Customer"]._sample(t), 2
+                )
+            )
         expected = [3.0, 3.0, 3.0, 5.0, 5.0]
         self.assertEqual(samples, expected)
 
         samples = []
         for t in [4.0, 4.0, 17.0, 22.0, 22.0]:
-            samples.append(round(N2.simulation.service_times[N2.id_number]['Customer']._sample(t), 2))
+            samples.append(
+                round(
+                    N2.simulation.service_times[N2.id_number]["Customer"]._sample(t), 2
+                )
+            )
         expected = [2.0, 2.0, 8.5, 8.0, 8.0]
         self.assertEqual(samples, expected)
 
@@ -937,13 +1020,27 @@ class TestSampling(unittest.TestCase):
 
         samples = []
         for t in [3.0, 9.0, 9.0, 11.0, 11.0]:
-            samples.append(round(N1.simulation.inter_arrival_times[N1.id_number]['Customer']._sample(t), 2))
+            samples.append(
+                round(
+                    N1.simulation.inter_arrival_times[N1.id_number]["Customer"]._sample(
+                        t
+                    ),
+                    2,
+                )
+            )
         expected = [3.0, 3.0, 3.0, 5.0, 5.0]
         self.assertEqual(samples, expected)
 
         samples = []
         for t in [4.0, 4.0, 17.0, 22.0, 22.0]:
-            samples.append(round(N2.simulation.inter_arrival_times[N2.id_number]['Customer']._sample(t), 2))
+            samples.append(
+                round(
+                    N2.simulation.inter_arrival_times[N2.id_number]["Customer"]._sample(
+                        t
+                    ),
+                    2,
+                )
+            )
         expected = [2.0, 2.0, 8.5, 8.0, 8.0]
         self.assertEqual(samples, expected)
 
@@ -1004,7 +1101,7 @@ class TestSampling(unittest.TestCase):
         Ns = Q.transitive_nodes[0]
 
         samples = [
-            round(Ns.simulation.service_times[Ns.id_number]['Customer']._sample(), 2)
+            round(Ns.simulation.service_times[Ns.id_number]["Customer"]._sample(), 2)
             for _ in range(7)
         ]
         expected = [0.9, 0.7, 0.5, 0.3, 0.1, 0.9, 0.7]
@@ -1013,7 +1110,9 @@ class TestSampling(unittest.TestCase):
         # First arrival will be offset by 1, as first customer's inter-arrival
         # time has already been sampled by the arrival node
         samples = [
-            round(Ns.simulation.inter_arrival_times[Ns.id_number]['Customer']._sample(), 2)
+            round(
+                Ns.simulation.inter_arrival_times[Ns.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(6)
         ]
         expected = [0.4, 0.6, 0.8, 0.2, 0.4, 0.6]
@@ -1038,17 +1137,15 @@ class TestSampling(unittest.TestCase):
         len1 = len(sequential_dist_1)
         len2 = len(sequential_dist_2)
 
-        expected_inter_arrival_times = (
-            3 * sequential_dist_1 + sequential_dist_1[:1]
-        )
+        expected_inter_arrival_times = 3 * sequential_dist_1 + sequential_dist_1[:1]
         expected_service_times = 3 * sequential_dist_2
 
         inter_arrivals = [
-            Ns.simulation.inter_arrival_times[Ns.id_number]['Customer']._sample()
+            Ns.simulation.inter_arrival_times[Ns.id_number]["Customer"]._sample()
             for _ in range(3 * len1)
         ]
         services = [
-            Ns.simulation.service_times[Ns.id_number]['Customer']._sample()
+            Ns.simulation.service_times[Ns.id_number]["Customer"]._sample()
             for _ in range(3 * len2)
         ]
         self.assertEqual(inter_arrivals, expected_inter_arrival_times[1:])
@@ -1077,7 +1174,6 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(S.upper_limit, 0.7)
         self.assertEqual(S.lower_limit, 0.1)
 
-
     def test_combining_distributions(self):
         Dt = hciw.dists.Deterministic(5.0)
         Sq = hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0])
@@ -1098,10 +1194,18 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(samples, expected)
 
         ## Addition
-        Dt_plus_Sq = hciw.dists.Deterministic(5.0) + hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0])
+        Dt_plus_Sq = hciw.dists.Deterministic(5.0) + hciw.dists.Sequential(
+            [1.0, 2.0, 3.0, 4.0]
+        )
         Dt_plus_Ex = hciw.dists.Deterministic(5.0) + hciw.dists.Exponential(0.5)
-        Sq_plus_Ex = hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0]) + hciw.dists.Exponential(0.5)
-        Dt_plus_Sq_plus_Ex = hciw.dists.Deterministic(5.0) + hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0]) + hciw.dists.Exponential(0.5)
+        Sq_plus_Ex = hciw.dists.Sequential(
+            [1.0, 2.0, 3.0, 4.0]
+        ) + hciw.dists.Exponential(0.5)
+        Dt_plus_Sq_plus_Ex = (
+            hciw.dists.Deterministic(5.0)
+            + hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0])
+            + hciw.dists.Exponential(0.5)
+        )
         hciw.seed(0)
         samples = [round(Dt_plus_Sq._sample(), 3) for _ in range(6)]
         expected = [6.0, 7.0, 8.0, 9.0, 6.0, 7.0]
@@ -1120,7 +1224,9 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(samples, expected)
 
         ## Substraction
-        Dt_minus_Sq = hciw.dists.Deterministic(5.0) - hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0])
+        Dt_minus_Sq = hciw.dists.Deterministic(5.0) - hciw.dists.Sequential(
+            [1.0, 2.0, 3.0, 4.0]
+        )
         Dt_minus_Ex = hciw.dists.Deterministic(5.0) - hciw.dists.Exponential(0.5)
         hciw.seed(0)
         samples = [round(Dt_minus_Sq._sample(), 3) for _ in range(6)]
@@ -1132,9 +1238,13 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(samples, expected)
 
         ## Multiplication
-        Dt_mult_Sq = hciw.dists.Deterministic(5.0) * hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0])
+        Dt_mult_Sq = hciw.dists.Deterministic(5.0) * hciw.dists.Sequential(
+            [1.0, 2.0, 3.0, 4.0]
+        )
         Dt_mult_Ex = hciw.dists.Deterministic(5.0) * hciw.dists.Exponential(0.5)
-        Sq_mult_Ex = hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0]) * hciw.dists.Exponential(0.5)
+        Sq_mult_Ex = hciw.dists.Sequential(
+            [1.0, 2.0, 3.0, 4.0]
+        ) * hciw.dists.Exponential(0.5)
         hciw.seed(0)
         samples = [round(Dt_mult_Sq._sample(), 3) for _ in range(6)]
         expected = [5.0, 10.0, 15.0, 20.0, 5.0, 10.0]
@@ -1149,12 +1259,20 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(samples, expected)
 
         ## Division
-        Dt_div_Sq = hciw.dists.Deterministic(5.0) / hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0])
+        Dt_div_Sq = hciw.dists.Deterministic(5.0) / hciw.dists.Sequential(
+            [1.0, 2.0, 3.0, 4.0]
+        )
         Dt_div_Ex = hciw.dists.Deterministic(5.0) / hciw.dists.Exponential(0.5)
-        Sq_div_Ex = hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0]) / hciw.dists.Exponential(0.5)
-        Sq_div_Dt = hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0]) / hciw.dists.Deterministic(5.0)
+        Sq_div_Ex = hciw.dists.Sequential(
+            [1.0, 2.0, 3.0, 4.0]
+        ) / hciw.dists.Exponential(0.5)
+        Sq_div_Dt = hciw.dists.Sequential(
+            [1.0, 2.0, 3.0, 4.0]
+        ) / hciw.dists.Deterministic(5.0)
         Ex_div_Dt = hciw.dists.Exponential(0.5) / hciw.dists.Deterministic(5.0)
-        Ex_div_Sq = hciw.dists.Exponential(0.5) / hciw.dists.Sequential([1.0, 2.0, 3.0, 4.0])
+        Ex_div_Sq = hciw.dists.Exponential(0.5) / hciw.dists.Sequential(
+            [1.0, 2.0, 3.0, 4.0]
+        )
         hciw.seed(0)
         samples = [round(Dt_div_Sq._sample(), 3) for _ in range(6)]
         expected = [5.0, 2.5, 1.667, 1.25, 5.0, 2.5]
@@ -1201,11 +1319,11 @@ class TestSampling(unittest.TestCase):
         B = hciw.dists.Normal(2.0, 0.5)
 
         C = A + B
-        expected_mean = A.mean + B.mean                     # 5 + 2 = 7
-        expected_var  = A.variance + B.variance             # 1 + 0.25 = 1.25
+        expected_mean = A.mean + B.mean  # 5 + 2 = 7
+        expected_var = A.variance + B.variance  # 1 + 0.25 = 1.25
         self.assertEqual(C.mean, expected_mean)
         self.assertEqual(C.variance, expected_var)
-        self.assertEqual(C.upper_limit, float('inf'))
+        self.assertEqual(C.upper_limit, float("inf"))
         self.assertEqual(C.lower_limit, 0)
 
     def test_combined_sub_summary_stats(self):
@@ -1213,8 +1331,8 @@ class TestSampling(unittest.TestCase):
         B = hciw.dists.Normal(2.0, 0.5)
 
         C = A - B
-        expected_mean = A.mean - B.mean                     # 5 - 2 = 3
-        expected_var  = A.variance + B.variance             # 1 + 0.25 = 1.25
+        expected_mean = A.mean - B.mean  # 5 - 2 = 3
+        expected_var = A.variance + B.variance  # 1 + 0.25 = 1.25
         self.assertEqual(C.mean, expected_mean)
         self.assertEqual(C.variance, expected_var)
         self.assertTrue(math.isnan(C.upper_limit))
@@ -1224,16 +1342,16 @@ class TestSampling(unittest.TestCase):
         # Product moments (independent):
         # E[AB] = mA mB
         # Var(AB) = vA vB + mB^2 vA + mA^2 vB
-        A = hciw.dists.Normal(5.0, 1.0)    # mA=5, vA=1
-        B = hciw.dists.Normal(2.0, 0.5)    # mB=2, vB=0.25
+        A = hciw.dists.Normal(5.0, 1.0)  # mA=5, vA=1
+        B = hciw.dists.Normal(2.0, 0.5)  # mB=2, vB=0.25
 
         C = A * B
-        expected_mean = A.mean * B.mean                   # 10
-        expected_var  = (
-            A.variance * B.variance                      # 1 * 0.25 = 0.25
-            + (B.mean ** 2) * A.variance                 # 4 * 1 = 4
-            + (A.mean ** 2) * B.variance                 # 25 * 0.25 = 6.25
-        )                                                # total = 10.5
+        expected_mean = A.mean * B.mean  # 10
+        expected_var = (
+            A.variance * B.variance  # 1 * 0.25 = 0.25
+            + (B.mean**2) * A.variance  # 4 * 1 = 4
+            + (A.mean**2) * B.variance  # 25 * 0.25 = 6.25
+        )  # total = 10.5
         self.assertEqual(C.mean, expected_mean)
         self.assertEqual(C.variance, expected_var)
 
@@ -1241,15 +1359,15 @@ class TestSampling(unittest.TestCase):
         # Division uses the delta-method approximation implemented in your properties:
         # E[A/B] = mA / mB
         # Var(A/B) = vA / mB^2 + (mA^2 * vB) / mB^4   (requires mB != 0)
-        A = hciw.dists.Normal(5.0, 1.0)    # mA=5, vA=1
-        B = hciw.dists.Normal(2.0, 0.5)    # mB=2, vB=0.25
+        A = hciw.dists.Normal(5.0, 1.0)  # mA=5, vA=1
+        B = hciw.dists.Normal(2.0, 0.5)  # mB=2, vB=0.25
 
         C = A / B
         expected_mean = A.mean / B.mean  # 2.5
-        expected_var  = (
-            A.variance / (B.mean ** 2)  # 1 / 4 = 0.25
-            + (A.mean ** 2) * B.variance / (B.mean ** 4) # 25 * 0.25 / 16 = 0.390625
-        ) # total = 0.640625
+        expected_var = (
+            A.variance / (B.mean**2)  # 1 / 4 = 0.25
+            + (A.mean**2) * B.variance / (B.mean**4)  # 25 * 0.25 / 16 = 0.390625
+        )  # total = 0.640625
         self.assertEqual(C.mean, expected_mean)
         self.assertEqual(C.variance, expected_var)
 
@@ -1268,39 +1386,41 @@ class TestSampling(unittest.TestCase):
         Mixted_100 = hciw.dists.MixtureDistribution(dists=[D1, D5, D8], probs=[1, 0, 0])
         m100_samples = [Mixted_100.sample() for _ in range(10)]
         m100_expected = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        self.assertEqual(str(Mixted_100), 'MixtureDistribution')
+        self.assertEqual(str(Mixted_100), "MixtureDistribution")
         self.assertEqual(m100_samples, m100_expected)
 
         Mixted_010 = hciw.dists.MixtureDistribution(dists=[D1, D5, D8], probs=[0, 1, 0])
         m010_samples = [Mixted_010.sample() for _ in range(10)]
         m010_expected = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
-        self.assertEqual(str(Mixted_010), 'MixtureDistribution')
+        self.assertEqual(str(Mixted_010), "MixtureDistribution")
         self.assertEqual(m010_samples, m010_expected)
 
         Mixted_001 = hciw.dists.MixtureDistribution(dists=[D1, D5, D8], probs=[0, 0, 1])
         m001_samples = [Mixted_001.sample() for _ in range(10)]
         m001_expected = [8, 8, 8, 8, 8, 8, 8, 8, 8, 8]
-        self.assertEqual(str(Mixted_001), 'MixtureDistribution')
+        self.assertEqual(str(Mixted_001), "MixtureDistribution")
         self.assertEqual(m001_samples, m001_expected)
 
-        Mixted_eq = hciw.dists.MixtureDistribution(dists=[D1, D5, D8], probs=[1/3, 1/3, 1/3])
+        Mixted_eq = hciw.dists.MixtureDistribution(
+            dists=[D1, D5, D8], probs=[1 / 3, 1 / 3, 1 / 3]
+        )
         meq_samples = [Mixted_eq.sample() for _ in range(10)]
         meq_expected = [5, 8, 1, 8, 5, 1, 8, 5, 8, 8]
-        self.assertEqual(str(Mixted_eq), 'MixtureDistribution')
+        self.assertEqual(str(Mixted_eq), "MixtureDistribution")
         self.assertEqual(meq_samples, meq_expected)
 
     def test_mixture_summary_stats(self):
-        c1 = hciw.dists.Normal(0.0, 1.0)  
-        c2 = hciw.dists.Normal(3.0, 2.0)  
+        c1 = hciw.dists.Normal(0.0, 1.0)
+        c2 = hciw.dists.Normal(3.0, 2.0)
         probs = [0.6, 0.4]
         M = hciw.dists.MixtureDistribution([c1, c2], probs)
 
         expected_mean = probs[0] * c1.mean + probs[1] * c2.mean
         self.assertEqual(M.mean, expected_mean)
         expected_variance = (
-            probs[0] * (c1.variance + c1.mean ** 2) +
-            probs[1] * (c2.variance + c2.mean ** 2)
-        ) - expected_mean ** 2
+            probs[0] * (c1.variance + c1.mean**2)
+            + probs[1] * (c2.variance + c2.mean**2)
+        ) - expected_mean**2
         self.assertEqual(M.variance, expected_variance)
 
         D = hciw.dists.Deterministic(3.0)
@@ -1343,40 +1463,22 @@ class TestSampling(unittest.TestCase):
         expected = [0.34, 0.71, 0.64, 0.47, 0.03, 0.07, 0.21, 0.7, 0.04, 0.04]
         self.assertEqual(samples, expected)
         self.assertRaises(
-            ValueError,
-            hciw.dists.PhaseType,
-            [-0.3, 0.7, 0.0],
-            absorbing_matrix
+            ValueError, hciw.dists.PhaseType, [-0.3, 0.7, 0.0], absorbing_matrix
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.PhaseType,
-            [1.3, 0.7, 0.0],
-            absorbing_matrix
+            ValueError, hciw.dists.PhaseType, [1.3, 0.7, 0.0], absorbing_matrix
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.PhaseType,
-            [0.3, 0.9, 0.0],
-            absorbing_matrix
+            ValueError, hciw.dists.PhaseType, [0.3, 0.9, 0.0], absorbing_matrix
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.PhaseType,
-            initial_state,
-            [[-3, 3], [7, -10, 3]]
+            ValueError, hciw.dists.PhaseType, initial_state, [[-3, 3], [7, -10, 3]]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.PhaseType,
-            initial_state,
-            [[-3, 3], [7, -7]]
+            ValueError, hciw.dists.PhaseType, initial_state, [[-3, 3], [7, -7]]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.PhaseType,
-            initial_state,
-            [[-3, 3], [7, -7]]
+            ValueError, hciw.dists.PhaseType, initial_state, [[-3, 3], [7, -7]]
         )
         self.assertRaises(
             ValueError,
@@ -1432,15 +1534,11 @@ class TestSampling(unittest.TestCase):
 
     def test_phasetype_summary_stats(self):
         initial_state = [0.3, 0.7, 0.0]
-        absorbing_matrix = [
-            [-5, 3, 2],
-            [0, -4, 4],
-            [0, 0, 0]
-        ]
+        absorbing_matrix = [[-5, 3, 2], [0, -4, 4], [0, 0, 0]]
         Ph = hciw.dists.PhaseType(initial_state, absorbing_matrix)
         # Extract transient generator Q and initial vector alpha
-        Q = np.array(absorbing_matrix)[:-1, :-1]        # Top-left 2x2 submatrix
-        alpha = np.array(initial_state[:-1])            # First 2 entries
+        Q = np.array(absorbing_matrix)[:-1, :-1]  # Top-left 2x2 submatrix
+        alpha = np.array(initial_state[:-1])  # First 2 entries
         invQ = np.linalg.inv(-Q)
         ones = np.ones(len(Q))
 
@@ -1451,7 +1549,7 @@ class TestSampling(unittest.TestCase):
         expected_second_moment = float(2 * alpha @ invQ @ invQ @ ones)
 
         # Variance: Var(T) = E[T^2] - (E[T])^2
-        expected_variance = expected_second_moment - expected_mean ** 2
+        expected_variance = expected_second_moment - expected_mean**2
 
         # Assertions
         self.assertEqual(Ph.mean, expected_mean)
@@ -1469,14 +1567,16 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nn.simulation.service_times[Nn.id_number]['Customer']._sample(), 2)
+            round(Nn.simulation.service_times[Nn.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [2.07, 1.21, 1.28, 1.75, 2.56]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nn.simulation.inter_arrival_times[Nn.id_number]['Customer']._sample(), 2)
+            round(
+                Nn.simulation.inter_arrival_times[Nn.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [0.5, 1.06, 1.72, 1.17, 1.49]
@@ -1496,21 +1596,26 @@ class TestSampling(unittest.TestCase):
         )
         Q = hciw.Simulation(N)
         Nw = Q.transitive_nodes[0]
-        for itr in range(10):  # Because repition happens in the simulation
-            self.assertTrue(Nw.simulation.service_times[Nw.id_number]['Customer']._sample() >= 0.0)
-            self.assertTrue(Nw.simulation.inter_arrival_times[Nw.id_number]['Customer']._sample() >= 0.0)
+        for _itr in range(10):  # Because repition happens in the simulation
+            self.assertTrue(
+                Nw.simulation.service_times[Nw.id_number]["Customer"]._sample() >= 0.0
+            )
+            self.assertTrue(
+                Nw.simulation.inter_arrival_times[Nw.id_number]["Customer"]._sample()
+                >= 0.0
+            )
 
     def test_erlang_summary_stats(self):
         rate = 5.0
         k = 7
         Er = hciw.dists.Erlang(rate, k)
         expected_mean = k / rate
-        expected_variance = k / (rate ** 2)
+        expected_variance = k / (rate**2)
         self.assertEqual(Er.mean, expected_mean)
         self.assertEqual(Er.variance, expected_variance)
         self.assertTrue(math.isnan(Er.median))
         self.assertEqual(Er.lower_limit, 0)
-        self.assertEqual(Er.upper_limit, float('inf'))
+        self.assertEqual(Er.upper_limit, float("inf"))
 
     def test_hyperexponential_dist_object(self):
         Hx = hciw.dists.HyperExponential([5, 7, 2, 1], [0.4, 0.1, 0.3, 0.2])
@@ -1533,25 +1638,16 @@ class TestSampling(unittest.TestCase):
             ValueError,
             hciw.dists.HyperExponential,
             [5, -7, -2, 1],
-            [0.4, 0.1, 0.3, 0.2]
+            [0.4, 0.1, 0.3, 0.2],
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.HyperExponential,
-            [5, 7, 2, 1],
-            [0.4, 5.1, 0.3, 0.2]
+            ValueError, hciw.dists.HyperExponential, [5, 7, 2, 1], [0.4, 5.1, 0.3, 0.2]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.HyperExponential,
-            [5, 7, 2, 1],
-            [0.4, -0.1, 0.3, 0.2]
+            ValueError, hciw.dists.HyperExponential, [5, 7, 2, 1], [0.4, -0.1, 0.3, 0.2]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.HyperExponential,
-            [5, 7, 2, 1],
-            [0.4, 0.8, 0.3, 0.2]
+            ValueError, hciw.dists.HyperExponential, [5, 7, 2, 1], [0.4, 0.8, 0.3, 0.2]
         )
 
         many_samples = [round(Hx.sample(), 2) for _ in range(1000)]
@@ -1561,8 +1657,12 @@ class TestSampling(unittest.TestCase):
 
     def test_sampling_hyperexponential_dist(self):
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.HyperExponential([5, 7, 2, 1], [0.4, 0.1, 0.3, 0.2])],
-            service_distributions=[hciw.dists.HyperExponential([5, 7, 2, 1], [0.4, 0.1, 0.3, 0.2])],
+            arrival_distributions=[
+                hciw.dists.HyperExponential([5, 7, 2, 1], [0.4, 0.1, 0.3, 0.2])
+            ],
+            service_distributions=[
+                hciw.dists.HyperExponential([5, 7, 2, 1], [0.4, 0.1, 0.3, 0.2])
+            ],
             number_of_servers=[1],
             routing=[[0.1]],
         )
@@ -1571,14 +1671,16 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nn.simulation.service_times[Nn.id_number]['Customer']._sample(), 2)
+            round(Nn.simulation.service_times[Nn.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [0.68, 1.43, 1.28, 0.13, 1.05]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nn.simulation.inter_arrival_times[Nn.id_number]['Customer']._sample(), 2)
+            round(
+                Nn.simulation.inter_arrival_times[Nn.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [0.12, 0.04, 0.43, 0.05, 0.5]
@@ -1589,14 +1691,16 @@ class TestSampling(unittest.TestCase):
         probs = [0.3, 0.5, 0.2]
         Hx = hciw.dists.HyperExponential(rates, probs)
 
-        expected_mean = sum(p / r for p, r in zip(probs, rates))
-        expected_variance = sum(2 * p / (r ** 2) for p, r in zip(probs, rates)) - expected_mean ** 2
+        expected_mean = sum(p / r for p, r in zip(probs, rates, strict=False))
+        expected_variance = (
+            sum(2 * p / (r**2) for p, r in zip(probs, rates, strict=False)) - expected_mean**2
+        )
 
         self.assertEqual(Hx.mean, expected_mean)
         self.assertEqual(Hx.variance, expected_variance)
         self.assertTrue(math.isnan(Hx.median))
         self.assertEqual(Hx.lower_limit, 0)
-        self.assertEqual(Hx.upper_limit, float('inf'))
+        self.assertEqual(Hx.upper_limit, float("inf"))
 
     def test_hypererlang_dist_object(self):
         Hg = hciw.dists.HyperErlang([5, 7, 2], [0.5, 0.3, 0.2], [3, 2, 5])
@@ -1622,39 +1726,19 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(Hg.absorbing_matrix, expected_matrix)
 
         self.assertRaises(
-            ValueError,
-            hciw.dists.HyperErlang,
-            [5, -7, 2],
-            [0.5, 0.3, 0.2],
-            [3, 2, 5]
+            ValueError, hciw.dists.HyperErlang, [5, -7, 2], [0.5, 0.3, 0.2], [3, 2, 5]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.HyperErlang,
-            [5, 7, 2],
-            [-0.5, 0.3, 0.2],
-            [3, 2, 5]
+            ValueError, hciw.dists.HyperErlang, [5, 7, 2], [-0.5, 0.3, 0.2], [3, 2, 5]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.HyperErlang,
-            [5, 7, 2],
-            [0.5, 1.3, 0.2],
-            [3, 2, 5]
+            ValueError, hciw.dists.HyperErlang, [5, 7, 2], [0.5, 1.3, 0.2], [3, 2, 5]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.HyperErlang,
-            [5, 7, 2],
-            [0.5, 0.9, 0.2],
-            [3, 2, 5]
+            ValueError, hciw.dists.HyperErlang, [5, 7, 2], [0.5, 0.9, 0.2], [3, 2, 5]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.HyperErlang,
-            [5, 7, 2],
-            [0.5, 0.3, 0.2],
-            [0, 2, 5]
+            ValueError, hciw.dists.HyperErlang, [5, 7, 2], [0.5, 0.3, 0.2], [0, 2, 5]
         )
 
         many_samples = [round(Hg.sample(), 2) for _ in range(1000)]
@@ -1664,8 +1748,12 @@ class TestSampling(unittest.TestCase):
 
     def test_sampling_hypererlang_dist(self):
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.HyperErlang([5, 7, 2], [0.5, 0.3, 0.2], [3, 2, 5])],
-            service_distributions=[hciw.dists.HyperErlang([5, 7, 2], [0.5, 0.3, 0.2], [3, 2, 5])],
+            arrival_distributions=[
+                hciw.dists.HyperErlang([5, 7, 2], [0.5, 0.3, 0.2], [3, 2, 5])
+            ],
+            service_distributions=[
+                hciw.dists.HyperErlang([5, 7, 2], [0.5, 0.3, 0.2], [3, 2, 5])
+            ],
             number_of_servers=[1],
             routing=[[0.1]],
         )
@@ -1674,7 +1762,7 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nn.simulation.service_times[Nn.id_number]['Customer']._sample(), 2)
+            round(Nn.simulation.service_times[Nn.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [0.42, 3.71, 0.35, 0.38, 0.61]
@@ -1682,29 +1770,29 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nn.simulation.inter_arrival_times[Nn.id_number]['Customer']._sample(), 2)
+            round(
+                Nn.simulation.inter_arrival_times[Nn.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [0.25, 0.22, 3.46, 3.07, 1.69]
         self.assertEqual(samples, expected)
 
     def test_hypererlang_summary_stats(self):
-        rates   = [5, 2, 10]
-        probs   = [0.3, 0.5, 0.2]
-        lengths = [3, 2, 4]   # k_i (number of Erlang phases per branch)
+        rates = [5, 2, 10]
+        probs = [0.3, 0.5, 0.2]
+        lengths = [3, 2, 4]  # k_i (number of Erlang phases per branch)
         He = hciw.dists.HyperErlang(rates=rates, probs=probs, phase_lengths=lengths)
-        expected_mean = sum(p * k / r for p, r, k in zip(probs, rates, lengths))
+        expected_mean = sum(p * k / r for p, r, k in zip(probs, rates, lengths, strict=False))
         expected_second_moment = sum(
-            p * (k * (k + 1)) / (r ** 2) for p, r, k in zip(probs, rates, lengths)
+            p * (k * (k + 1)) / (r**2) for p, r, k in zip(probs, rates, lengths, strict=False)
         )
-        expected_variance = expected_second_moment - expected_mean ** 2
+        expected_variance = expected_second_moment - expected_mean**2
         self.assertEqual(He.mean, expected_mean)
         self.assertEqual(He.variance, expected_variance)
         self.assertTrue(math.isnan(He.median))
         self.assertEqual(He.lower_limit, 0)
-        self.assertEqual(He.upper_limit, float('inf'))
-
-
+        self.assertEqual(He.upper_limit, float("inf"))
 
     def test_coxian_dist_object(self):
         Cx = hciw.dists.Coxian([5, 4, 7, 2], [0.2, 0.5, 0.3, 1.0])
@@ -1724,28 +1812,16 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(Cx.absorbing_matrix, expected_matrix)
 
         self.assertRaises(
-            ValueError,
-            hciw.dists.Coxian,
-            [5, -4, 7, 2],
-            [0.2, 0.5, 0.3, 1.0]
+            ValueError, hciw.dists.Coxian, [5, -4, 7, 2], [0.2, 0.5, 0.3, 1.0]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.Coxian,
-            [5, 4, 7, 2],
-            [0.2, -0.5, 0.3, 1.0]
+            ValueError, hciw.dists.Coxian, [5, 4, 7, 2], [0.2, -0.5, 0.3, 1.0]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.Coxian,
-            [5, 4, 7, 2],
-            [0.2, 1.5, 0.3, 1.0]
+            ValueError, hciw.dists.Coxian, [5, 4, 7, 2], [0.2, 1.5, 0.3, 1.0]
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.Coxian,
-            [5, 4, 7, 2],
-            [0.2, 0.5, 0.3, 0.6]
+            ValueError, hciw.dists.Coxian, [5, 4, 7, 2], [0.2, 0.5, 0.3, 0.6]
         )
 
         many_samples = [round(Cx.sample(), 2) for _ in range(1000)]
@@ -1757,8 +1833,12 @@ class TestSampling(unittest.TestCase):
 
     def test_sampling_coxian_dist(self):
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Coxian([5, 4, 7, 2], [0.2, 0.5, 0.3, 1.0])],
-            service_distributions=[hciw.dists.Coxian([5, 4, 7, 2], [0.2, 0.5, 0.3, 1.0])],
+            arrival_distributions=[
+                hciw.dists.Coxian([5, 4, 7, 2], [0.2, 0.5, 0.3, 1.0])
+            ],
+            service_distributions=[
+                hciw.dists.Coxian([5, 4, 7, 2], [0.2, 0.5, 0.3, 1.0])
+            ],
             number_of_servers=[1],
             routing=[[0.1]],
         )
@@ -1767,7 +1847,7 @@ class TestSampling(unittest.TestCase):
         hciw.seed(5)
 
         samples = [
-            round(Nn.simulation.service_times[Nn.id_number]['Customer']._sample(), 2)
+            round(Nn.simulation.service_times[Nn.id_number]["Customer"]._sample(), 2)
             for _ in range(5)
         ]
         expected = [1.01, 0.53, 0.18, 0.17, 0.04]
@@ -1775,7 +1855,9 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nn.simulation.inter_arrival_times[Nn.id_number]['Customer']._sample(), 2)
+            round(
+                Nn.simulation.inter_arrival_times[Nn.id_number]["Customer"]._sample(), 2
+            )
             for _ in range(5)
         ]
         expected = [1.09, 0.77, 0.81, 0.08, 0.43]
@@ -1787,7 +1869,7 @@ class TestSampling(unittest.TestCase):
         Cx = hciw.dists.Coxian(rates, probs)
 
         # Recompute mean and variance using matrix-based method
-    
+
         Q = np.array(Cx.absorbing_matrix)[:-1, :-1]
         alpha = np.array(Cx.initial_state[:-1])
         ones = np.ones(len(Q))
@@ -1795,13 +1877,13 @@ class TestSampling(unittest.TestCase):
 
         expected_mean = float(alpha @ invQ @ ones)
         second_moment = float(2 * alpha @ invQ @ invQ @ ones)
-        expected_variance = second_moment - expected_mean ** 2
+        expected_variance = second_moment - expected_mean**2
 
         self.assertEqual(Cx.mean, expected_mean)
         self.assertEqual(Cx.variance, expected_variance)
         self.assertTrue(math.isnan(Cx.median))
         self.assertEqual(Cx.lower_limit, 0)
-        self.assertEqual(Cx.upper_limit, float('inf'))
+        self.assertEqual(Cx.upper_limit, float("inf"))
 
     def test_poissoninterval_dist_object(self):
         hciw.seed(5)
@@ -1809,7 +1891,18 @@ class TestSampling(unittest.TestCase):
             rates=[5, 1.5, 3], endpoints=[3.2, 7.9, 10], max_sample_date=15
         )
         samples = [round(Pi._sample(), 4) for _ in range(10)]
-        expected = [0.0928, 0.2694, 0.4268, 0.701, 0.011, 0.239, 0.0966, 0.1567, 0.0834, 0.291,]
+        expected = [
+            0.0928,
+            0.2694,
+            0.4268,
+            0.701,
+            0.011,
+            0.239,
+            0.0966,
+            0.1567,
+            0.0834,
+            0.291,
+        ]
         self.assertEqual(samples, expected)
 
         expected_dates = [0]
@@ -1819,46 +1912,22 @@ class TestSampling(unittest.TestCase):
         self.assertLessEqual(Pi.dates[-1], Pi.max_sample_date)
 
         self.assertRaises(
-            ValueError,
-            hciw.dists.PoissonIntervals,
-            [5, -1.5, 3],
-            [3.2, 7.9, 10],
-            15
+            ValueError, hciw.dists.PoissonIntervals, [5, -1.5, 3], [3.2, 7.9, 10], 15
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.PoissonIntervals,
-            [5, 1.5, 3],
-            [3.2, 1.9, 10],
-            15
+            ValueError, hciw.dists.PoissonIntervals, [5, 1.5, 3], [3.2, 1.9, 10], 15
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.PoissonIntervals,
-            [5, 1.5, 3],
-            [-3.2, 7.9, 10],
-            15
+            ValueError, hciw.dists.PoissonIntervals, [5, 1.5, 3], [-3.2, 7.9, 10], 15
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.PoissonIntervals,
-            [5, 1.5, 3],
-            [3.2, 7.9, 10],
-            -15
+            ValueError, hciw.dists.PoissonIntervals, [5, 1.5, 3], [3.2, 7.9, 10], -15
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.PoissonIntervals,
-            [5, 1.5, 3],
-            [3.2, 7.9, 10],
-            0
+            ValueError, hciw.dists.PoissonIntervals, [5, 1.5, 3], [3.2, 7.9, 10], 0
         )
         self.assertRaises(
-            ValueError,
-            hciw.dists.PoissonIntervals,
-            [5, 1.5, 3, 6],
-            [3.2, 7.9, 10],
-            15
+            ValueError, hciw.dists.PoissonIntervals, [5, 1.5, 3, 6], [3.2, 7.9, 10], 15
         )
 
     def test_poissoninterval_rate_zero(self):
@@ -1885,7 +1954,7 @@ class TestSampling(unittest.TestCase):
         )
         final_date = Pi.dates[-1]
         self.assertTrue(final_date < 2)
-        
+
         t = 0
         arrivals = []
         while t < 8:
@@ -1893,7 +1962,7 @@ class TestSampling(unittest.TestCase):
             arrivals.append(t)
         final_sample = arrivals[-1]
         final_arrival = arrivals[-2]
-        self.assertEqual(final_sample, float('inf'))
+        self.assertEqual(final_sample, float("inf"))
         self.assertEqual(final_arrival, final_date)
 
     def test_poissoninterval_against_theory(self):
@@ -1909,10 +1978,9 @@ class TestSampling(unittest.TestCase):
         n = 250
         distributions = [
             hciw.dists.PoissonIntervals(
-                rates=[5, 1.5, 3],
-                endpoints=[3.2, 7.9, 10],
-                max_sample_date=20
-            ) for _ in range(n)
+                rates=[5, 1.5, 3], endpoints=[3.2, 7.9, 10], max_sample_date=20
+            )
+            for _ in range(n)
         ]
         counts = {
             (0, 3.2): sum(
@@ -2047,31 +2115,57 @@ class TestSampling(unittest.TestCase):
     def test_sampling_poissoninterval_dist(self):
         hciw.seed(5)
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.PoissonIntervals(
-                rates=[5, 1.5, 3],
-                endpoints=[3.2, 7.9, 10],
-                max_sample_date=15)],
-            service_distributions=[hciw.dists.PoissonIntervals(
-                rates=[5, 1.5, 3],
-                endpoints=[3.2, 7.9, 10],
-                max_sample_date=15)],
+            arrival_distributions=[
+                hciw.dists.PoissonIntervals(
+                    rates=[5, 1.5, 3], endpoints=[3.2, 7.9, 10], max_sample_date=15
+                )
+            ],
+            service_distributions=[
+                hciw.dists.PoissonIntervals(
+                    rates=[5, 1.5, 3], endpoints=[3.2, 7.9, 10], max_sample_date=15
+                )
+            ],
             number_of_servers=[1],
         )
         Q = hciw.Simulation(N)
         Nt = Q.transitive_nodes[0]
 
         samples = [
-            round(Nt.simulation.service_times[Nt.id_number]['Customer']._sample(), 4)
+            round(Nt.simulation.service_times[Nt.id_number]["Customer"]._sample(), 4)
             for _ in range(10)
         ]
-        expected = [0.0108, 0.0623, 0.1092, 0.026, 0.2578, 0.0648, 0.4333, 0.0275, 0.0187, 0.0707,]
+        expected = [
+            0.0108,
+            0.0623,
+            0.1092,
+            0.026,
+            0.2578,
+            0.0648,
+            0.4333,
+            0.0275,
+            0.0187,
+            0.0707,
+        ]
         self.assertEqual(samples, expected)
 
         samples = [
-            round(Nt.simulation.inter_arrival_times[Nt.id_number]['Customer']._sample(), 4)
+            round(
+                Nt.simulation.inter_arrival_times[Nt.id_number]["Customer"]._sample(), 4
+            )
             for _ in range(10)
         ]
-        expected = [0.2694, 0.4268, 0.701, 0.011, 0.239, 0.0966, 0.1567, 0.0834, 0.291, 0.006,]
+        expected = [
+            0.2694,
+            0.4268,
+            0.701,
+            0.011,
+            0.239,
+            0.0966,
+            0.1567,
+            0.0834,
+            0.291,
+            0.006,
+        ]
         self.assertEqual(samples, expected)
 
     def test_poisson_dist_object(self):
@@ -2109,9 +2203,7 @@ class TestSampling(unittest.TestCase):
 
     def test_poissonintervals_summary_stats(self):
         Pi = hciw.dists.PoissonIntervals(
-            rates=[5, 1.5, 3],
-            endpoints=[3.2, 7.9, 10],
-            max_sample_date=15
+            rates=[5, 1.5, 3], endpoints=[3.2, 7.9, 10], max_sample_date=15
         )
         sd = Pi.sd
         self.assertTrue((sd == sd) or math.isnan(sd))
@@ -2148,7 +2240,7 @@ class TestSampling(unittest.TestCase):
         G = hciw.dists.Geometric(0.3)
         expected_mean = 1 / 0.3
         self.assertEqual(G.mean, expected_mean)
-        expected_variance = (1 - 0.3) / (0.3 ** 2)
+        expected_variance = (1 - 0.3) / (0.3**2)
         self.assertEqual(G.variance, expected_variance)
         self.assertTrue(math.isinf(G.upper_limit))
         self.assertEqual(G.lower_limit, 0)
@@ -2209,15 +2301,19 @@ class TestSampling(unittest.TestCase):
 
     def test_mixture_nan_limits(self):
         """Test MixtureDistribution NaN limit handling"""
+
         class NaNDist(hciw.dists.Distribution):
             @property
-            def upper_limit(self): 
-                return float('nan')
+            def upper_limit(self):
+                return float("nan")
+
             @property
-            def lower_limit(self): 
-                return float('nan')
-        
-        mixture = hciw.dists.MixtureDistribution([NaNDist(), hciw.dists.Deterministic(1)], [0.5, 0.5])
+            def lower_limit(self):
+                return float("nan")
+
+        mixture = hciw.dists.MixtureDistribution(
+            [NaNDist(), hciw.dists.Deterministic(1)], [0.5, 0.5]
+        )
         self.assertTrue(math.isnan(mixture.median))
         self.assertTrue(math.isnan(mixture.upper_limit))
         self.assertTrue(math.isnan(mixture.lower_limit))
@@ -2241,7 +2337,9 @@ class TestSampling(unittest.TestCase):
         Hx = hciw.dists.HyperExponential([7, 12, 5], [0.3, 0.1, 0.6])
         He = hciw.dists.HyperErlang([8, 15, 9], [0.3, 0.1, 0.6], [2, 2, 7])
         Cx = hciw.dists.Coxian([4, 7, 2], [0.3, 0.2, 1.0])
-        Pi = hciw.dists.PoissonIntervals(rates=[10, 4.5, 7], endpoints=[3.2, 7.9, 10], max_sample_date=4000)
+        Pi = hciw.dists.PoissonIntervals(
+            rates=[10, 4.5, 7], endpoints=[3.2, 7.9, 10], max_sample_date=4000
+        )
         Po = hciw.dists.Poisson(rate=0.6)
         Ge = hciw.dists.Geometric(prob=0.49)
         Bi = hciw.dists.Binomial(n=12, prob=0.8)
@@ -2267,7 +2365,7 @@ class TestSampling(unittest.TestCase):
             (Pi, 15000, 2),
             (Po, 20000, 2),
             (Ge, 17000, 1),
-            (Bi, 10000, 1)
+            (Bi, 10000, 1),
         ]
         for params in tqdm.tqdm(params_set):
             hciw.seed(0)

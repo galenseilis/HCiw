@@ -1,14 +1,12 @@
+import types
 import unittest
-import hciw
+from decimal import Decimal
+
+import networkx as nx
 from hypothesis import given
 from hypothesis.strategies import floats, integers, random_module
-import os
-from decimal import Decimal
-import networkx as nx
-import csv
-from itertools import cycle
-import types
-import math
+
+import hciw
 
 N_params = hciw.create_network(
     arrival_distributions={
@@ -165,7 +163,10 @@ class TestSimulation(unittest.TestCase):
             number_of_servers=[4, 3],
             queue_capacities=[float("Inf"), 10],
             service_distributions={
-                "Class 0": [hciw.dists.Deterministic(5.0), hciw.dists.Deterministic(5.0)],
+                "Class 0": [
+                    hciw.dists.Deterministic(5.0),
+                    hciw.dists.Deterministic(5.0),
+                ],
                 "Class 1": [
                     hciw.dists.Deterministic(10.0),
                     hciw.dists.Deterministic(10.0),
@@ -176,8 +177,14 @@ class TestSimulation(unittest.TestCase):
                 "Class 1": [[0.8, 0.1], [0.2, 0.0]],
             },
             class_change_matrices=[
-                {'Class 0': {'Class 0': 0.5, 'Class 1': 0.5}, 'Class 1': {'Class 0': 0.5, 'Class 1': 0.5}},
-                {'Class 0': {'Class 0': 1.0, 'Class 1': 0.0}, 'Class 1': {'Class 0': 0.0, 'Class 1': 1.0}}
+                {
+                    "Class 0": {"Class 0": 0.5, "Class 1": 0.5},
+                    "Class 1": {"Class 0": 0.5, "Class 1": 0.5},
+                },
+                {
+                    "Class 0": {"Class 0": 1.0, "Class 1": 0.0},
+                    "Class 1": {"Class 0": 0.0, "Class 1": 1.0},
+                },
             ],
         )
         Q = hciw.Simulation(N)
@@ -186,7 +193,7 @@ class TestSimulation(unittest.TestCase):
         drl = []
         for dr in L[0].data_records:
             drl.append((dr.customer_class, dr.service_time))
-        self.assertEqual(drl, [('Class 1', 10.0), ('Class 0', 5.0), ('Class 0', 5.0)])
+        self.assertEqual(drl, [("Class 1", 10.0), ("Class 0", 5.0), ("Class 0", 5.0)])
 
     def test_simulate_until_max_time_with_pbar_method(self):
         Q = hciw.Simulation(N_params)
@@ -437,7 +444,11 @@ class TestSimulation(unittest.TestCase):
             arrival_distributions=[hciw.dists.Exponential(20)],
             service_distributions=[hciw.dists.Deterministic(0.01)],
             routing=[[0.0]],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[0, 1, 0], shift_end_dates=[0.5, 0.55, 3.0])],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[0, 1, 0], shift_end_dates=[0.5, 0.55, 3.0]
+                )
+            ],
         )
         hciw.seed(777)
         Q = hciw.Simulation(N)
@@ -445,20 +456,22 @@ class TestSimulation(unittest.TestCase):
         recs = Q.get_all_records()
         mod_service_starts = [obs % 3 for obs in [r[6] for r in recs]]
         self.assertNotEqual(
-            set(mod_service_starts),
-            set([0.50, 0.51, 0.52, 0.53, 0.54, 0.55])
+            set(mod_service_starts), set([0.50, 0.51, 0.52, 0.53, 0.54, 0.55])
         )
         rounded_mod_service_starts = [round(r, 10) for r in mod_service_starts]
         self.assertEqual(
-            set(rounded_mod_service_starts),
-            set([0.50, 0.51, 0.52, 0.53, 0.54, 0.55])
+            set(rounded_mod_service_starts), set([0.50, 0.51, 0.52, 0.53, 0.54, 0.55])
         )
 
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Exponential(20)],
             service_distributions=[hciw.dists.Deterministic(0.01)],
             routing=[[0.0]],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[0, 1, 0], shift_end_dates=[0.5, 0.55, 3.0])],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[0, 1, 0], shift_end_dates=[0.5, 0.55, 3.0]
+                )
+            ],
         )
 
         hciw.seed(777)
@@ -466,7 +479,9 @@ class TestSimulation(unittest.TestCase):
         Q.simulate_until_max_time(10)
         recs = Q.get_all_records()
         mod_service_starts = [obs % 3 for obs in [r[6] for r in recs]]
-        expected_set = set([Decimal(k) for k in ["0.50", "0.51", "0.52", "0.53", "0.54", "0.55"]])
+        expected_set = set(
+            [Decimal(k) for k in ["0.50", "0.51", "0.52", "0.53", "0.54", "0.55"]]
+        )
         self.assertEqual(set(mod_service_starts), expected_set)
 
     def test_setting_classes(self):
@@ -708,20 +723,23 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual(Q.ServerType, DummyServer)
         self.assertEqual(Q.ExitNodeType, DummyExitNode)
 
-        Q.set_classes(None, DummyArrivalNode, DummyExitNode, DummyIndividual, DummyServer)
+        Q.set_classes(
+            None, DummyArrivalNode, DummyExitNode, DummyIndividual, DummyServer
+        )
         self.assertEqual(Q.NodeTypes, [hciw.Node])
         self.assertEqual(Q.ArrivalNodeType, DummyArrivalNode)
         self.assertEqual(Q.IndividualType, DummyIndividual)
         self.assertEqual(Q.ServerType, DummyServer)
         self.assertEqual(Q.ExitNodeType, DummyExitNode)
 
-        Q.set_classes(DummyNode, DummyArrivalNode, DummyExitNode, DummyIndividual, DummyServer)
+        Q.set_classes(
+            DummyNode, DummyArrivalNode, DummyExitNode, DummyIndividual, DummyServer
+        )
         self.assertEqual(Q.NodeTypes, [DummyNode])
         self.assertEqual(Q.ArrivalNodeType, DummyArrivalNode)
         self.assertEqual(Q.IndividualType, DummyIndividual)
         self.assertEqual(Q.ServerType, DummyServer)
         self.assertEqual(Q.ExitNodeType, DummyExitNode)
-
 
     def test_setting_classes_in_init(self):
         class DummyNode(hciw.Node):
@@ -737,9 +755,15 @@ class TestSimulation(unittest.TestCase):
             arrival_distributions=[hciw.dists.Exponential(20)],
             service_distributions=[hciw.dists.Deterministic(0.01)],
             routing=[[0.0]],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[0, 1, 0], shift_end_dates=[0.5, 0.55, 3.0])],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[0, 1, 0], shift_end_dates=[0.5, 0.55, 3.0]
+                )
+            ],
         )
-        Q = hciw.Simulation(N, node_class=None, arrival_node_class=None, exit_node_class=None)
+        Q = hciw.Simulation(
+            N, node_class=None, arrival_node_class=None, exit_node_class=None
+        )
         self.assertEqual(Q.NodeTypes, [hciw.Node])
         self.assertEqual(Q.ArrivalNodeType, hciw.ArrivalNode)
         self.assertIsInstance(Q.nodes[1], hciw.Node)
@@ -749,7 +773,9 @@ class TestSimulation(unittest.TestCase):
         self.assertFalse(isinstance(Q.nodes[0], DummyArrivalNode))
         self.assertFalse(isinstance(Q.nodes[-1], DummyExitNode))
 
-        Q = hciw.Simulation(N, node_class=DummyNode, arrival_node_class=None, exit_node_class=None)
+        Q = hciw.Simulation(
+            N, node_class=DummyNode, arrival_node_class=None, exit_node_class=None
+        )
         self.assertEqual(Q.NodeTypes, [DummyNode])
         self.assertEqual(Q.ArrivalNodeType, hciw.ArrivalNode)
         self.assertIsInstance(Q.nodes[1], DummyNode)
@@ -758,7 +784,12 @@ class TestSimulation(unittest.TestCase):
         self.assertFalse(isinstance(Q.nodes[0], DummyArrivalNode))
         self.assertFalse(isinstance(Q.nodes[-1], DummyExitNode))
 
-        Q = hciw.Simulation(N, node_class=None, arrival_node_class=DummyArrivalNode, exit_node_class=None)
+        Q = hciw.Simulation(
+            N,
+            node_class=None,
+            arrival_node_class=DummyArrivalNode,
+            exit_node_class=None,
+        )
         self.assertEqual(Q.NodeTypes, [hciw.Node])
         self.assertEqual(Q.ArrivalNodeType, DummyArrivalNode)
         self.assertIsInstance(Q.nodes[1], hciw.Node)
@@ -767,7 +798,12 @@ class TestSimulation(unittest.TestCase):
         self.assertFalse(isinstance(Q.nodes[1], DummyNode))
         self.assertFalse(isinstance(Q.nodes[-1], DummyExitNode))
 
-        Q = hciw.Simulation(N, node_class=DummyNode, arrival_node_class=DummyArrivalNode, exit_node_class=None)
+        Q = hciw.Simulation(
+            N,
+            node_class=DummyNode,
+            arrival_node_class=DummyArrivalNode,
+            exit_node_class=None,
+        )
         self.assertEqual(Q.NodeTypes, [DummyNode])
         self.assertEqual(Q.ArrivalNodeType, DummyArrivalNode)
         self.assertIsInstance(Q.nodes[1], DummyNode)
@@ -775,7 +811,9 @@ class TestSimulation(unittest.TestCase):
         self.assertIsInstance(Q.nodes[-1], hciw.ExitNode)
         self.assertFalse(isinstance(Q.nodes[-1], DummyExitNode))
 
-        Q = hciw.Simulation(N, node_class=None, arrival_node_class=None, exit_node_class=DummyExitNode)
+        Q = hciw.Simulation(
+            N, node_class=None, arrival_node_class=None, exit_node_class=DummyExitNode
+        )
         self.assertEqual(Q.NodeTypes, [hciw.Node])
         self.assertEqual(Q.ArrivalNodeType, hciw.ArrivalNode)
         self.assertIsInstance(Q.nodes[1], hciw.Node)
@@ -784,7 +822,12 @@ class TestSimulation(unittest.TestCase):
         self.assertFalse(isinstance(Q.nodes[1], DummyNode))
         self.assertFalse(isinstance(Q.nodes[0], DummyArrivalNode))
 
-        Q = hciw.Simulation(N, node_class=DummyNode, arrival_node_class=None, exit_node_class=DummyExitNode)
+        Q = hciw.Simulation(
+            N,
+            node_class=DummyNode,
+            arrival_node_class=None,
+            exit_node_class=DummyExitNode,
+        )
         self.assertEqual(Q.NodeTypes, [DummyNode])
         self.assertEqual(Q.ArrivalNodeType, hciw.ArrivalNode)
         self.assertIsInstance(Q.nodes[1], DummyNode)
@@ -792,7 +835,12 @@ class TestSimulation(unittest.TestCase):
         self.assertIsInstance(Q.nodes[-1], DummyExitNode)
         self.assertFalse(isinstance(Q.nodes[0], DummyArrivalNode))
 
-        Q = hciw.Simulation(N, node_class=None, arrival_node_class=DummyArrivalNode, exit_node_class=DummyExitNode)
+        Q = hciw.Simulation(
+            N,
+            node_class=None,
+            arrival_node_class=DummyArrivalNode,
+            exit_node_class=DummyExitNode,
+        )
         self.assertEqual(Q.NodeTypes, [hciw.Node])
         self.assertEqual(Q.ArrivalNodeType, DummyArrivalNode)
         self.assertIsInstance(Q.nodes[1], hciw.Node)
@@ -800,13 +848,17 @@ class TestSimulation(unittest.TestCase):
         self.assertIsInstance(Q.nodes[-1], DummyExitNode)
         self.assertFalse(isinstance(Q.nodes[1], DummyNode))
 
-        Q = hciw.Simulation(N, node_class=DummyNode, arrival_node_class=DummyArrivalNode, exit_node_class=DummyExitNode)
+        Q = hciw.Simulation(
+            N,
+            node_class=DummyNode,
+            arrival_node_class=DummyArrivalNode,
+            exit_node_class=DummyExitNode,
+        )
         self.assertEqual(Q.NodeTypes, [DummyNode])
         self.assertEqual(Q.ArrivalNodeType, DummyArrivalNode)
         self.assertIsInstance(Q.nodes[1], DummyNode)
         self.assertIsInstance(Q.nodes[0], DummyArrivalNode)
         self.assertIsInstance(Q.nodes[-1], DummyExitNode)
-
 
     def test_setting_multiple_node_classes(self):
         class DummyNode1(hciw.Node):
@@ -928,14 +980,11 @@ class TestSimulation(unittest.TestCase):
     def test_setting_individual_and_server_classes_in_init(self):
         class DummyIndividual(hciw.Individual):
             def __repr__(self):
-                return "DummyIndividual %s" % self.id_number
+                return f"DummyIndividual {self.id_number}"
 
         class DummyServer(hciw.Server):
             def __repr__(self):
-                return "DummyServer %s at Node %s" % (
-                    self.id_number,
-                    self.node.id_number,
-                )
+                return f"DummyServer {self.id_number} at Node {self.node.id_number}"
 
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Deterministic(5)],
@@ -954,7 +1003,11 @@ class TestSimulation(unittest.TestCase):
         self.assertIsInstance(Q.nodes[1].all_individuals[0], hciw.Individual)
         self.assertEqual(str(Q.nodes[1].all_individuals[0]), "Individual 1")
 
-        Q = hciw.Simulation(N, individual_class=DummyIndividual, server_class=None,)
+        Q = hciw.Simulation(
+            N,
+            individual_class=DummyIndividual,
+            server_class=None,
+        )
         self.assertEqual(Q.IndividualType, DummyIndividual)
         self.assertEqual(Q.ServerType, hciw.Server)
         self.assertIsInstance(Q.nodes[1].servers[0], hciw.Server)
@@ -965,7 +1018,11 @@ class TestSimulation(unittest.TestCase):
         self.assertIsInstance(Q.nodes[1].all_individuals[0], DummyIndividual)
         self.assertEqual(str(Q.nodes[1].all_individuals[0]), "DummyIndividual 1")
 
-        Q = hciw.Simulation(N, individual_class=None, server_class=DummyServer,)
+        Q = hciw.Simulation(
+            N,
+            individual_class=None,
+            server_class=DummyServer,
+        )
         self.assertEqual(Q.IndividualType, hciw.Individual)
         self.assertEqual(Q.ServerType, DummyServer)
         self.assertIsInstance(Q.nodes[1].servers[0], DummyServer)
@@ -976,7 +1033,9 @@ class TestSimulation(unittest.TestCase):
         self.assertIsInstance(Q.nodes[1].all_individuals[0], hciw.Individual)
         self.assertEqual(str(Q.nodes[1].all_individuals[0]), "Individual 1")
 
-        Q = hciw.Simulation(N, individual_class=DummyIndividual, server_class=DummyServer)
+        Q = hciw.Simulation(
+            N, individual_class=DummyIndividual, server_class=DummyServer
+        )
         self.assertEqual(Q.IndividualType, DummyIndividual)
         self.assertEqual(Q.ServerType, DummyServer)
         self.assertIsInstance(Q.nodes[1].servers[0], DummyServer)
@@ -1000,7 +1059,7 @@ class TestSimulation(unittest.TestCase):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Deterministic(value=7)],
             service_distributions=[hciw.dists.Deterministic(value=10)],
-            number_of_servers=[2]
+            number_of_servers=[2],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(36)
@@ -1014,7 +1073,7 @@ class TestSimulation(unittest.TestCase):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Deterministic(value=7)],
             service_distributions=[hciw.dists.Deterministic(value=10)],
-            number_of_servers=[2]
+            number_of_servers=[2],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(36)
@@ -1029,7 +1088,7 @@ class TestSimulation(unittest.TestCase):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Deterministic(value=10)],
             service_distributions=[hciw.dists.Deterministic(value=12)],
-            number_of_servers=[1]
+            number_of_servers=[1],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(25)
@@ -1056,12 +1115,11 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual([r.time_blocked for r in recs], [None, 0])
         self.assertEqual([r.record_type for r in recs], ["incomplete", "service"])
 
-
         ### Some customers still in waiting at end of simulation
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Deterministic(value=7)],
             service_distributions=[hciw.dists.Deterministic(value=12)],
-            number_of_servers=[1]
+            number_of_servers=[1],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(25)
@@ -1086,15 +1144,20 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual([r.waiting_time for r in recs], [5, None, 0])
         self.assertEqual([r.exit_date for r in recs], [None, None, 19])
         self.assertEqual([r.time_blocked for r in recs], [None, None, 0])
-        self.assertEqual([r.record_type for r in recs], ["incomplete", "incomplete", "service"])
+        self.assertEqual(
+            [r.record_type for r in recs], ["incomplete", "incomplete", "service"]
+        )
 
         ### Some customers blocked by end of simulation
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Deterministic(value=7), None],
-            service_distributions=[hciw.dists.Deterministic(value=12), hciw.dists.Deterministic(15)],
+            service_distributions=[
+                hciw.dists.Deterministic(value=12),
+                hciw.dists.Deterministic(15),
+            ],
             number_of_servers=[1, 1],
-            queue_capacities=[float('inf'), 0],
-            routing=[[0.0, 1.0], [0.0, 0.0]]
+            queue_capacities=[float("inf"), 0],
+            routing=[[0.0, 1.0], [0.0, 0.0]],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(48)
@@ -1109,21 +1172,47 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual([r.waiting_time for r in recs], [5, 0, 0])
         self.assertEqual([r.exit_date for r in recs], [34, 19, 34])
         self.assertEqual([r.time_blocked for r in recs], [3, 0, 0])
-        self.assertEqual([r.record_type for r in recs], ["service", "service", "service"])
+        self.assertEqual(
+            [r.record_type for r in recs], ["service", "service", "service"]
+        )
         # Including incomplete records
         recs = Q.get_all_records(include_incomplete=True)
         self.assertEqual([r.id_number for r in recs], [3, 4, 5, 6, 2, 2, 1, 1])
         self.assertEqual([r.node for r in recs], [1, 1, 1, 1, 1, 2, 1, 2])
-        self.assertEqual([r.arrival_date for r in recs], [21, 28, 35, 42, 14, 34, 7, 19])
-        self.assertEqual([r.service_time for r in recs], [12, None, None, None, 12, None, 12, 15])
-        self.assertEqual([r.service_start_date for r in recs], [34, None, None, None, 19, 34, 7, 19])
-        self.assertEqual([r.service_end_date for r in recs], [46, None, None, None, 31, None, 19, 34])
-        self.assertEqual([r.waiting_time for r in recs], [13, None, None, None, 5, 0, 0, 0])
-        self.assertEqual([r.exit_date for r in recs], [None, None, None, None, 34, None, 19, 34])
-        self.assertEqual([r.time_blocked for r in recs], [None, None, None, None, 3, None, 0, 0])
-        self.assertEqual([r.record_type for r in recs], ["incomplete", "incomplete", "incomplete", "incomplete", "service", "incomplete", "service", "service"])
-
-
+        self.assertEqual(
+            [r.arrival_date for r in recs], [21, 28, 35, 42, 14, 34, 7, 19]
+        )
+        self.assertEqual(
+            [r.service_time for r in recs], [12, None, None, None, 12, None, 12, 15]
+        )
+        self.assertEqual(
+            [r.service_start_date for r in recs], [34, None, None, None, 19, 34, 7, 19]
+        )
+        self.assertEqual(
+            [r.service_end_date for r in recs], [46, None, None, None, 31, None, 19, 34]
+        )
+        self.assertEqual(
+            [r.waiting_time for r in recs], [13, None, None, None, 5, 0, 0, 0]
+        )
+        self.assertEqual(
+            [r.exit_date for r in recs], [None, None, None, None, 34, None, 19, 34]
+        )
+        self.assertEqual(
+            [r.time_blocked for r in recs], [None, None, None, None, 3, None, 0, 0]
+        )
+        self.assertEqual(
+            [r.record_type for r in recs],
+            [
+                "incomplete",
+                "incomplete",
+                "incomplete",
+                "incomplete",
+                "service",
+                "incomplete",
+                "service",
+                "service",
+            ],
+        )
 
     def test_namedtuple_record(self):
         expected_fields = (
@@ -1167,7 +1256,7 @@ class TestSimulation(unittest.TestCase):
         recs = Q.get_all_records()
         waits = [
             sum([r.waiting_time for r in recs if r.customer_class == cls])
-            for cls in ['Class 0', 'Class 1']
+            for cls in ["Class 0", "Class 1"]
         ]
         # Because of high traffic intensity: the low
         # priority individuals have a large wait
@@ -1191,11 +1280,11 @@ class TestSimulation(unittest.TestCase):
         recs = Q.get_all_records()
         waits = [
             sum([r.waiting_time for r in recs if r.customer_class == cls])
-            for cls in ['Class 0', 'Class 1']
+            for cls in ["Class 0", "Class 1"]
         ]
         # Both total waits are now comparable. Total wait is higher
         # because more more individuals have gone through the system.
-        self.assertEqual(sorted(waits),  [126.5, 132.0])
+        self.assertEqual(sorted(waits), [126.5, 132.0])
 
     def test_priority_system_compare_literature(self):
         N = hciw.create_network(
@@ -1217,20 +1306,20 @@ class TestSimulation(unittest.TestCase):
         throughput_class1 = []
 
         hciw.seed(3231)
-        for iteration in range(25):
+        for _iteration in range(25):
             Q = hciw.Simulation(N)
             Q.simulate_until_max_time(180)
             recs = Q.get_all_records()
             throughput_c0 = [
                 r.waiting_time + r.service_time
                 for r in recs
-                if r.customer_class == 'Class 0'
+                if r.customer_class == "Class 0"
                 if r.arrival_date > 100
             ]
             throughput_c1 = [
                 r.waiting_time + r.service_time
                 for r in recs
-                if r.customer_class == 'Class 1'
+                if r.customer_class == "Class 1"
                 if r.arrival_date > 100
             ]
             throughput_class0.append(sum(throughput_c0) / len(throughput_c0))
@@ -1290,12 +1379,10 @@ class TestSimulation(unittest.TestCase):
         )
         self.assertEqual(sorted([r.id_number for r in completed_recs]), [1, 2, 5, 11])
         self.assertEqual(
-            sorted([r.arrival_date for r in completed_recs]),
-            [5.0, 10.0, 23.0, 46.0]
+            sorted([r.arrival_date for r in completed_recs]), [5.0, 10.0, 23.0, 46.0]
         )
         self.assertEqual(
-            sorted([r.waiting_time for r in completed_recs]),
-            [0.0, 0.0, 0.0, 16.0]
+            sorted([r.waiting_time for r in completed_recs]), [0.0, 0.0, 0.0, 16.0]
         )
         self.assertEqual(
             sorted([r.service_start_date for r in completed_recs]),
@@ -1308,7 +1395,9 @@ class TestSimulation(unittest.TestCase):
 
     def test_state_dependent_baulking(self):
         def my_baulking_function(n, Q, next_ind=None, next_node=None):
-            total_population = sum(node.number_of_individuals for node in Q.transitive_nodes)
+            total_population = sum(
+                node.number_of_individuals for node in Q.transitive_nodes
+            )
             if total_population < 5:
                 return 0.0
             return 1.0
@@ -1324,7 +1413,6 @@ class TestSimulation(unittest.TestCase):
         Q.simulate_until_max_time(200)
         max_population = max(ts[1] for ts in Q.statetracker.history)
         self.assertEqual(max_population, 5)
-
 
     def test_prioritys_with_classchanges(self):
         N = hciw.create_network(
@@ -1343,8 +1431,14 @@ class TestSimulation(unittest.TestCase):
             },
             priority_classes={"Class 1": 0, "Class 0": 1},
             class_change_matrices=[
-                {'Class 0': {'Class 0': 0.0, 'Class 1': 1.0}, 'Class 1': {'Class 0': 1.0, 'Class 1': 0.0}},
-                {'Class 0': {'Class 0': 0.0, 'Class 1': 1.0}, 'Class 1': {'Class 0': 1.0, 'Class 1': 0.0}}
+                {
+                    "Class 0": {"Class 0": 0.0, "Class 1": 1.0},
+                    "Class 1": {"Class 0": 1.0, "Class 1": 0.0},
+                },
+                {
+                    "Class 0": {"Class 0": 0.0, "Class 1": 1.0},
+                    "Class 1": {"Class 0": 1.0, "Class 1": 0.0},
+                },
             ],
         )
         hciw.seed(1)
@@ -1352,41 +1446,43 @@ class TestSimulation(unittest.TestCase):
         Q.simulate_until_max_time(25)
         recs = Q.get_all_records()
         recs_cust1 = sorted(
-            [r for r in recs if r.id_number == 1],
-            key=lambda r: r.arrival_date
+            [r for r in recs if r.id_number == 1], key=lambda r: r.arrival_date
         )
         recs_cust2 = sorted(
-            [r for r in recs if r.id_number == 2],
-            key=lambda r: r.arrival_date
+            [r for r in recs if r.id_number == 2], key=lambda r: r.arrival_date
         )
         recs_cust3 = sorted(
-            [r for r in recs if r.id_number == 3],
-            key=lambda r: r.arrival_date
+            [r for r in recs if r.id_number == 3], key=lambda r: r.arrival_date
         )
 
-        self.assertEqual(['Class 0', 'Class 1', 'Class 0', 'Class 1', 'Class 0', 'Class 1'], [r.customer_class for r in recs_cust1])
-        self.assertEqual(['Class 1', 'Class 0', 'Class 1', 'Class 0', 'Class 1'], [r.customer_class for r in recs_cust2])
-        self.assertEqual(['Class 0', 'Class 1', 'Class 0', 'Class 1'], [r.customer_class for r in recs_cust3])
+        self.assertEqual(
+            ["Class 0", "Class 1", "Class 0", "Class 1", "Class 0", "Class 1"],
+            [r.customer_class for r in recs_cust1],
+        )
+        self.assertEqual(
+            ["Class 1", "Class 0", "Class 1", "Class 0", "Class 1"],
+            [r.customer_class for r in recs_cust2],
+        )
+        self.assertEqual(
+            ["Class 0", "Class 1", "Class 0", "Class 1"],
+            [r.customer_class for r in recs_cust3],
+        )
 
         self.assertEqual([1, 2, 1, 2, 1, 2], [r.node for r in recs_cust1])
         self.assertEqual([2, 1, 2, 1, 2], [r.node for r in recs_cust2])
         self.assertEqual([1, 2, 1, 2], [r.node for r in recs_cust3])
 
         self.assertEqual(
-            set([r.customer_class for r in Q.nodes[1].individuals[0]]),
-            set(['Class 1'])
+            set([r.customer_class for r in Q.nodes[1].individuals[0]]), set(["Class 1"])
         )
         self.assertEqual(
-            set([r.customer_class for r in Q.nodes[1].individuals[1]]),
-            set(['Class 0'])
+            set([r.customer_class for r in Q.nodes[1].individuals[1]]), set(["Class 0"])
         )
         self.assertEqual(
-            set([r.customer_class for r in Q.nodes[2].individuals[0]]),
-            set(['Class 1'])
+            set([r.customer_class for r in Q.nodes[2].individuals[0]]), set(["Class 1"])
         )
         self.assertEqual(
-            set([r.customer_class for r in Q.nodes[2].individuals[1]]),
-            set(['Class 0'])
+            set([r.customer_class for r in Q.nodes[2].individuals[1]]), set(["Class 0"])
         )
 
     def test_allow_zero_servers(self):
@@ -1403,7 +1499,9 @@ class TestSimulation(unittest.TestCase):
         hciw.seed(1)
         Q = hciw.Simulation(N_c1)
         Q.simulate_until_max_time(100)
-        total_inds_1 = len(Q.nodes[-1].all_individuals) + len(Q.nodes[1].all_individuals)
+        total_inds_1 = len(Q.nodes[-1].all_individuals) + len(
+            Q.nodes[1].all_individuals
+        )
 
         hciw.seed(1)
         Q = hciw.Simulation(N_c0)
@@ -1424,14 +1522,27 @@ class TestSimulation(unittest.TestCase):
                 "Class 0": [hciw.dists.Exponential(0.8), hciw.dists.Exponential(1.2)],
                 "Class 1": [hciw.dists.Exponential(0.5), hciw.dists.Exponential(1.0)],
             },
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 2], shift_end_dates=[10, 20, 30], preemption="resample"), 2],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 2],
+                    shift_end_dates=[10, 20, 30],
+                    preemption="resample",
+                ),
+                2,
+            ],
             routing={
                 "Class 0": [[0.1, 0.3], [0.2, 0.2]],
                 "Class 1": [[0.0, 0.6], [0.2, 0.1]],
             },
             class_change_matrices=[
-                {'Class 0': {'Class 0': 0.8, 'Class 1': 0.2}, 'Class 1': {'Class 0': 0.5, 'Class 1': 0.5}},
-                {'Class 0': {'Class 0': 1.0, 'Class 1': 0.0}, 'Class 1': {'Class 0': 0.1, 'Class 1': 0.9}}
+                {
+                    "Class 0": {"Class 0": 0.8, "Class 1": 0.2},
+                    "Class 1": {"Class 0": 0.5, "Class 1": 0.5},
+                },
+                {
+                    "Class 0": {"Class 0": 1.0, "Class 1": 0.0},
+                    "Class 1": {"Class 0": 0.1, "Class 1": 0.9},
+                },
             ],
             queue_capacities=[2, 2],
         )
@@ -1451,7 +1562,14 @@ class TestSimulation(unittest.TestCase):
                 hciw.dists.Deterministic(0.1),
                 hciw.dists.Deterministic(3.0),
             ],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0], shift_end_dates=[2.5, 2.8], preemption="resample"), 1],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0],
+                    shift_end_dates=[2.5, 2.8],
+                    preemption="resample",
+                ),
+                1,
+            ],
             queue_capacities=[float("inf"), 0],
             routing=[[0.0, 1.0], [0.0, 0.0]],
         )
@@ -1503,30 +1621,60 @@ class TestSimulation(unittest.TestCase):
            1    27          12.0                 reject
         """
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Deterministic(0.8), hciw.dists.Deterministic(1)],
-            service_distributions=[hciw.dists.Deterministic(5.1), hciw.dists.Deterministic(5.1)],
+            arrival_distributions=[
+                hciw.dists.Deterministic(0.8),
+                hciw.dists.Deterministic(1),
+            ],
+            service_distributions=[
+                hciw.dists.Deterministic(5.1),
+                hciw.dists.Deterministic(5.1),
+            ],
             routing=[[0.0, 0.0], [0.0, 0.0]],
             number_of_servers=[1, 1],
-            system_capacity=5
+            system_capacity=5,
         )
-        hciw.seed(0) ## Set seed to exactly replicate simultaneous events
+        hciw.seed(0)  ## Set seed to exactly replicate simultaneous events
         Q = hciw.Simulation(N, tracker=hciw.trackers.SystemPopulation())
         Q.simulate_until_max_time(22)
-        recs_service = sorted(Q.get_all_records(only=['service']), key=lambda r: r.arrival_date)
-        recs_reject = sorted(Q.get_all_records(only=['rejection']), key=lambda r: r.arrival_date)
+        recs_service = sorted(
+            Q.get_all_records(only=["service"]), key=lambda r: r.arrival_date
+        )
+        recs_reject = sorted(
+            Q.get_all_records(only=["rejection"]), key=lambda r: r.arrival_date
+        )
 
         expected_arrivals = [0.8, 1.0, 1.6, 2.0, 2.4, 6.0, 6.4, 11.0]
         expected_ssds = [0.8, 1.0, 5.9, 6.1, 11.0, 11.2, 16.1, 16.3]
         expected_seds = [5.9, 6.1, 11.0, 11.2, 16.1, 16.3, 21.2, 21.4]
         expected_nodes = [1, 2, 1, 2, 1, 2, 1, 2]
-        expected_first_10_rejection_times = [3.0, 3.2, 4.0, 4.0, 4.8, 5.0, 5.6, 7.0, 7.2, 8.0]
+        expected_first_10_rejection_times = [
+            3.0,
+            3.2,
+            4.0,
+            4.0,
+            4.8,
+            5.0,
+            5.6,
+            7.0,
+            7.2,
+            8.0,
+        ]
 
         self.assertTrue(all([s[1] <= 5 for s in Q.statetracker.history]))
-        self.assertEqual([round(r.arrival_date, 2) for r in recs_service], expected_arrivals)
+        self.assertEqual(
+            [round(r.arrival_date, 2) for r in recs_service], expected_arrivals
+        )
         self.assertEqual([r.node for r in recs_service], expected_nodes)
-        self.assertEqual([round(r.service_start_date, 2) for r in recs_service], expected_ssds)
-        self.assertEqual([round(r.service_end_date, 2) for r in recs_service], expected_seds)
-        self.assertEqual([round(r.arrival_date, 2) for r in recs_reject][:10], expected_first_10_rejection_times)
+        self.assertEqual(
+            [round(r.service_start_date, 2) for r in recs_service], expected_ssds
+        )
+        self.assertEqual(
+            [round(r.service_end_date, 2) for r in recs_service], expected_seds
+        )
+        self.assertEqual(
+            [round(r.arrival_date, 2) for r in recs_reject][:10],
+            expected_first_10_rejection_times,
+        )
 
     def test_reroute_preemption_classpriorities(self):
         """
@@ -1542,6 +1690,7 @@ class TestSimulation(unittest.TestCase):
           4    2.0       1    interrupted (goes to Node 2 for 0.5)
           5    2.1       0    2.3
         """
+
         class Reroute(hciw.routing.NodeRouting):
             def next_node(self, ind):
                 """
@@ -1557,37 +1706,56 @@ class TestSimulation(unittest.TestCase):
 
         N = hciw.create_network(
             arrival_distributions={
-                'Class 0': [hciw.dists.Deterministic(value=0.7), None],
-                'Class 1': [hciw.dists.Deterministic(value=1.0), None]
+                "Class 0": [hciw.dists.Deterministic(value=0.7), None],
+                "Class 1": [hciw.dists.Deterministic(value=1.0), None],
             },
             service_distributions={
-                'Class 0': [hciw.dists.Deterministic(value=0.2), hciw.dists.Deterministic(value=0.5)],
-                'Class 1': [hciw.dists.Deterministic(value=0.2), hciw.dists.Deterministic(value=0.5)]
+                "Class 0": [
+                    hciw.dists.Deterministic(value=0.2),
+                    hciw.dists.Deterministic(value=0.5),
+                ],
+                "Class 1": [
+                    hciw.dists.Deterministic(value=0.2),
+                    hciw.dists.Deterministic(value=0.5),
+                ],
             },
             number_of_servers=[1, 1],
-            priority_classes=({'Class 0': 0, 'Class 1': 1}, ['reroute', False]),
+            priority_classes=({"Class 0": 0, "Class 1": 1}, ["reroute", False]),
             routing={
-                'Class 0': hciw.routing.NetworkRouting(routers=[hciw.routing.Leave(), hciw.routing.Leave()]),
-                'Class 1': hciw.routing.NetworkRouting(routers=[Reroute(), hciw.routing.Leave()])
-            }
+                "Class 0": hciw.routing.NetworkRouting(
+                    routers=[hciw.routing.Leave(), hciw.routing.Leave()]
+                ),
+                "Class 1": hciw.routing.NetworkRouting(
+                    routers=[Reroute(), hciw.routing.Leave()]
+                ),
+            },
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(2.7)
         recs = Q.get_all_records()
 
         nd_1 = sorted([r for r in recs if r.node == 1], key=lambda r: r.arrival_date)
-        self.assertEqual([round(r.arrival_date, 5) for r in nd_1], [0.7, 1.0, 1.4, 2.0, 2.1])
-        self.assertEqual([round(r.service_time, 5) for r in nd_1], [0.2, 0.2, 0.2, 0.2, 0.2])
-        self.assertEqual([round(r.exit_date, 5) for r in nd_1], [0.9, 1.2, 1.6, 2.1, 2.3])
+        self.assertEqual(
+            [round(r.arrival_date, 5) for r in nd_1], [0.7, 1.0, 1.4, 2.0, 2.1]
+        )
+        self.assertEqual(
+            [round(r.service_time, 5) for r in nd_1], [0.2, 0.2, 0.2, 0.2, 0.2]
+        )
+        self.assertEqual(
+            [round(r.exit_date, 5) for r in nd_1], [0.9, 1.2, 1.6, 2.1, 2.3]
+        )
         self.assertEqual([r.destination for r in nd_1], [-1, -1, -1, 2, -1])
-        self.assertEqual([r.record_type for r in nd_1], ['service', 'service', 'service', 'interrupted service', 'service'])
+        self.assertEqual(
+            [r.record_type for r in nd_1],
+            ["service", "service", "service", "interrupted service", "service"],
+        )
 
         nd_2 = sorted([r for r in recs if r.node == 2], key=lambda r: r.arrival_date)
         self.assertEqual([round(r.arrival_date, 5) for r in nd_2], [2.1])
         self.assertEqual([round(r.service_time, 5) for r in nd_2], [0.5])
         self.assertEqual([round(r.exit_date, 5) for r in nd_2], [2.6])
         self.assertEqual([r.destination for r in nd_2], [-1])
-        self.assertEqual([r.record_type for r in nd_2], ['service'])
+        self.assertEqual([r.record_type for r in nd_2], ["service"])
 
         """
         Class 0 arrive to Node 1 every 0.7, service lasts 0.2
@@ -1613,37 +1781,65 @@ class TestSimulation(unittest.TestCase):
         """
         N = hciw.create_network(
             arrival_distributions={
-                'Class 0': [hciw.dists.Deterministic(value=0.7), None],
-                'Class 1': [hciw.dists.Deterministic(value=1.0), None]
+                "Class 0": [hciw.dists.Deterministic(value=0.7), None],
+                "Class 1": [hciw.dists.Deterministic(value=1.0), None],
             },
             service_distributions={
-                'Class 0': [hciw.dists.Deterministic(value=0.2), hciw.dists.Deterministic(value=0.1)],
-                'Class 1': [hciw.dists.Deterministic(value=0.2), hciw.dists.Deterministic(value=0.1)]
+                "Class 0": [
+                    hciw.dists.Deterministic(value=0.2),
+                    hciw.dists.Deterministic(value=0.1),
+                ],
+                "Class 1": [
+                    hciw.dists.Deterministic(value=0.2),
+                    hciw.dists.Deterministic(value=0.1),
+                ],
             },
             number_of_servers=[1, 1],
-            priority_classes=({'Class 0': 0, 'Class 1': 1}, ['reroute', False]),
+            priority_classes=({"Class 0": 0, "Class 1": 1}, ["reroute", False]),
             routing={
-                'Class 0': hciw.routing.TransitionMatrix(transition_matrix=[[0.0, 1.0], [0.0, 0.0]]),
-                'Class 1': hciw.routing.TransitionMatrix(transition_matrix=[[0.0, 1.0], [0.0, 0.0]])
-            }
+                "Class 0": hciw.routing.TransitionMatrix(
+                    transition_matrix=[[0.0, 1.0], [0.0, 0.0]]
+                ),
+                "Class 1": hciw.routing.TransitionMatrix(
+                    transition_matrix=[[0.0, 1.0], [0.0, 0.0]]
+                ),
+            },
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(2.7)
         recs = Q.get_all_records()
 
         nd_1 = sorted([r for r in recs if r.node == 1], key=lambda r: r.arrival_date)
-        self.assertEqual([round(r.arrival_date, 5) for r in nd_1], [0.7, 1.0, 1.4, 2.0, 2.1])
-        self.assertEqual([round(r.service_time, 5) for r in nd_1], [0.2, 0.2, 0.2, 0.2, 0.2])
-        self.assertEqual([round(r.exit_date, 5) for r in nd_1], [0.9, 1.2, 1.6, 2.1, 2.3])
+        self.assertEqual(
+            [round(r.arrival_date, 5) for r in nd_1], [0.7, 1.0, 1.4, 2.0, 2.1]
+        )
+        self.assertEqual(
+            [round(r.service_time, 5) for r in nd_1], [0.2, 0.2, 0.2, 0.2, 0.2]
+        )
+        self.assertEqual(
+            [round(r.exit_date, 5) for r in nd_1], [0.9, 1.2, 1.6, 2.1, 2.3]
+        )
         self.assertEqual([r.destination for r in nd_1], [2, 2, 2, 2, 2])
-        self.assertEqual([r.record_type for r in nd_1], ['service', 'service', 'service', 'interrupted service', 'service'])
+        self.assertEqual(
+            [r.record_type for r in nd_1],
+            ["service", "service", "service", "interrupted service", "service"],
+        )
 
         nd_2 = sorted([r for r in recs if r.node == 2], key=lambda r: r.arrival_date)
-        self.assertEqual([round(r.arrival_date, 5) for r in nd_2], [0.9, 1.2, 1.6, 2.1, 2.3])
-        self.assertEqual([round(r.service_time, 5) for r in nd_2], [0.1, 0.1, 0.1, 0.1, 0.1])
-        self.assertEqual([round(r.exit_date, 5) for r in nd_2], [1.0, 1.3, 1.7, 2.2, 2.4])
+        self.assertEqual(
+            [round(r.arrival_date, 5) for r in nd_2], [0.9, 1.2, 1.6, 2.1, 2.3]
+        )
+        self.assertEqual(
+            [round(r.service_time, 5) for r in nd_2], [0.1, 0.1, 0.1, 0.1, 0.1]
+        )
+        self.assertEqual(
+            [round(r.exit_date, 5) for r in nd_2], [1.0, 1.3, 1.7, 2.2, 2.4]
+        )
         self.assertEqual([r.destination for r in nd_2], [-1, -1, -1, -1, -1])
-        self.assertEqual([r.record_type for r in nd_2], ['service', 'service', 'service', 'service', 'service'])
+        self.assertEqual(
+            [r.record_type for r in nd_2],
+            ["service", "service", "service", "service", "service"],
+        )
 
     def test_reroute_preemption_classpriorities_process_based(self):
         """
@@ -1668,42 +1864,67 @@ class TestSimulation(unittest.TestCase):
           4    2.1       1    2.2
           5    2.3       0    2.4
         """
+
         def from_1_to_2(ind, simulation):
             return [2]
 
         N = hciw.create_network(
             arrival_distributions={
-                'Class 0': [hciw.dists.Deterministic(value=0.7), None],
-                'Class 1': [hciw.dists.Deterministic(value=1.0), None]
+                "Class 0": [hciw.dists.Deterministic(value=0.7), None],
+                "Class 1": [hciw.dists.Deterministic(value=1.0), None],
             },
             service_distributions={
-                'Class 0': [hciw.dists.Deterministic(value=0.2), hciw.dists.Deterministic(value=0.1)],
-                'Class 1': [hciw.dists.Deterministic(value=0.2), hciw.dists.Deterministic(value=0.1)]
+                "Class 0": [
+                    hciw.dists.Deterministic(value=0.2),
+                    hciw.dists.Deterministic(value=0.1),
+                ],
+                "Class 1": [
+                    hciw.dists.Deterministic(value=0.2),
+                    hciw.dists.Deterministic(value=0.1),
+                ],
             },
             number_of_servers=[1, 1],
-            priority_classes=({'Class 0': 0, 'Class 1': 1}, ['reroute', False]),
+            priority_classes=({"Class 0": 0, "Class 1": 1}, ["reroute", False]),
             routing={
-                'Class 0': hciw.routing.ProcessBased(from_1_to_2),
-                'Class 1': hciw.routing.ProcessBased(from_1_to_2)
-            }
+                "Class 0": hciw.routing.ProcessBased(from_1_to_2),
+                "Class 1": hciw.routing.ProcessBased(from_1_to_2),
+            },
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(2.7)
         recs = Q.get_all_records()
 
         nd_1 = sorted([r for r in recs if r.node == 1], key=lambda r: r.arrival_date)
-        self.assertEqual([round(r.arrival_date, 5) for r in nd_1], [0.7, 1.0, 1.4, 2.0, 2.1])
-        self.assertEqual([round(r.service_time, 5) for r in nd_1], [0.2, 0.2, 0.2, 0.2, 0.2])
-        self.assertEqual([round(r.exit_date, 5) for r in nd_1], [0.9, 1.2, 1.6, 2.1, 2.3])
+        self.assertEqual(
+            [round(r.arrival_date, 5) for r in nd_1], [0.7, 1.0, 1.4, 2.0, 2.1]
+        )
+        self.assertEqual(
+            [round(r.service_time, 5) for r in nd_1], [0.2, 0.2, 0.2, 0.2, 0.2]
+        )
+        self.assertEqual(
+            [round(r.exit_date, 5) for r in nd_1], [0.9, 1.2, 1.6, 2.1, 2.3]
+        )
         self.assertEqual([r.destination for r in nd_1], [2, 2, 2, 2, 2])
-        self.assertEqual([r.record_type for r in nd_1], ['service', 'service', 'service', 'interrupted service', 'service'])
+        self.assertEqual(
+            [r.record_type for r in nd_1],
+            ["service", "service", "service", "interrupted service", "service"],
+        )
 
         nd_2 = sorted([r for r in recs if r.node == 2], key=lambda r: r.arrival_date)
-        self.assertEqual([round(r.arrival_date, 5) for r in nd_2], [0.9, 1.2, 1.6, 2.1, 2.3])
-        self.assertEqual([round(r.service_time, 5) for r in nd_2], [0.1, 0.1, 0.1, 0.1, 0.1])
-        self.assertEqual([round(r.exit_date, 5) for r in nd_2], [1.0, 1.3, 1.7, 2.2, 2.4])
+        self.assertEqual(
+            [round(r.arrival_date, 5) for r in nd_2], [0.9, 1.2, 1.6, 2.1, 2.3]
+        )
+        self.assertEqual(
+            [round(r.service_time, 5) for r in nd_2], [0.1, 0.1, 0.1, 0.1, 0.1]
+        )
+        self.assertEqual(
+            [round(r.exit_date, 5) for r in nd_2], [1.0, 1.3, 1.7, 2.2, 2.4]
+        )
         self.assertEqual([r.destination for r in nd_2], [-1, -1, -1, -1, -1])
-        self.assertEqual([r.record_type for r in nd_2], ['service', 'service', 'service', 'service', 'service'])
+        self.assertEqual(
+            [r.record_type for r in nd_2],
+            ["service", "service", "service", "service", "service"],
+        )
 
     def test_rerouting_ignores_queue_capacities(self):
         """
@@ -1712,7 +1933,7 @@ class TestSimulation(unittest.TestCase):
         Class 0 have priority over class 1
         Class 1 rerouted to Node 2 upon preemption
         Class 2 arrive at Node 2 every 0.6
-        
+
         Node 1
         Ind    arr    clss    end
           2    0.7       0    0.9
@@ -1729,6 +1950,7 @@ class TestSimulation(unittest.TestCase):
           6    2.1       1    (2.5 + 0.7 =) 3.2 (individual is accepted even though a queue capacity of 0)
           8    2.4       2    rejected
         """
+
         class Reroute(hciw.routing.NodeRouting):
             def next_node(self, ind):
                 """
@@ -1744,41 +1966,84 @@ class TestSimulation(unittest.TestCase):
 
         N = hciw.create_network(
             arrival_distributions={
-                'Class 0': [hciw.dists.Deterministic(value=0.7), None],
-                'Class 1': [hciw.dists.Deterministic(value=1.0), None],
-                'Class 2': [None, hciw.dists.Deterministic(value=0.6)]
+                "Class 0": [hciw.dists.Deterministic(value=0.7), None],
+                "Class 1": [hciw.dists.Deterministic(value=1.0), None],
+                "Class 2": [None, hciw.dists.Deterministic(value=0.6)],
             },
             service_distributions={
-                'Class 0': [hciw.dists.Deterministic(value=0.2), hciw.dists.Deterministic(value=0.7)],
-                'Class 1': [hciw.dists.Deterministic(value=0.2), hciw.dists.Deterministic(value=0.7)],
-                'Class 2': [hciw.dists.Deterministic(value=0.2), hciw.dists.Deterministic(value=0.7)]
+                "Class 0": [
+                    hciw.dists.Deterministic(value=0.2),
+                    hciw.dists.Deterministic(value=0.7),
+                ],
+                "Class 1": [
+                    hciw.dists.Deterministic(value=0.2),
+                    hciw.dists.Deterministic(value=0.7),
+                ],
+                "Class 2": [
+                    hciw.dists.Deterministic(value=0.2),
+                    hciw.dists.Deterministic(value=0.7),
+                ],
             },
             number_of_servers=[1, 1],
-            queue_capacities=[float('inf'), 0],
-            priority_classes=({'Class 0': 0, 'Class 1': 1, 'Class 2': 1}, ['reroute', False]),
+            queue_capacities=[float("inf"), 0],
+            priority_classes=(
+                {"Class 0": 0, "Class 1": 1, "Class 2": 1},
+                ["reroute", False],
+            ),
             routing={
-                'Class 0': hciw.routing.NetworkRouting(routers=[hciw.routing.Leave(), hciw.routing.Leave()]),
-                'Class 1': hciw.routing.NetworkRouting(routers=[Reroute(), hciw.routing.Leave()]),
-                'Class 2': hciw.routing.NetworkRouting(routers=[hciw.routing.Leave(), hciw.routing.Leave()])
-            }
+                "Class 0": hciw.routing.NetworkRouting(
+                    routers=[hciw.routing.Leave(), hciw.routing.Leave()]
+                ),
+                "Class 1": hciw.routing.NetworkRouting(
+                    routers=[Reroute(), hciw.routing.Leave()]
+                ),
+                "Class 2": hciw.routing.NetworkRouting(
+                    routers=[hciw.routing.Leave(), hciw.routing.Leave()]
+                ),
+            },
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(3.3)
         recs = Q.get_all_records()
 
-        nd_1 = sorted([r for r in recs if r.node == 1], key=lambda r: r.arrival_date)[:5]
-        self.assertEqual([round(r.arrival_date, 5) for r in nd_1], [0.7, 1.0, 1.4, 2.0, 2.1])
-        self.assertEqual([round(r.service_time, 5) for r in nd_1], [0.2, 0.2, 0.2, 0.2, 0.2])
-        self.assertEqual([round(r.exit_date, 5) for r in nd_1], [0.9, 1.2, 1.6, 2.1, 2.3])
+        nd_1 = sorted([r for r in recs if r.node == 1], key=lambda r: r.arrival_date)[
+            :5
+        ]
+        self.assertEqual(
+            [round(r.arrival_date, 5) for r in nd_1], [0.7, 1.0, 1.4, 2.0, 2.1]
+        )
+        self.assertEqual(
+            [round(r.service_time, 5) for r in nd_1], [0.2, 0.2, 0.2, 0.2, 0.2]
+        )
+        self.assertEqual(
+            [round(r.exit_date, 5) for r in nd_1], [0.9, 1.2, 1.6, 2.1, 2.3]
+        )
         self.assertEqual([r.destination for r in nd_1], [-1, -1, -1, 2, -1])
-        self.assertEqual([r.record_type for r in nd_1], ['service', 'service', 'service', 'interrupted service', 'service'])
+        self.assertEqual(
+            [r.record_type for r in nd_1],
+            ["service", "service", "service", "interrupted service", "service"],
+        )
 
-        nd_2 = sorted([r for r in recs if r.node == 2], key=lambda r: r.arrival_date)[:5]
-        self.assertEqual([round(r.arrival_date, 5) for r in nd_2], [0.6, 1.2, 1.8, 2.1, 2.4])
-        self.assertEqual([str(round(r.service_time, 5)) for r in nd_2], ['0.7', 'nan', '0.7', '0.7', 'nan'])
-        self.assertEqual([round(r.exit_date, 5) for r in nd_2], [1.3, 1.2, 2.5, 3.2, 2.4])
-        self.assertEqual([str(r.destination) for r in nd_2], ['-1', 'nan', '-1', '-1', 'nan'])
-        self.assertEqual([r.record_type for r in nd_2], ['service', 'rejection', 'service', 'service', 'rejection'])
+        nd_2 = sorted([r for r in recs if r.node == 2], key=lambda r: r.arrival_date)[
+            :5
+        ]
+        self.assertEqual(
+            [round(r.arrival_date, 5) for r in nd_2], [0.6, 1.2, 1.8, 2.1, 2.4]
+        )
+        self.assertEqual(
+            [str(round(r.service_time, 5)) for r in nd_2],
+            ["0.7", "nan", "0.7", "0.7", "nan"],
+        )
+        self.assertEqual(
+            [round(r.exit_date, 5) for r in nd_2], [1.3, 1.2, 2.5, 3.2, 2.4]
+        )
+        self.assertEqual(
+            [str(r.destination) for r in nd_2], ["-1", "nan", "-1", "-1", "nan"]
+        )
+        self.assertEqual(
+            [r.record_type for r in nd_2],
+            ["service", "rejection", "service", "service", "rejection"],
+        )
 
     def test_reroute_at_shift_change(self):
         """
@@ -1800,6 +2065,7 @@ class TestSimulation(unittest.TestCase):
         Ind    arr    exit
           4    4.2     5.2
         """
+
         class Reroute(hciw.routing.NodeRouting):
             def next_node(self, ind):
                 """
@@ -1815,27 +2081,58 @@ class TestSimulation(unittest.TestCase):
 
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Deterministic(value=1.0), None],
-            service_distributions=[hciw.dists.Deterministic(value=0.4), hciw.dists.Deterministic(value=1.0)],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 1], shift_end_dates=[4.2, 6.1, 100], preemption="reroute"), 1],
-            routing=hciw.routing.NetworkRouting(routers=[Reroute(), hciw.routing.Leave()])
+            service_distributions=[
+                hciw.dists.Deterministic(value=0.4),
+                hciw.dists.Deterministic(value=1.0),
+            ],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 1],
+                    shift_end_dates=[4.2, 6.1, 100],
+                    preemption="reroute",
+                ),
+                1,
+            ],
+            routing=hciw.routing.NetworkRouting(
+                routers=[Reroute(), hciw.routing.Leave()]
+            ),
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(7.5)
 
         recs = Q.get_all_records()
         nd_1 = sorted([r for r in recs if r.node == 1], key=lambda r: r.arrival_date)
-        self.assertEqual([round(r.arrival_date, 5) for r in nd_1], [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
-        self.assertEqual([round(r.service_time, 5) for r in nd_1], [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4])
-        self.assertEqual([round(r.exit_date, 5) for r in nd_1], [1.4, 2.4, 3.4, 4.2, 6.5, 6.9, 7.4])
+        self.assertEqual(
+            [round(r.arrival_date, 5) for r in nd_1],
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        )
+        self.assertEqual(
+            [round(r.service_time, 5) for r in nd_1],
+            [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4],
+        )
+        self.assertEqual(
+            [round(r.exit_date, 5) for r in nd_1], [1.4, 2.4, 3.4, 4.2, 6.5, 6.9, 7.4]
+        )
         self.assertEqual([r.destination for r in nd_1], [-1, -1, -1, 2, -1, -1, -1])
-        self.assertEqual([r.record_type for r in nd_1], ['service', 'service', 'service', 'interrupted service', 'service', 'service', 'service'])
+        self.assertEqual(
+            [r.record_type for r in nd_1],
+            [
+                "service",
+                "service",
+                "service",
+                "interrupted service",
+                "service",
+                "service",
+                "service",
+            ],
+        )
 
         nd_2 = sorted([r for r in recs if r.node == 2], key=lambda r: r.arrival_date)
         self.assertEqual([round(r.arrival_date, 5) for r in nd_2], [4.2])
         self.assertEqual([round(r.service_time, 5) for r in nd_2], [1.0])
         self.assertEqual([round(r.exit_date, 5) for r in nd_2], [5.2])
         self.assertEqual([r.destination for r in nd_2], [-1])
-        self.assertEqual([r.record_type for r in nd_2], ['service'])
+        self.assertEqual([r.record_type for r in nd_2], ["service"])
 
 
 class TestServiceDisciplines(unittest.TestCase):
@@ -1864,7 +2161,9 @@ class TestServiceDisciplines(unittest.TestCase):
             service_disciplines=[hciw.disciplines.SIRO],
             number_of_servers=[1],
         )
-        self.assertTrue(isinstance(N.service_centres[0].service_discipline, types.FunctionType))
+        self.assertTrue(
+            isinstance(N.service_centres[0].service_discipline, types.FunctionType)
+        )
         hciw.seed(1)
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(14)
@@ -1873,8 +2172,7 @@ class TestServiceDisciplines(unittest.TestCase):
         self.assertEqual([r.arrival_date for r in recs], [1.0, 2.0, 5.0, 6.0, 4.0])
         self.assertEqual([r.service_time for r in recs], [2.5, 2.5, 2.5, 2.5, 2.5])
         self.assertEqual(
-            [r.service_end_date for r in recs],
-            [3.5, 6.0, 8.5, 11.0, 13.5]
+            [r.service_end_date for r in recs], [3.5, 6.0, 8.5, 11.0, 13.5]
         )
 
     def test_last_in_first_out(self):
@@ -1884,19 +2182,19 @@ class TestServiceDisciplines(unittest.TestCase):
             service_disciplines=[hciw.disciplines.LIFO],
             number_of_servers=[1],
         )
-        self.assertTrue(isinstance(N.service_centres[0].service_discipline, types.FunctionType))
+        self.assertTrue(
+            isinstance(N.service_centres[0].service_discipline, types.FunctionType)
+        )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(9.5)
         recs = sorted(Q.get_all_records(), key=lambda dr: dr.service_start_date)
         self.assertEqual([r.id_number for r in recs], [1, 2, 4, 5, 7])
         self.assertEqual([r.arrival_date for r in recs], [1.0, 2.0, 4.0, 5.0, 7.0])
         self.assertEqual(
-            [round(r.service_time, 10) for r in recs],
-            [1.6, 1.6, 1.6, 1.6, 1.6]
+            [round(r.service_time, 10) for r in recs], [1.6, 1.6, 1.6, 1.6, 1.6]
         )
         self.assertEqual(
-            [round(r.service_end_date, 10) for r in recs],
-            [2.6, 4.2, 5.8, 7.4, 9.0]
+            [round(r.service_end_date, 10) for r in recs], [2.6, 4.2, 5.8, 7.4, 9.0]
         )
 
     def test_mixed_service_disciplines(self):
@@ -1921,28 +2219,27 @@ class TestServiceDisciplines(unittest.TestCase):
 
         self.assertEqual([r.id_number for r in recs_n1], [2, 4, 7, 9])
         self.assertEqual(
-            [round(r.arrival_date, 10) for r in recs_n1],
-            [1.0, 2.0, 3.0, 4.0]
+            [round(r.arrival_date, 10) for r in recs_n1], [1.0, 2.0, 3.0, 4.0]
         )
         self.assertEqual(
-            [round(r.service_end_date, 10) for r in recs_n1],
-            [3.1, 5.2, 7.3, 9.4]
+            [round(r.service_end_date, 10) for r in recs_n1], [3.1, 5.2, 7.3, 9.4]
         )
 
         self.assertEqual([r.id_number for r in recs_n2], [1, 8, 15])
         self.assertEqual([round(r.arrival_date, 10) for r in recs_n2], [0.7, 3.5, 6.3])
         self.assertEqual(
-            [round(r.service_end_date, 10) for r in recs_n2],
-            [3.7, 6.7, 9.7]
+            [round(r.service_end_date, 10) for r in recs_n2], [3.7, 6.7, 9.7]
         )
-
 
     def test_custom_service_discipline(self):
         """
         First test for a given linger time, no person waited less than the linger time.
         """
+
         def linger(individuals, t):
-            individuals_who_lingered = [ind for ind in individuals if (t - ind.arrival_date) >= 3]
+            individuals_who_lingered = [
+                ind for ind in individuals if (t - ind.arrival_date) >= 3
+            ]
             if len(individuals_who_lingered) == 0:
                 return None
             return individuals_who_lingered[0]
@@ -1951,7 +2248,7 @@ class TestServiceDisciplines(unittest.TestCase):
             arrival_distributions=[hciw.dists.Exponential(3)],
             service_distributions=[hciw.dists.Exponential(5)],
             number_of_servers=[1],
-            service_disciplines=[linger]
+            service_disciplines=[linger],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(100)
@@ -1981,10 +2278,10 @@ class TestServiceDisciplines(unittest.TestCase):
             arrival_distributions=[hciw.dists.Deterministic(value=1.31)],
             service_distributions=[hciw.dists.Sequential([1.9, 0.2])],
             number_of_servers=[1],
-            service_disciplines=[linger]
+            service_disciplines=[linger],
         )
         Q = hciw.Simulation(N)
-        Q.simulate_until_max_customers(8, method='Finish')
+        Q.simulate_until_max_customers(8, method="Finish")
         recs = Q.get_all_records()
         self.assertEqual(len(recs), 8)
 
@@ -1993,34 +2290,36 @@ class TestServiceDisciplines(unittest.TestCase):
         end_dates = [round(r.service_end_date, 2) for r in recs]
 
         self.assertEqual(arrivals, [1.31, 2.62, 3.93, 5.24, 6.55, 7.86, 9.17, 10.48])
-        self.assertEqual(start_dates, [5.24, 7.14, 7.34, 9.24, 10.48, 12.38, 12.58, 14.48])
-        self.assertEqual(end_dates, [7.14, 7.34, 9.24, 9.44, 12.38, 12.58, 14.48, 14.68])
-
+        self.assertEqual(
+            start_dates, [5.24, 7.14, 7.34, 9.24, 10.48, 12.38, 12.58, 14.48]
+        )
+        self.assertEqual(
+            end_dates, [7.14, 7.34, 9.24, 9.44, 12.38, 12.58, 14.48, 14.68]
+        )
 
     def test_names_for_customer_classes(self):
         N = hciw.create_network(
             arrival_distributions={
-                'Adult': [hciw.dists.Exponential(3), None],
-                'Child': [hciw.dists.Exponential(2), hciw.dists.Exponential(0.5)]
+                "Adult": [hciw.dists.Exponential(3), None],
+                "Child": [hciw.dists.Exponential(2), hciw.dists.Exponential(0.5)],
             },
             service_distributions={
-                'Adult': [hciw.dists.Exponential(6), hciw.dists.Exponential(6)],
-                'Child': [hciw.dists.Exponential(4), hciw.dists.Exponential(4)]
+                "Adult": [hciw.dists.Exponential(6), hciw.dists.Exponential(6)],
+                "Child": [hciw.dists.Exponential(4), hciw.dists.Exponential(4)],
             },
             routing={
-                'Adult': [[0.0, 1.0], [0.0, 0.0]],
-                'Child': [[0.0, 0.5], [0.0, 0.0]]
+                "Adult": [[0.0, 1.0], [0.0, 0.0]],
+                "Child": [[0.0, 0.5], [0.0, 0.0]],
             },
-            number_of_servers=[3, 4]
+            number_of_servers=[3, 4],
         )
         hciw.seed(5)
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(20)
         recs = Q.get_all_records()
-        adult_waits = [r.waiting_time for r in recs if r.customer_class=='Adult']
-        child_waits = [r.waiting_time for r in recs if r.customer_class=='Child']
+        adult_waits = [r.waiting_time for r in recs if r.customer_class == "Adult"]
+        child_waits = [r.waiting_time for r in recs if r.customer_class == "Child"]
         mean_adult_wait = sum(adult_waits) / len(adult_waits)
         mean_child_wait = sum(child_waits) / len(child_waits)
         self.assertEqual(round(mean_adult_wait, 8), 0.00301455)
         self.assertEqual(round(mean_child_wait, 8), 0.00208601)
-

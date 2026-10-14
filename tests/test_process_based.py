@@ -1,7 +1,9 @@
-import unittest
-import hciw
 import random
+import unittest
 from collections import Counter
+
+import hciw
+
 
 def generator_function_1(ind, simulation):
     return [1, 1]
@@ -19,17 +21,22 @@ def generator_function_3(ind, simulation):
         return [1]
     return [3, 2, 3]
 
+
 def generator_function_4(ind, simulation):
     return []
+
 
 class ClassForProcessBasedMethod:
     def __init__(self, n):
         self.n = n
+
     def generator_method(self, ind, simulation):
         return [1, 1]
 
+
 def flexible_generator_1(ind, simulation):
     return [[2], [3, 4, 5], [6]]
+
 
 class TestProcessBased(unittest.TestCase):
     def test_network_takes_routing_function(self):
@@ -128,18 +135,24 @@ class TestProcessBased(unittest.TestCase):
             number_of_servers=[1],
             routing={
                 "Class 0": hciw.routing.ProcessBased(generator_function_4),
-                "Class 1": hciw.routing.ProcessBased(generator_function_1)
-            }
+                "Class 1": hciw.routing.ProcessBased(generator_function_1),
+            },
         )
         hciw.seed(0)
         Q = hciw.Simulation(N)
         Q.simulate_until_max_customers(500, method="Finish")
         inds = Q.nodes[-1].all_individuals
-        routes_counter = set([tuple([ind.customer_class, tuple(dr.node for dr in ind.data_records)]) for ind in inds])
-        self.assertEqual(routes_counter, {('Class 1', (1, 1, 1)), ('Class 0', (1,))})
+        routes_counter = set(
+            [
+                tuple([ind.customer_class, tuple(dr.node for dr in ind.data_records)])
+                for ind in inds
+            ]
+        )
+        self.assertEqual(routes_counter, {("Class 1", (1, 1, 1)), ("Class 0", (1,))})
 
     def test_process_based_takes_methods(self):
         import types
+
         G = ClassForProcessBasedMethod(5)
         self.assertTrue(isinstance(G.generator_method, types.MethodType))
         N = hciw.create_network(
@@ -157,14 +170,26 @@ class TestProcessBased(unittest.TestCase):
     def test_flexible_process_based(self):
         ## First test 'any-random':
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Exponential(rate=1), None, None, None, None, None],
-            service_distributions=[hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2)],
+            arrival_distributions=[
+                hciw.dists.Exponential(rate=1),
+                None,
+                None,
+                None,
+                None,
+                None,
+            ],
+            service_distributions=[
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+            ],
             number_of_servers=[3, 3, 3, 3, 3, 3],
             routing=hciw.routing.FlexibleProcessBased(
-                route_function=flexible_generator_1,
-                rule='any',
-                choice='random'
-            )
+                route_function=flexible_generator_1, rule="any", choice="random"
+            ),
         )
         hciw.seed(0)
         Q = hciw.Simulation(N)
@@ -175,19 +200,33 @@ class TestProcessBased(unittest.TestCase):
         )
         self.assertEqual(
             routes_counter,
-            Counter({(1, 2, 4, 6): 350, (1, 2, 5, 6): 333, (1, 2, 3, 6): 317}), # all evenly spread
+            Counter(
+                {(1, 2, 4, 6): 350, (1, 2, 5, 6): 333, (1, 2, 3, 6): 317}
+            ),  # all evenly spread
         )
 
         ## Now test 'any-jsq' (flooding Node 4 so no customers ever go here):
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Exponential(rate=1), None, None, None, None, None],
-            service_distributions=[hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Deterministic(value=200000), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2)],
+            arrival_distributions=[
+                hciw.dists.Exponential(rate=1),
+                None,
+                None,
+                None,
+                None,
+                None,
+            ],
+            service_distributions=[
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Deterministic(value=200000),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+            ],
             number_of_servers=[3, 3, 3, 3, 3, 3],
             routing=hciw.routing.FlexibleProcessBased(
-                route_function=flexible_generator_1,
-                rule='any',
-                choice='jsq'
-            )
+                route_function=flexible_generator_1, rule="any", choice="jsq"
+            ),
         )
         hciw.seed(0)
         Q = hciw.Simulation(N)
@@ -198,19 +237,33 @@ class TestProcessBased(unittest.TestCase):
         )
         self.assertEqual(
             routes_counter,
-            Counter({(1, 2, 5, 6): 503, (1, 2, 3, 6): 497}),  # evenly spread between the two unflooded nodes
+            Counter(
+                {(1, 2, 5, 6): 503, (1, 2, 3, 6): 497}
+            ),  # evenly spread between the two unflooded nodes
         )
 
         ## Now test 'any-lb' (flooding Node 4 so no customers ever go here):
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Exponential(rate=1), None, None, None, None, None],
-            service_distributions=[hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Deterministic(value=200000), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2)],
+            arrival_distributions=[
+                hciw.dists.Exponential(rate=1),
+                None,
+                None,
+                None,
+                None,
+                None,
+            ],
+            service_distributions=[
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Deterministic(value=200000),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+            ],
             number_of_servers=[3, 3, 3, 3, 3, 3],
             routing=hciw.routing.FlexibleProcessBased(
-                route_function=flexible_generator_1,
-                rule='any',
-                choice='lb'
-            )
+                route_function=flexible_generator_1, rule="any", choice="lb"
+            ),
         )
         hciw.seed(0)
         Q = hciw.Simulation(N)
@@ -221,20 +274,33 @@ class TestProcessBased(unittest.TestCase):
         )
         self.assertEqual(
             routes_counter,
-            Counter({(1, 2, 5, 6): 508, (1, 2, 3, 6): 492}),  # evenly spread between the two unflooded nodes
+            Counter(
+                {(1, 2, 5, 6): 508, (1, 2, 3, 6): 492}
+            ),  # evenly spread between the two unflooded nodes
         )
-
 
         ## Now test 'all-random':
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Exponential(rate=1), None, None, None, None, None],
-            service_distributions=[hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2), hciw.dists.Exponential(rate=2)],
+            arrival_distributions=[
+                hciw.dists.Exponential(rate=1),
+                None,
+                None,
+                None,
+                None,
+                None,
+            ],
+            service_distributions=[
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+                hciw.dists.Exponential(rate=2),
+            ],
             number_of_servers=[3, 3, 3, 3, 3, 3],
             routing=hciw.routing.FlexibleProcessBased(
-                route_function=flexible_generator_1,
-                rule='all',
-                choice='random'
-            )
+                route_function=flexible_generator_1, rule="all", choice="random"
+            ),
         )
         hciw.seed(0)
         Q = hciw.Simulation(N)
@@ -251,5 +317,17 @@ class TestProcessBased(unittest.TestCase):
         self.assertEqual(routes_counter[(1, 2, 5, 4, 3, 6)], 155)
 
     def test_flexible_process_based_error_raising(self):
-        self.assertRaises(ValueError, hciw.routing.FlexibleProcessBased, flexible_generator_1, 'something', 'random')
-        self.assertRaises(ValueError, hciw.routing.FlexibleProcessBased, flexible_generator_1, 'all', 'something')
+        self.assertRaises(
+            ValueError,
+            hciw.routing.FlexibleProcessBased,
+            flexible_generator_1,
+            "something",
+            "random",
+        )
+        self.assertRaises(
+            ValueError,
+            hciw.routing.FlexibleProcessBased,
+            flexible_generator_1,
+            "all",
+            "something",
+        )

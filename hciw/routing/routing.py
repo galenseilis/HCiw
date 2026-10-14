@@ -1,7 +1,8 @@
 """Routing classes that determine the next node an individual visits."""
 
-import hciw
 import itertools
+
+import hciw
 
 
 class NetworkRouting:
@@ -23,7 +24,7 @@ class NetworkRouting:
                 to.
         """
         self.simulation = simulation
-        for router, node in zip(self.routers, self.simulation.transitive_nodes):
+        for router, node in zip(self.routers, self.simulation.transitive_nodes, strict=False):
             router.initialise(self.simulation, node)
 
     def initialise_individual(self, ind):
@@ -85,9 +86,9 @@ class TransitionMatrix(NetworkRouting):
         n_destinations = len(transition_matrix)
         self.routers = [
             Probabilistic(
-                destinations=[i for i in range(1, n_destinations + 1)],
-                probs=row
-            ) for row in transition_matrix
+                destinations=[i for i in range(1, n_destinations + 1)], probs=row
+            )
+            for row in transition_matrix
         ]
 
     def initialise(self, simulation):
@@ -103,7 +104,9 @@ class TransitionMatrix(NetworkRouting):
         """
         super().initialise(simulation)
         if len(self.routers) != simulation.network.number_of_nodes:
-            raise ValueError("Ensure a transition matrix is given, and that the number of rows is equal to the number of nodes in the network.")
+            raise ValueError(
+                "Ensure a transition matrix is given, and that the number of rows is equal to the number of nodes in the network."
+            )
 
 
 class ProcessBased(NetworkRouting):
@@ -145,10 +148,7 @@ class ProcessBased(NetworkRouting):
         Returns:
             hciw.Node: The next node.
         """
-        if len(ind.route) == 0:
-            node_index = -1
-        else:
-            node_index = ind.route.pop(0)
+        node_index = -1 if len(ind.route) == 0 else ind.route.pop(0)
         return self.simulation.nodes[node_index]
 
     def next_node_for_rerouting(self, ind, node_id):
@@ -198,10 +198,12 @@ class FlexibleProcessBased(ProcessBased):
                 ``'lb'``.
         """
         self.route_function = route_function
-        if rule not in ['any', 'all']:
+        if rule not in ["any", "all"]:
             raise ValueError("Flexible routing rules must be one of 'any' or 'all'.")
-        if choice not in ['random', 'jsq', 'lb']:
-            raise ValueError("Flexible routing choices must be one of 'random', 'jsq', or 'lb'.")
+        if choice not in ["random", "jsq", "lb"]:
+            raise ValueError(
+                "Flexible routing choices must be one of 'random', 'jsq', or 'lb'."
+            )
         self.rule = rule
         self.choice = choice
 
@@ -215,15 +217,15 @@ class FlexibleProcessBased(ProcessBased):
         Returns:
             int: The id number of the chosen node.
         """
-        if self.choice == 'random':
+        if self.choice == "random":
             return hciw.random_choice(subset)
-        if self.choice == 'jsq':
+        if self.choice == "jsq":
             temp_router = JoinShortestQueue(destinations=subset)
             temp_router.initialise(self.simulation, None)
             nd = temp_router.next_node(ind)
             assert nd is not None
             return nd.id_number
-        if self.choice == 'lb':
+        if self.choice == "lb":
             temp_router = LoadBalancing(destinations=subset)
             temp_router.initialise(self.simulation, None)
             nd = temp_router.next_node(ind)
@@ -237,9 +239,9 @@ class FlexibleProcessBased(ProcessBased):
             ind (hciw.Individual): The individual being routed.
             next_node_id (int): The id number of the chosen next node.
         """
-        if self.rule == 'any':
+        if self.rule == "any":
             ind.route = ind.route[1:]
-        if self.rule == 'all':
+        if self.rule == "all":
             ind.route[0].remove(next_node_id)
             if len(ind.route[0]) == 0:
                 ind.route = ind.route[1:]
@@ -341,8 +343,8 @@ class Probabilistic(NodeRouting):
                 raise ValueError("Routing probabilities must be between 0 and 1.")
         if sum(probs) > 1.0:
             raise ValueError("Routing probabilities must sum to 1 or less.")
-        self.destinations = destinations + [-1]
-        self.probs = probs + [1 - sum(probs)]
+        self.destinations = [*destinations, -1]
+        self.probs = [*probs, 1 - sum(probs)]
 
     def error_check_at_initialise(self):
         """Check the probabilities and destinations are valid.
@@ -354,9 +356,15 @@ class Probabilistic(NodeRouting):
                 the network.
         """
         if len(self.probs) != len(self.destinations):
-            raise ValueError("Routing probabilities should correspond to destinations, and so should be lists of the same length.")
-        if not set(self.destinations).issubset(set([nd.id_number for nd in self.simulation.nodes[1:]])):
-            raise ValueError("Routing destinations should be a subset of the nodes in the network.")
+            raise ValueError(
+                "Routing probabilities should correspond to destinations, and so should be lists of the same length."
+            )
+        if not set(self.destinations).issubset(
+            set([nd.id_number for nd in self.simulation.nodes[1:]])
+        ):
+            raise ValueError(
+                "Routing destinations should be a subset of the nodes in the network."
+            )
 
     def next_node(self, ind):
         """Probabilistically choose the next node from the destinations.
@@ -415,7 +423,7 @@ class JoinShortestQueue(NodeRouting):
     The node is chosen from a list of destinations.
     """
 
-    def __init__(self, destinations, tie_break='random'):
+    def __init__(self, destinations, tie_break="random"):
         """Initialise the routing object.
 
         Args:
@@ -435,8 +443,12 @@ class JoinShortestQueue(NodeRouting):
             ValueError: If the destinations are not a subset of the nodes in
                 the network.
         """
-        if not set(self.destinations).issubset(set([nd.id_number for nd in self.simulation.nodes[1:]])):
-            raise ValueError("Routing destinations should be a subset of the nodes in the network.")
+        if not set(self.destinations).issubset(
+            set([nd.id_number for nd in self.simulation.nodes[1:]])
+        ):
+            raise ValueError(
+                "Routing destinations should be a subset of the nodes in the network."
+            )
 
     def get_queue_size(self, node_index):
         """Get the size of the queue at ``node_index``.
@@ -447,7 +459,10 @@ class JoinShortestQueue(NodeRouting):
         Returns:
             int: The number of waiting individuals.
         """
-        return self.simulation.nodes[node_index].number_of_individuals - self.simulation.nodes[node_index].number_in_service
+        return (
+            self.simulation.nodes[node_index].number_of_individuals
+            - self.simulation.nodes[node_index].number_in_service
+        )
 
     def next_node(self, ind):
         """Choose the destination node with the shortest queue.
@@ -459,7 +474,7 @@ class JoinShortestQueue(NodeRouting):
             hciw.Node: The next node.
         """
         shortest_queues = []
-        shortest_queue_size = float('inf')
+        shortest_queue_size = float("inf")
         for node_index in self.destinations:
             queue_size = self.get_queue_size(node_index)
             if queue_size == shortest_queue_size:
@@ -467,10 +482,10 @@ class JoinShortestQueue(NodeRouting):
             if queue_size < shortest_queue_size:
                 shortest_queues = [node_index]
                 shortest_queue_size = queue_size
-        if self.tie_break == 'random':
+        if self.tie_break == "random":
             next_node_index = hciw.random_choice(shortest_queues)
             return self.simulation.nodes[next_node_index]
-        if self.tie_break == 'order':
+        if self.tie_break == "order":
             next_node_index = shortest_queues[0]
             return self.simulation.nodes[next_node_index]
 
@@ -509,8 +524,12 @@ class Cycle(NodeRouting):
             ValueError: If the cycle is not a subset of the nodes in the
                 network.
         """
-        if not set(self.cycle).issubset(set([nd.id_number for nd in self.simulation.nodes[1:]])):
-            raise ValueError("Routing destinations should be a subset of the nodes in the network.")
+        if not set(self.cycle).issubset(
+            set([nd.id_number for nd in self.simulation.nodes[1:]])
+        ):
+            raise ValueError(
+                "Routing destinations should be a subset of the nodes in the network."
+            )
 
     def next_node(self, ind):
         """Choose the next node in the cycle.

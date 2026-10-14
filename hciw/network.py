@@ -1,7 +1,7 @@
 """Information stores describing the nodes and classes of a network."""
 
 
-class ServiceCentre(object):
+class ServiceCentre:
     """Store the class-independent information for a service centre.
 
     Attributes:
@@ -53,7 +53,7 @@ class ServiceCentre(object):
         self.class_change_time = False
 
 
-class CustomerClass(object):
+class CustomerClass:
     """Store the class-dependent information for a customer class.
 
     Attributes:
@@ -104,7 +104,7 @@ class CustomerClass(object):
         self.class_change_time_distributions = class_change_time_distributions
 
 
-class Network(object):
+class Network:
     """Store the queueing network.
 
     Holds a list of ``ServiceCentre`` objects for each service centre and
@@ -121,6 +121,7 @@ class Network(object):
         priority_class_mapping (dict): Maps class names to priority classes.
         system_capacity (float): The total capacity of the system.
     """
+
     system_capacity: float
 
     def __init__(self, service_centres, customer_classes):
@@ -138,12 +139,22 @@ class Network(object):
         self.number_of_priority_classes = len(
             set([clss.priority_class for clss in customer_classes.values()])
         )
-        self.priority_class_mapping = {clss: customer_classes[clss].priority_class for clss in customer_classes.keys()}
+        self.priority_class_mapping = {
+            clss: customer_classes[clss].priority_class
+            for clss in customer_classes
+        }
         for nd_id, node in enumerate(self.service_centres):
-            if all(clss.reneging_time_distributions[nd_id] == None for clss in self.customer_classes.values()):
+            if all(
+                clss.reneging_time_distributions[nd_id] is None
+                for clss in self.customer_classes.values()
+            ):
                 node.reneging = False
             else:
                 node.reneging = True
-        if any(dist is not None for clss in customer_classes.values() for dist in clss.class_change_time_distributions.values()):
+        if any(
+            dist is not None
+            for clss in customer_classes.values()
+            for dist in clss.class_change_time_distributions.values()
+        ):
             for node in self.service_centres:
                 node.class_change_time = True

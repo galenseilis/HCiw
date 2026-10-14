@@ -109,9 +109,7 @@ class StateDigraph(NoDetection):
                     if successors <= nodes:
                         knots.append(subgraph)
                         break
-        if len(knots) > 0:
-            return True
-        return False
+        return len(knots) > 0
 
     def action_at_attach_server(self, node, server, individual):
         """Take action when the node's ``attach_server`` method is called.
@@ -127,7 +125,8 @@ class StateDigraph(NoDetection):
         """
         for blq in node.blocked_queue:
             inds = [
-                ind for ind in node.simulation.nodes[blq[0]].all_individuals
+                ind
+                for ind in node.simulation.nodes[blq[0]].all_individuals
                 if ind.id_number == blq[1]
             ]
             ind = inds[0]

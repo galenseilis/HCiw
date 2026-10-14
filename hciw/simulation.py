@@ -1,21 +1,22 @@
 """The Simulation engine that drives customers through a network."""
 
-import tqdm
 import copy
 from decimal import getcontext
-from .auxiliary import *
-from .node import Node
-from .exactnode import ExactNode, ExactArrivalNode
+
+import tqdm
+
+from hciw import deadlock, trackers
+
 from .arrival_node import ArrivalNode
+from .auxiliary import *
+from .exactnode import ExactArrivalNode, ExactNode
 from .exit_node import ExitNode
 from .individual import Individual
+from .node import Node
 from .server import Server
-from .data_record import DataRecord
-from hciw import trackers
-from hciw import deadlock
 
 
-class Simulation(object):
+class Simulation:
     """The engine that runs a queueing network simulation.
 
     A ``Simulation`` drives customers through the network's nodes over
@@ -84,22 +85,34 @@ class Simulation(object):
         """
         self.current_time = 0.0
         self.network = network
-        self.set_classes(node_class, arrival_node_class, exit_node_class, individual_class, server_class)
+        self.set_classes(
+            node_class,
+            arrival_node_class,
+            exit_node_class,
+            individual_class,
+            server_class,
+        )
         if exact:
             self.NodeTypes = [ExactNode for _ in range(network.number_of_nodes)]
             self.ArrivalNodeType = ExactArrivalNode
             getcontext().prec = exact
 
         self.name = name
-        self.deadlock_detector = deadlock.NoDetection() if deadlock_detector is None else deadlock_detector
+        self.deadlock_detector = (
+            deadlock.NoDetection() if deadlock_detector is None else deadlock_detector
+        )
         self.inter_arrival_times = self.find_arrival_dists()
         self.service_times = self.find_service_dists()
         self.batch_sizes = self.find_batching_dists()
         self.show_simulation_to_distributions()
         self.number_of_priority_classes = self.network.number_of_priority_classes
-        self.transitive_nodes = [node_type(i + 1, self) for i, node_type in enumerate(self.NodeTypes)]
+        self.transitive_nodes = [
+            node_type(i + 1, self) for i, node_type in enumerate(self.NodeTypes)
+        ]
         self.exit_node = self.ExitNodeType()
-        self.nodes = [self.ArrivalNodeType(self)] + self.transitive_nodes + [self.exit_node]
+        self.nodes = (
+            [self.ArrivalNodeType(self), *self.transitive_nodes, self.exit_node]
+        )
         self.active_nodes = self.nodes[:-1]
         self.routers = self.find_and_initialise_routers()
         self.nodes[0].initialise()
@@ -120,14 +133,16 @@ class Simulation(object):
         """
         return self.name
 
-    @property    
+    @property
     def number_of_individuals(self):
         """Return the number of individuals currently in the system.
 
         Returns:
             int: The number of individuals currently in the system.
         """
-        return (self.nodes[0].number_of_individuals - 1) - self.nodes[-1].number_of_individuals
+        return (self.nodes[0].number_of_individuals - 1) - self.nodes[
+            -1
+        ].number_of_individuals
 
     def find_arrival_dists(self):
         """Create the arrival time distribution objects for each node and class.
@@ -137,9 +152,12 @@ class Simulation(object):
         """
         return {
             node + 1: {
-                clss: copy.deepcopy(self.network.customer_classes[clss].arrival_distributions[node])
+                clss: copy.deepcopy(
+                    self.network.customer_classes[clss].arrival_distributions[node]
+                )
                 for clss in self.network.customer_class_names
-            } for node in range(self.network.number_of_nodes)
+            }
+            for node in range(self.network.number_of_nodes)
         }
 
     def find_service_dists(self):
@@ -150,9 +168,12 @@ class Simulation(object):
         """
         return {
             node + 1: {
-                clss: copy.deepcopy(self.network.customer_classes[clss].service_distributions[node])
+                clss: copy.deepcopy(
+                    self.network.customer_classes[clss].service_distributions[node]
+                )
                 for clss in self.network.customer_class_names
-            } for node in range(self.network.number_of_nodes)
+            }
+            for node in range(self.network.number_of_nodes)
         }
 
     def find_batching_dists(self):
@@ -163,9 +184,12 @@ class Simulation(object):
         """
         return {
             node + 1: {
-                clss: copy.deepcopy(self.network.customer_classes[clss].batching_distributions[node])
+                clss: copy.deepcopy(
+                    self.network.customer_classes[clss].batching_distributions[node]
+                )
                 for clss in self.network.customer_class_names
-            } for node in range(self.network.number_of_nodes)
+            }
+            for node in range(self.network.number_of_nodes)
         }
 
     def show_simulation_to_distributions(self):
@@ -222,7 +246,9 @@ class Simulation(object):
         ]
 
     def get_all_records(
-        self, only=["service", "baulk", "rejection", "renege", "interrupted service"], include_incomplete=False
+        self,
+        only=None,
+        include_incomplete=False,
     ):
         """Get data records from all individuals.
 
@@ -236,20 +262,28 @@ class Simulation(object):
         Returns:
             list: The collected data records.
         """
+        if only is None:
+            only = ["service", "baulk", "rejection", "renege", "interrupted service"]
         records = []
         for individual in self.get_all_individuals():
             for record in individual.data_records:
                 if record.record_type in only:
                     records.append(record)
-            if include_incomplete:
-                if individual.node != -1:
-                    incomplete_record = self.nodes[individual.node].write_incomplete_record(individual)
-                    records.append(incomplete_record)
+            if include_incomplete and individual.node != -1:
+                incomplete_record = self.nodes[
+                    individual.node
+                ].write_incomplete_record(individual)
+                records.append(incomplete_record)
         self.all_records = records
         return records
 
     def set_classes(
-        self, node_class, arrival_node_class, exit_node_class, individual_class, server_class
+        self,
+        node_class,
+        arrival_node_class,
+        exit_node_class,
+        individual_class,
+        server_class,
     ):
         """Set the node, individual and server classes used by the simulation.
 
@@ -281,10 +315,14 @@ class Simulation(object):
 
         if node_class is not None:
             if not isinstance(node_class, list):
-                self.NodeTypes = [node_class for _ in range(self.network.number_of_nodes)]
+                self.NodeTypes = [
+                    node_class for _ in range(self.network.number_of_nodes)
+                ]
             else:
                 if len(node_class) != self.network.number_of_nodes:
-                    raise ValueError("Ensure consistant number of nodes is used throughout.")
+                    raise ValueError(
+                        "Ensure consistant number of nodes is used throughout."
+                    )
                 self.NodeTypes = node_class
         else:
             self.NodeTypes = [Node for _ in range(self.network.number_of_nodes)]
@@ -334,7 +372,7 @@ class Simulation(object):
         self.wrap_up_servers(time_of_deadlock)
         self.times_to_deadlock = {
             state: time_of_deadlock - self.times_dictionary[state]
-            for state in self.times_dictionary.keys()
+            for state in self.times_dictionary
         }
 
     def simulate_until_max_time(self, max_simulation_time, progress_bar=False):
@@ -402,13 +440,17 @@ class Simulation(object):
             self.progress_bar = tqdm.tqdm(total=max_customers)
 
         if method == "Complete":
-            check = lambda: self.exit_node.number_of_completed_individuals
+            def check():
+                return self.exit_node.number_of_completed_individuals
         elif method == "Finish":
-            check = lambda: self.exit_node.number_of_individuals
+            def check():
+                return self.exit_node.number_of_individuals
         elif method == "Arrive":
-            check = lambda: self.nodes[0].number_of_individuals
+            def check():
+                return self.nodes[0].number_of_individuals
         elif method == "Accept":
-            check = lambda: self.nodes[0].number_accepted_individuals
+            def check():
+                return self.nodes[0].number_accepted_individuals
         else:
             raise ValueError("Invalid 'method' for 'simulate_until_max_customers'.")
 

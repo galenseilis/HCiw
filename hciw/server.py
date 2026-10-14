@@ -3,7 +3,7 @@
 from decimal import Decimal
 
 
-class Server(object):
+class Server:
     """Contain information about a server."""
 
     def __init__(self, node, id_number, start_date: float | Decimal = 0.0):
@@ -42,4 +42,4 @@ class Server(object):
         Returns:
             str: The representation of the server.
         """
-        return "Server %s at Node %s" % (self.id_number, self.node.id_number)
+        return f"Server {self.id_number} at Node {self.node.id_number}"

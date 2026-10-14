@@ -1,9 +1,11 @@
-import unittest
-import hciw
 import random
+import unittest
 from collections import Counter
+
 from hypothesis import given
 from hypothesis.strategies import floats, integers, lists, random_module
+
+import hciw
 
 
 class TestAuxiliary(unittest.TestCase):

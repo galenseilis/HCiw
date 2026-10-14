@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from hciw.server import Server
 
 
-class Individual(object):
+class Individual:
     """Represent an individual agent in a queueing network simulation.
 
     An ``Individual`` models the flow of an agent through a queueing
@@ -49,7 +49,9 @@ class Individual(object):
             )
     """
 
-    def __init__(self, id_number, customer_class='Customer', priority_class=0, simulation=False):
+    def __init__(
+        self, id_number, customer_class="Customer", priority_class=0, simulation=False
+    ):
         """Initialise an ``Individual``.
 
         Args:

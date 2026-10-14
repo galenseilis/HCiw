@@ -1,10 +1,9 @@
 """Node classes with exact numerical precision."""
 
-from typing import List
-
-from .node import Node
-from .arrival_node import ArrivalNode
 from decimal import Decimal
+
+from .arrival_node import ArrivalNode
+from .node import Node
 from .server import Server
 
 
@@ -14,7 +13,7 @@ class ExactNode(Node):
     This class inherits from `Node` and implements a more precise version of
     addition to fix discrepancies with floating point numbers.
     """
-    
+
     @property
     def now(self) -> Decimal:
         """Get the current simulation time.
@@ -24,7 +23,7 @@ class ExactNode(Node):
         """
         return Decimal(self.simulation.current_time)
 
-    def create_starting_servers(self) -> List[Server]:
+    def create_starting_servers(self) -> list[Server]:
         """Initialise the servers at this node.
 
         Returns:

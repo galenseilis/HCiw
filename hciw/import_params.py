@@ -1,10 +1,11 @@
 """Build ``Network`` objects from user-supplied parameters."""
 
-import hciw.dists
 import hciw.disciplines
+import hciw.dists
+
 from .network import *
-from .schedules import *
 from .routing import *
+from .schedules import *
 
 
 def create_network(
@@ -22,7 +23,7 @@ def create_network(
     server_priority_functions=None,
     reneging_time_distributions=None,
     service_disciplines=None,
-    system_capacity=float('inf')
+    system_capacity=float("inf"),
 ):
     """Create a ``Network`` object from keyword arguments.
 
@@ -65,19 +66,20 @@ def create_network(
             ``number_of_servers`` are not provided.
     """
     if (
-        arrival_distributions == None
-        or number_of_servers == None
-        or service_distributions == None
+        arrival_distributions is None
+        or number_of_servers is None
+        or service_distributions is None
     ):
         raise ValueError(
-            "arrival_distributions, service_distributions and number_of_servers are required arguments."
+            "arrival_distributions, service_distributions and number_of_servers are "
+            "required arguments."
         )
 
     params = {
         "arrival_distributions": arrival_distributions,
         "number_of_servers": number_of_servers,
         "service_distributions": service_distributions,
-        'system_capacity': system_capacity
+        "system_capacity": system_capacity,
     }
 
     if baulking_functions is not None:
@@ -133,19 +135,24 @@ def create_network_from_dictionary(params_input):
         "class_change_matrices",
         [None] * number_of_nodes,
     )
-    class_change_time_distributions = {clss2: {clss1: None for clss1 in params['customer_class_names']} for clss2 in params['customer_class_names']}
-    if 'class_change_time_distributions' in params:
-        for clss1 in params['customer_class_names']:
-            if clss1 in params['class_change_time_distributions']:
-                for clss2 in params['customer_class_names']:
-                    if clss2 in params['class_change_time_distributions'][clss1]:
-                        class_change_time_distributions[clss1][clss2] = params['class_change_time_distributions'][clss1][clss2]
+    class_change_time_distributions = {
+        clss2: {clss1: None for clss1 in params["customer_class_names"]}
+        for clss2 in params["customer_class_names"]
+    }
+    if "class_change_time_distributions" in params:
+        for clss1 in params["customer_class_names"]:
+            if clss1 in params["class_change_time_distributions"]:
+                for clss2 in params["customer_class_names"]:
+                    if clss2 in params["class_change_time_distributions"][clss1]:
+                        class_change_time_distributions[clss1][clss2] = params[
+                            "class_change_time_distributions"
+                        ][clss1][clss2]
 
     nodes, classes = [], {}
     for nd in range(number_of_nodes):
         nodes.append(
             ServiceCentre(
-                params['number_of_servers'][nd],
+                params["number_of_servers"][nd],
                 params["queue_capacities"][nd],
                 class_change_matrices[nd],
                 preempt_priorities[nd],
@@ -154,11 +161,11 @@ def create_network_from_dictionary(params_input):
                 params["service_disciplines"][nd],
             )
         )
-    for clss_name in params['customer_class_names']:
+    for clss_name in params["customer_class_names"]:
         classes[clss_name] = CustomerClass(
-            params['arrival_distributions'][clss_name],
-            params['service_distributions'][clss_name],
-            params['routing'][clss_name],
+            params["arrival_distributions"][clss_name],
+            params["service_distributions"][clss_name],
+            params["routing"][clss_name],
             params["priority_classes"][clss_name],
             params["baulking_functions"][clss_name],
             params["batching_distributions"][clss_name],
@@ -166,7 +173,7 @@ def create_network_from_dictionary(params_input):
             class_change_time_distributions[clss_name],
         )
     n = Network(nodes, classes)
-    n.system_capacity = params['system_capacity']
+    n.system_capacity = params["system_capacity"]
     return n
 
 
@@ -188,12 +195,18 @@ def fill_out_dictionary(params):
     if "routing" in params:
         if isinstance(params["routing"], list):
             transition_matrix = params["routing"]
-            params["routing"] = {"Customer": routing.TransitionMatrix(transition_matrix=transition_matrix)}
+            params["routing"] = {
+                "Customer": routing.TransitionMatrix(
+                    transition_matrix=transition_matrix
+                )
+            }
         elif isinstance(params["routing"], dict):
             for clss in params["routing"]:
                 if isinstance(params["routing"][clss], list):
                     transition_matrix = params["routing"][clss]
-                    params["routing"][clss] = routing.TransitionMatrix(transition_matrix=transition_matrix)
+                    params["routing"][clss] = routing.TransitionMatrix(
+                        transition_matrix=transition_matrix
+                    )
         else:
             params["routing"] = {"Customer": params["routing"]}
     if "baulking_functions" in params:
@@ -215,25 +228,28 @@ def fill_out_dictionary(params):
     number_of_nodes = len(params["number_of_servers"])
     default_dict = {
         "name": "Simulation",
-        "routing": {class_name: routing.TransitionMatrix(transition_matrix=[[0.0]]) for class_name in class_names},
-        "number_of_nodes": number_of_nodes,
-        "number_of_classes": len(class_names),
-        "queue_capacities": [float("inf")] * number_of_nodes, 
-        "priority_classes": {class_name: 0 for class_name in class_names},
-        "baulking_functions": {class_name: [None] * number_of_nodes for class_name in class_names},
-        "batching_distributions": {class_name: [
-                hciw.dists.Deterministic(1)
-        ] * number_of_nodes for class_name in class_names},
-        "ps_thresholds": [1] * number_of_nodes,
-        "server_priority_functions": [
-            None
-        ] * number_of_nodes,
-        "reneging_time_distributions": {
-            class_name: [None] * number_of_nodes
+        "routing": {
+            class_name: routing.TransitionMatrix(transition_matrix=[[0.0]])
             for class_name in class_names
         },
+        "number_of_nodes": number_of_nodes,
+        "number_of_classes": len(class_names),
+        "queue_capacities": [float("inf")] * number_of_nodes,
+        "priority_classes": {class_name: 0 for class_name in class_names},
+        "baulking_functions": {
+            class_name: [None] * number_of_nodes for class_name in class_names
+        },
+        "batching_distributions": {
+            class_name: [hciw.dists.Deterministic(1)] * number_of_nodes
+            for class_name in class_names
+        },
+        "ps_thresholds": [1] * number_of_nodes,
+        "server_priority_functions": [None] * number_of_nodes,
+        "reneging_time_distributions": {
+            class_name: [None] * number_of_nodes for class_name in class_names
+        },
         "service_disciplines": [hciw.disciplines.FIFO for _ in range(number_of_nodes)],
-        "system_capacity": float('inf')
+        "system_capacity": float("inf"),
     }
 
     for a in default_dict:
@@ -298,40 +314,60 @@ def validify_dictionary(params):
     if neg_numservers:
         raise ValueError("Number of servers must be positive integers.")
     for c in params["number_of_servers"]:
-        if not (isinstance(c, int) or isinstance(c, Schedule) or c == float('inf')):
-            raise ValueError("Number of servers must be positive integers or instances of hciw.schedules.Schedule.")
+        if not (isinstance(c, (int, Schedule)) or c == float("inf")):
+            raise ValueError(
+                "Number of servers must be positive integers or instances of "
+                "hciw.schedules.Schedule."
+            )
     if not valid_capacities:
         raise ValueError("Queue capacities must be positive integers or zero.")
-    
+
     if "class_change_matrices" in params:
-        if not isinstance(params['class_change_matrices'], list):
-            raise ValueError("class_change_matrices should be a list of dictionaries for each node in the network.")
+        if not isinstance(params["class_change_matrices"], list):
+            raise ValueError(
+                "class_change_matrices should be a list of dictionaries for each "
+                "node in the network."
+            )
         num_nodes = len(params["class_change_matrices"]) == params["number_of_nodes"]
         if not num_nodes:
             raise ValueError("Ensure correct nodes used in class_change_matrices.")
         for nd in params["class_change_matrices"]:
             for row in nd.values():
-                if sum(row.values()) > 1.0 or min(row.values()) < 0.0 or max(row.values()) > 1.0:
+                if (
+                    sum(row.values()) > 1.0
+                    or min(row.values()) < 0.0
+                    or max(row.values()) > 1.0
+                ):
                     raise ValueError("Ensure that class change matrix is valid.")
-        class_change_names = set([k for matrix in params['class_change_matrices'] for k in matrix.keys()])
-        if not class_change_names.issubset(set(params['arrival_distributions'])):
-            raise ValueError("Ensure consistant names for customer classes.")
-    
-    if "class_change_time_distributions" in params:
-        class_change_from_names = set(list(params['class_change_time_distributions'].keys()))
-        class_change_to_names = set([clss for row in params['class_change_time_distributions'].values() for clss in row.keys()])
-        wrong_class_names = (
-            not class_change_from_names.issubset(set(params['customer_class_names']))
-        ) or (
-        
-            not class_change_to_names.issubset(set(params['customer_class_names']))
+        class_change_names = set(
+            [k for matrix in params["class_change_matrices"] for k in matrix]
         )
+        if not class_change_names.issubset(set(params["arrival_distributions"])):
+            raise ValueError("Ensure consistant names for customer classes.")
+
+    if "class_change_time_distributions" in params:
+        class_change_from_names = set(
+            list(params["class_change_time_distributions"].keys())
+        )
+        class_change_to_names = set(
+            [
+                clss
+                for row in params["class_change_time_distributions"].values()
+                for clss in row
+            ]
+        )
+        wrong_class_names = (
+            not class_change_from_names.issubset(set(params["customer_class_names"]))
+        ) or (not class_change_to_names.issubset(set(params["customer_class_names"])))
         if wrong_class_names:
             raise ValueError(
-                "Ensure consistant customer classes used in class_change_time_distributions."
+                "Ensure consistant customer classes used in "
+                "class_change_time_distributions."
             )
 
-    if not isinstance(params['system_capacity'], int) and params['system_capacity'] != float('inf'):
+    if not isinstance(params["system_capacity"], int) and params[
+        "system_capacity"
+    ] != float("inf"):
         raise ValueError("Ensure system capacity is a positive integer.")
-    if params['system_capacity'] <= 0:
+    if params["system_capacity"] <= 0:
         raise ValueError("Ensure system capacity is a positive integer.")

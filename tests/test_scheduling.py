@@ -1,15 +1,20 @@
-import unittest
-import hciw
-from decimal import Decimal
-from collections import Counter
 import math
+import unittest
+from decimal import Decimal
+
+import hciw
 
 N_schedule = hciw.create_network(
     arrival_distributions={
         "Class 0": [hciw.dists.Exponential(0.05), hciw.dists.Exponential(0.04)],
         "Class 1": [hciw.dists.Exponential(0.04), hciw.dists.Exponential(0.06)],
     },
-    number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 2, 1, 3], shift_end_dates=[30, 60, 90, 100]), 3],
+    number_of_servers=[
+        hciw.Schedule(
+            numbers_of_servers=[1, 2, 1, 3], shift_end_dates=[30, 60, 90, 100]
+        ),
+        3,
+    ],
     queue_capacities=[float("Inf"), 10],
     service_distributions={
         "Class 0": [hciw.dists.Deterministic(5.0), hciw.dists.Exponential(0.2)],
@@ -40,10 +45,7 @@ class TestScheduling(unittest.TestCase):
 
         N.next_event_date = 60
         N.change_shift()
-        self.assertEqual(
-            [str(obs) for obs in N.servers],
-            ["Server 4 at Node 1"]
-        )
+        self.assertEqual([str(obs) for obs in N.servers], ["Server 4 at Node 1"])
 
         N.servers[0].busy = True
         N.next_event_date = 90
@@ -58,7 +60,9 @@ class TestScheduling(unittest.TestCase):
             ],
         )
         self.assertEqual([obs.busy for obs in N.servers], [True, False, False, False])
-        self.assertEqual([obs.offduty for obs in N.servers], [True, False, False, False])
+        self.assertEqual(
+            [obs.offduty for obs in N.servers], [True, False, False, False]
+        )
         self.assertEqual(N.c, 3)
 
     def test_take_servers_off_duty_method(self):
@@ -85,7 +89,9 @@ class TestScheduling(unittest.TestCase):
         N.attach_server(N.servers[2], ind2)
 
         self.assertEqual([obs.busy for obs in N.servers], [False, True, True, False])
-        self.assertEqual([obs.offduty for obs in N.servers], [False, False, False, False])
+        self.assertEqual(
+            [obs.offduty for obs in N.servers], [False, False, False, False]
+        )
         self.assertEqual(ind1.service_time, 5.5)
         self.assertEqual(ind1.service_end_date, 7895.876)
         self.assertEqual(ind2.service_time, 7.2)
@@ -103,7 +109,6 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(ind2.service_time, 7.2)
         self.assertEqual(ind2.service_end_date, 0.4321)
         self.assertEqual(N.interrupted_individuals, [])
-
 
     def test_kill_server_method(self):
         Q = hciw.Simulation(N_schedule)
@@ -180,7 +185,7 @@ class TestScheduling(unittest.TestCase):
 
     def test_take_servers_off_duty_preempt_method(self):
         N = N_schedule
-        N.service_centres[0].number_of_servers.preemption = 'resample'
+        N.service_centres[0].number_of_servers.preemption = "resample"
         Q = hciw.Simulation(N)
         N = Q.transitive_nodes[0]
         N.have_event()
@@ -212,12 +217,14 @@ class TestScheduling(unittest.TestCase):
         N.individuals = [[ind2], [ind3, ind1]]
 
         self.assertEqual([obs.busy for obs in N.servers], [False, True, True, True])
-        self.assertEqual([obs.offduty for obs in N.servers], [False, False, False, False])
+        self.assertEqual(
+            [obs.offduty for obs in N.servers], [False, False, False, False]
+        )
         self.assertEqual(ind1.service_time, 5.5)
         self.assertEqual(ind1.service_end_date, 7895.876)
         self.assertEqual(ind2.service_time, 7.2)
         self.assertEqual(ind2.service_end_date, 0.4321)
-        N.take_servers_off_duty(preemption='resample')
+        N.take_servers_off_duty(preemption="resample")
         self.assertEqual([str(obs) for obs in N.servers], [])
         self.assertEqual([obs.busy for obs in N.servers], [])
         self.assertEqual([obs.offduty for obs in N.servers], [])
@@ -238,11 +245,17 @@ class TestScheduling(unittest.TestCase):
             arrival_distributions=[hciw.dists.Deterministic(7.0)],
             service_distributions=[hciw.dists.Deterministic(5.0)],
             routing=[[0.0]],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 2], shift_end_dates=[15, 17, 100], preemption="resample")],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 2],
+                    shift_end_dates=[15, 17, 100],
+                    preemption="resample",
+                )
+            ],
         )
         Q = hciw.Simulation(N)
 
-        self.assertEqual(Q.nodes[1].schedule.preemption, 'resample')
+        self.assertEqual(Q.nodes[1].schedule.preemption, "resample")
 
         Q.simulate_until_max_time(15.5)
 
@@ -262,11 +275,17 @@ class TestScheduling(unittest.TestCase):
             arrival_distributions=[hciw.dists.Deterministic(7.0)],
             service_distributions=[hciw.dists.Deterministic(5.0)],
             routing=[[0.0]],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 2], shift_end_dates=[15, 17, 100], preemption="resume")],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 2],
+                    shift_end_dates=[15, 17, 100],
+                    preemption="resume",
+                )
+            ],
         )
         Q = hciw.Simulation(N)
 
-        self.assertEqual(Q.nodes[1].schedule.preemption, 'resume')
+        self.assertEqual(Q.nodes[1].schedule.preemption, "resume")
 
         Q.simulate_until_max_time(22.5)
         recs = Q.get_all_records()
@@ -282,10 +301,16 @@ class TestScheduling(unittest.TestCase):
             arrival_distributions=[hciw.dists.Deterministic(3.0)],
             service_distributions=[hciw.dists.Deterministic(10.0)],
             routing=[[0.0]],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[4, 0, 1], shift_end_dates=[12.5, 17, 100], preemption="resume")],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[4, 0, 1],
+                    shift_end_dates=[12.5, 17, 100],
+                    preemption="resume",
+                )
+            ],
         )
         Q = hciw.Simulation(N)
-        self.assertEqual(Q.nodes[1].schedule.preemption, 'resume')
+        self.assertEqual(Q.nodes[1].schedule.preemption, "resume")
 
         Q.simulate_until_max_time(27.5)
         recs = Q.get_all_records(only=["service"])
@@ -302,9 +327,19 @@ class TestScheduling(unittest.TestCase):
 
     def test_overtime(self):
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([1.0, 0.0, 0.0, 8.0, 0.0, 3.0, 10000.0])],
-            service_distributions=[hciw.dists.Sequential([5.0, 7.0, 9.0, 4.0, 5.0, 5.0])],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[3, 2, 1], shift_end_dates=[7.0, 11.0, 20.0], preemption=False)],
+            arrival_distributions=[
+                hciw.dists.Sequential([1.0, 0.0, 0.0, 8.0, 0.0, 3.0, 10000.0])
+            ],
+            service_distributions=[
+                hciw.dists.Sequential([5.0, 7.0, 9.0, 4.0, 5.0, 5.0])
+            ],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[3, 2, 1],
+                    shift_end_dates=[7.0, 11.0, 20.0],
+                    preemption=False,
+                )
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(19.0)
@@ -315,9 +350,19 @@ class TestScheduling(unittest.TestCase):
 
     def test_overtime_exact(self):
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([1.0, 0.0, 0.0, 8.0, 0.0, 3.0, 10000.0])],
-            service_distributions=[hciw.dists.Sequential([5.0, 7.0, 9.0, 4.0, 5.0, 5.0])],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[3, 2, 1], shift_end_dates=[7.0, 11.0, 20.0], preemption=False)],
+            arrival_distributions=[
+                hciw.dists.Sequential([1.0, 0.0, 0.0, 8.0, 0.0, 3.0, 10000.0])
+            ],
+            service_distributions=[
+                hciw.dists.Sequential([5.0, 7.0, 9.0, 4.0, 5.0, 5.0])
+            ],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[3, 2, 1],
+                    shift_end_dates=[7.0, 11.0, 20.0],
+                    preemption=False,
+                )
+            ],
         )
         Q = hciw.Simulation(N, exact=26)
         Q.simulate_until_max_time(19.0)
@@ -356,7 +401,13 @@ class TestScheduling(unittest.TestCase):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([1, float("inf")])],
             service_distributions=[hciw.dists.Sequential([10, 20])],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 1], shift_end_dates=[5, 9, 100], preemption="restart")],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 1],
+                    shift_end_dates=[5, 9, 100],
+                    preemption="restart",
+                )
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(40)
@@ -372,7 +423,13 @@ class TestScheduling(unittest.TestCase):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([1, float("inf")])],
             service_distributions=[hciw.dists.Sequential([10, 20])],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 1], shift_end_dates=[5, 9, 100], preemption="resume")],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 1],
+                    shift_end_dates=[5, 9, 100],
+                    preemption="resume",
+                )
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(40)
@@ -388,7 +445,13 @@ class TestScheduling(unittest.TestCase):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([1, float("inf")])],
             service_distributions=[hciw.dists.Sequential([10, 20])],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 1], shift_end_dates=[5, 9, 100], preemption="resample")],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 1],
+                    shift_end_dates=[5, 9, 100],
+                    preemption="resample",
+                )
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(40)
@@ -418,7 +481,11 @@ class TestScheduling(unittest.TestCase):
                 "Class 0": [hciw.dists.Deterministic(5.5)],
                 "Class 1": [hciw.dists.Deterministic(1.5)],
             },
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 1], shift_end_dates=[20.3, 20.6, 100])],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 1], shift_end_dates=[20.3, 20.6, 100]
+                )
+            ],
             priority_classes=({"Class 0": 1, "Class 1": 0}, ["resume"]),
         )
 
@@ -428,48 +495,48 @@ class TestScheduling(unittest.TestCase):
         recs = Q.get_all_records()
         # Individual 1
         self.assertEqual(recs[0].id_number, 1)
-        self.assertEqual(recs[0].customer_class, 'Class 0')
+        self.assertEqual(recs[0].customer_class, "Class 0")
         self.assertEqual(recs[0].arrival_date, 7)
         self.assertEqual(recs[0].service_start_date, 7)
         self.assertEqual(recs[0].service_end_date, 12.5)
         self.assertEqual(recs[0].record_type, "service")
         # Individual 2
         self.assertEqual(recs[1].id_number, 2)
-        self.assertEqual(recs[1].customer_class, 'Class 1')
+        self.assertEqual(recs[1].customer_class, "Class 1")
         self.assertEqual(recs[1].arrival_date, 13)
         self.assertEqual(recs[1].service_start_date, 13)
         self.assertEqual(recs[1].service_end_date, 14.5)
         self.assertEqual(recs[1].record_type, "service")
         # Individual 3
         self.assertEqual(recs[2].id_number, 3)
-        self.assertEqual(recs[2].customer_class, 'Class 0')
+        self.assertEqual(recs[2].customer_class, "Class 0")
         self.assertEqual(recs[2].arrival_date, 14)
         self.assertEqual(recs[2].service_start_date, 14.5)
         self.assertEqual(recs[2].service_end_date, 20)
         self.assertEqual(recs[2].record_type, "service")
         # Individual 5
         self.assertEqual(recs[3].id_number, 5)
-        self.assertEqual(recs[3].customer_class, 'Class 1')
+        self.assertEqual(recs[3].customer_class, "Class 1")
         self.assertEqual(recs[3].arrival_date, 26)
         self.assertEqual(recs[3].service_start_date, 26)
         self.assertEqual(recs[3].service_end_date, 27.5)
         self.assertEqual(recs[3].record_type, "service")
         # Individual 4's interrupted service
         self.assertEqual(recs[4].id_number, 4)
-        self.assertEqual(recs[4].customer_class, 'Class 0')
+        self.assertEqual(recs[4].customer_class, "Class 0")
         self.assertEqual(recs[4].arrival_date, 21)
         self.assertEqual(recs[4].service_start_date, 21)
         self.assertEqual(recs[4].record_type, "interrupted service")
         # Individual 4's resumed service
         self.assertEqual(recs[5].id_number, 4)
-        self.assertEqual(recs[5].customer_class, 'Class 0')
+        self.assertEqual(recs[5].customer_class, "Class 0")
         self.assertEqual(recs[5].arrival_date, 21)
         self.assertEqual(recs[5].service_start_date, 27.5)
         self.assertEqual(recs[5].service_end_date, 28)
         self.assertEqual(recs[5].record_type, "service")
         # Individual 6
         self.assertEqual(recs[6].id_number, 6)
-        self.assertEqual(recs[6].customer_class, 'Class 0')
+        self.assertEqual(recs[6].customer_class, "Class 0")
         self.assertEqual(recs[6].arrival_date, 28)
         self.assertEqual(recs[6].service_start_date, 28)
         self.assertEqual(recs[6].service_end_date, 33.5)
@@ -485,7 +552,11 @@ class TestScheduling(unittest.TestCase):
                 "Class 0": [hciw.dists.Deterministic(5.5)],
                 "Class 1": [hciw.dists.Deterministic(1.5)],
             },
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 1], shift_end_dates=[20.3, 22, 100])],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 1], shift_end_dates=[20.3, 22, 100]
+                )
+            ],
             priority_classes=({"Class 0": 1, "Class 1": 0}, ["resume"]),
         )
 
@@ -495,48 +566,48 @@ class TestScheduling(unittest.TestCase):
         recs = Q.get_all_records()
         # Individual 1
         self.assertEqual(recs[0].id_number, 1)
-        self.assertEqual(recs[0].customer_class, 'Class 0')
+        self.assertEqual(recs[0].customer_class, "Class 0")
         self.assertEqual(recs[0].arrival_date, 7)
         self.assertEqual(recs[0].service_start_date, 7)
         self.assertEqual(recs[0].service_end_date, 12.5)
         self.assertEqual(recs[0].record_type, "service")
         # Individual 2
         self.assertEqual(recs[1].id_number, 2)
-        self.assertEqual(recs[1].customer_class, 'Class 1')
+        self.assertEqual(recs[1].customer_class, "Class 1")
         self.assertEqual(recs[1].arrival_date, 13)
         self.assertEqual(recs[1].service_start_date, 13)
         self.assertEqual(recs[1].service_end_date, 14.5)
         self.assertEqual(recs[1].record_type, "service")
         # Individual 3
         self.assertEqual(recs[2].id_number, 3)
-        self.assertEqual(recs[2].customer_class, 'Class 0')
+        self.assertEqual(recs[2].customer_class, "Class 0")
         self.assertEqual(recs[2].arrival_date, 14)
         self.assertEqual(recs[2].service_start_date, 14.5)
         self.assertEqual(recs[2].service_end_date, 20)
         self.assertEqual(recs[2].record_type, "service")
         # Individual 5
         self.assertEqual(recs[3].id_number, 5)
-        self.assertEqual(recs[3].customer_class, 'Class 1')
+        self.assertEqual(recs[3].customer_class, "Class 1")
         self.assertEqual(recs[3].arrival_date, 26)
         self.assertEqual(recs[3].service_start_date, 26)
         self.assertEqual(recs[3].service_end_date, 27.5)
         self.assertEqual(recs[3].record_type, "service")
         # Individual 4's interrupted service
         self.assertEqual(recs[4].id_number, 4)
-        self.assertEqual(recs[4].customer_class, 'Class 0')
+        self.assertEqual(recs[4].customer_class, "Class 0")
         self.assertEqual(recs[4].arrival_date, 21)
         self.assertEqual(recs[4].service_start_date, 22)
         self.assertEqual(recs[4].record_type, "interrupted service")
         # Individual 4's resumed service
         self.assertEqual(recs[5].id_number, 4)
-        self.assertEqual(recs[5].customer_class, 'Class 0')
+        self.assertEqual(recs[5].customer_class, "Class 0")
         self.assertEqual(recs[5].arrival_date, 21)
         self.assertEqual(recs[5].service_start_date, 27.5)
         self.assertEqual(recs[5].service_end_date, 29)
         self.assertEqual(recs[5].record_type, "service")
         # Individual 6
         self.assertEqual(recs[6].id_number, 6)
-        self.assertEqual(recs[6].customer_class, 'Class 0')
+        self.assertEqual(recs[6].customer_class, "Class 0")
         self.assertEqual(recs[6].arrival_date, 28)
         self.assertEqual(recs[6].service_start_date, 29)
         self.assertEqual(recs[6].service_end_date, 34.5)
@@ -544,11 +615,24 @@ class TestScheduling(unittest.TestCase):
 
     def test_resuming_interruption_after_blockage(self):
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([5, float('inf')]), hciw.dists.Sequential([1, float('inf')])],
-            service_distributions=[hciw.dists.Deterministic(1), hciw.dists.Deterministic(9)],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0], shift_end_dates=[8, 200], preemption='resume'), 1],
-            queue_capacities=[float('inf'), 0],
-            routing=[[0.0, 1.0], [0.0, 0.0]]
+            arrival_distributions=[
+                hciw.dists.Sequential([5, float("inf")]),
+                hciw.dists.Sequential([1, float("inf")]),
+            ],
+            service_distributions=[
+                hciw.dists.Deterministic(1),
+                hciw.dists.Deterministic(9),
+            ],
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0],
+                    shift_end_dates=[8, 200],
+                    preemption="resume",
+                ),
+                1,
+            ],
+            queue_capacities=[float("inf"), 0],
+            routing=[[0.0, 1.0], [0.0, 0.0]],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(35)
@@ -617,9 +701,15 @@ class TestScheduling(unittest.TestCase):
         Slotted services have capacities [3, 2, 5, 3]
         """
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, 0.2, 0.5, 0.1, 0.5, 0.8, 0.1, 0.4, float('inf')])],
+            arrival_distributions=[
+                hciw.dists.Sequential(
+                    [0.3, 0.2, 0.2, 0.5, 0.1, 0.5, 0.8, 0.1, 0.4, float("inf")]
+                )
+            ],
             service_distributions=[hciw.dists.Deterministic(0.5)],
-            number_of_servers=[hciw.Slotted(slots=[1, 2, 3, 4], slot_sizes=[3, 2, 5, 3])]
+            number_of_servers=[
+                hciw.Slotted(slots=[1, 2, 3, 4], slot_sizes=[3, 2, 5, 3])
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(5.6)
@@ -641,9 +731,15 @@ class TestScheduling(unittest.TestCase):
         Slotted services have capacities [3, 2, 5, 3]
         """
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, 0.2, 0.5, 0.1, 0.5, 0.8, 0.1, 0.4, float('inf')])],
+            arrival_distributions=[
+                hciw.dists.Sequential(
+                    [0.3, 0.2, 0.2, 0.5, 0.1, 0.5, 0.8, 0.1, 0.4, float("inf")]
+                )
+            ],
             service_distributions=[hciw.dists.Deterministic(0.5)],
-            number_of_servers=[hciw.Slotted(slots=[1, 2, 3, 4], slot_sizes=[3, 2, 5, 3], offset=0.05)]
+            number_of_servers=[
+                hciw.Slotted(slots=[1, 2, 3, 4], slot_sizes=[3, 2, 5, 3], offset=0.05)
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(5.6)
@@ -665,9 +761,13 @@ class TestScheduling(unittest.TestCase):
         Slotted services have capacities [1, 3, 1, 3, 1, 3, 1, 3 etc....]
         """
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.7, 0.7, 1.2, 0.3, 1.4, 1.2, 0.6, 8.9, float('inf')])],
+            arrival_distributions=[
+                hciw.dists.Sequential(
+                    [0.7, 0.7, 1.2, 0.3, 1.4, 1.2, 0.6, 8.9, float("inf")]
+                )
+            ],
             service_distributions=[hciw.dists.Deterministic(0.2)],
-            number_of_servers=[hciw.Slotted(slots=[1.5, 4.4], slot_sizes=[1, 3])]
+            number_of_servers=[hciw.Slotted(slots=[1.5, 4.4], slot_sizes=[1, 3])],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(20)
@@ -688,9 +788,13 @@ class TestScheduling(unittest.TestCase):
         Slotted services have capacities [2, 1, 1, 1]
         """
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, 9.6, float('inf')])],
+            arrival_distributions=[
+                hciw.dists.Sequential([0.3, 0.2, 9.6, float("inf")])
+            ],
             service_distributions=[hciw.dists.Sequential([2.5, 4.5, 0.5, 1000])],
-            number_of_servers=[hciw.Slotted(slots=[1, 3, 5, 11], slot_sizes=[2, 1, 1, 1])]
+            number_of_servers=[
+                hciw.Slotted(slots=[1, 3, 5, 11], slot_sizes=[2, 1, 1, 1])
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(20)
@@ -718,9 +822,13 @@ class TestScheduling(unittest.TestCase):
           - Slot sizes = [4, 1, 4, 1, ...]
         """
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.5, 0.6, 0.4, 0.3, 0.8, float('inf')])],
+            arrival_distributions=[
+                hciw.dists.Sequential([0.5, 0.6, 0.4, 0.3, 0.8, float("inf")])
+            ],
             service_distributions=[hciw.dists.Sequential([0.2, 0.2, 1.2, 0.2, 0.5])],
-            number_of_servers=[hciw.Slotted(slots=[2, 3], slot_sizes=[4, 1], capacitated=False)]
+            number_of_servers=[
+                hciw.Slotted(slots=[2, 3], slot_sizes=[4, 1], capacitated=False)
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(10)
@@ -732,9 +840,13 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(observed_service_dates, expected_service_dates)
 
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.5, 0.6, 0.4, 0.3, 0.8, float('inf')])],
+            arrival_distributions=[
+                hciw.dists.Sequential([0.5, 0.6, 0.4, 0.3, 0.8, float("inf")])
+            ],
             service_distributions=[hciw.dists.Sequential([0.2, 0.2, 1.2, 0.2, 0.5])],
-            number_of_servers=[hciw.Slotted(slots=[2, 3], slot_sizes=[4, 1], capacitated=True)]
+            number_of_servers=[
+                hciw.Slotted(slots=[2, 3], slot_sizes=[4, 1], capacitated=True)
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(10)
@@ -746,9 +858,29 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(observed_service_dates, expected_service_dates)
 
     def test_invalid_preemption_options(self):
-        self.assertRaises(ValueError, lambda: hciw.Schedule(numbers_of_servers=[2, 1], shift_end_dates=[10, 12], preemption='something'))
-        self.assertRaises(ValueError, lambda: hciw.Slotted(slots=[2, 3], slot_sizes=[4, 1], capacitated=False, preemption='resume'))
-        self.assertRaises(ValueError, lambda: hciw.Slotted(slots=[2, 3], slot_sizes=[4, 1], capacitated=True, preemption='something'))
+        self.assertRaises(
+            ValueError,
+            lambda: hciw.Schedule(
+                numbers_of_servers=[2, 1],
+                shift_end_dates=[10, 12],
+                preemption="something",
+            ),
+        )
+        self.assertRaises(
+            ValueError,
+            lambda: hciw.Slotted(
+                slots=[2, 3], slot_sizes=[4, 1], capacitated=False, preemption="resume"
+            ),
+        )
+        self.assertRaises(
+            ValueError,
+            lambda: hciw.Slotted(
+                slots=[2, 3],
+                slot_sizes=[4, 1],
+                capacitated=True,
+                preemption="something",
+            ),
+        )
 
     def test_slotted_services_capacitated_preemption(self):
         """
@@ -763,9 +895,11 @@ class TestScheduling(unittest.TestCase):
         """
         # No preemption
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float('inf')])],
+            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float("inf")])],
             service_distributions=[hciw.dists.Sequential([10, 10, 1])],
-            number_of_servers=[hciw.Slotted(slots=[4, 11], slot_sizes=[3, 1], capacitated=True)]
+            number_of_servers=[
+                hciw.Slotted(slots=[4, 11], slot_sizes=[3, 1], capacitated=True)
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(50)
@@ -778,20 +912,27 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[0].service_start_date, 4)
         self.assertEqual(recs[0].service_end_date, 14)
         self.assertEqual(recs[0].exit_date, 14)
-        self.assertEqual(recs[0].record_type, 'service')
+        self.assertEqual(recs[0].record_type, "service")
 
         self.assertEqual(recs[1].id_number, 2)
         self.assertEqual(recs[1].arrival_date, 0.5)
         self.assertEqual(recs[1].service_start_date, 4)
         self.assertEqual(recs[1].service_end_date, 14)
         self.assertEqual(recs[1].exit_date, 14)
-        self.assertEqual(recs[1].record_type, 'service')
+        self.assertEqual(recs[1].record_type, "service")
 
         # preemption='resume'
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float('inf')])],
+            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float("inf")])],
             service_distributions=[hciw.dists.Sequential([10, 10, 1])],
-            number_of_servers=[hciw.Slotted(slots=[4, 11], slot_sizes=[3, 1], capacitated=True, preemption='resume')]
+            number_of_servers=[
+                hciw.Slotted(
+                    slots=[4, 11],
+                    slot_sizes=[3, 1],
+                    capacitated=True,
+                    preemption="resume",
+                )
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(50)
@@ -804,7 +945,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[0].service_start_date, 4)
         self.assertEqual(recs[0].service_end_date, 14)
         self.assertEqual(recs[0].exit_date, 14)
-        self.assertEqual(recs[0].record_type, 'service')
+        self.assertEqual(recs[0].record_type, "service")
 
         self.assertEqual(recs[1].id_number, 2)
         self.assertEqual(recs[1].arrival_date, 0.5)
@@ -812,7 +953,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[1].service_time, 10)
         self.assertTrue(math.isnan(recs[1].service_end_date))
         self.assertEqual(recs[1].exit_date, 11)
-        self.assertEqual(recs[1].record_type, 'interrupted service')
+        self.assertEqual(recs[1].record_type, "interrupted service")
 
         self.assertEqual(recs[2].id_number, 2)
         self.assertEqual(recs[2].arrival_date, 0.5)
@@ -820,13 +961,20 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[2].service_time, 3)
         self.assertEqual(recs[2].service_end_date, 18)
         self.assertEqual(recs[2].exit_date, 18)
-        self.assertEqual(recs[2].record_type, 'service')
+        self.assertEqual(recs[2].record_type, "service")
 
         # preemption='resample'
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float('inf')])],
+            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float("inf")])],
             service_distributions=[hciw.dists.Sequential([10, 10, 1])],
-            number_of_servers=[hciw.Slotted(slots=[4, 11], slot_sizes=[3, 1], capacitated=True, preemption='resample')]
+            number_of_servers=[
+                hciw.Slotted(
+                    slots=[4, 11],
+                    slot_sizes=[3, 1],
+                    capacitated=True,
+                    preemption="resample",
+                )
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(50)
@@ -839,7 +987,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[0].service_start_date, 4)
         self.assertEqual(recs[0].service_end_date, 14)
         self.assertEqual(recs[0].exit_date, 14)
-        self.assertEqual(recs[0].record_type, 'service')
+        self.assertEqual(recs[0].record_type, "service")
 
         self.assertEqual(recs[1].id_number, 2)
         self.assertEqual(recs[1].arrival_date, 0.5)
@@ -847,7 +995,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[1].service_time, 10)
         self.assertTrue(math.isnan(recs[1].service_end_date))
         self.assertEqual(recs[1].exit_date, 11)
-        self.assertEqual(recs[1].record_type, 'interrupted service')
+        self.assertEqual(recs[1].record_type, "interrupted service")
 
         self.assertEqual(recs[2].id_number, 2)
         self.assertEqual(recs[2].arrival_date, 0.5)
@@ -855,13 +1003,20 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[2].service_time, 1)
         self.assertEqual(recs[2].service_end_date, 16)
         self.assertEqual(recs[2].exit_date, 16)
-        self.assertEqual(recs[2].record_type, 'service')
+        self.assertEqual(recs[2].record_type, "service")
 
         # preemption='restart'
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float('inf')])],
+            arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float("inf")])],
             service_distributions=[hciw.dists.Sequential([10, 10, 1])],
-            number_of_servers=[hciw.Slotted(slots=[4, 11], slot_sizes=[3, 1], capacitated=True, preemption='restart')]
+            number_of_servers=[
+                hciw.Slotted(
+                    slots=[4, 11],
+                    slot_sizes=[3, 1],
+                    capacitated=True,
+                    preemption="restart",
+                )
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(50)
@@ -874,7 +1029,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[0].service_start_date, 4)
         self.assertEqual(recs[0].service_end_date, 14)
         self.assertEqual(recs[0].exit_date, 14)
-        self.assertEqual(recs[0].record_type, 'service')
+        self.assertEqual(recs[0].record_type, "service")
 
         self.assertEqual(recs[1].id_number, 2)
         self.assertEqual(recs[1].arrival_date, 0.5)
@@ -882,7 +1037,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[1].service_time, 10)
         self.assertTrue(math.isnan(recs[1].service_end_date))
         self.assertEqual(recs[1].exit_date, 11)
-        self.assertEqual(recs[1].record_type, 'interrupted service')
+        self.assertEqual(recs[1].record_type, "interrupted service")
 
         self.assertEqual(recs[2].id_number, 2)
         self.assertEqual(recs[2].arrival_date, 0.5)
@@ -890,23 +1045,43 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[2].service_time, 10)
         self.assertEqual(recs[2].service_end_date, 25)
         self.assertEqual(recs[2].exit_date, 25)
-        self.assertEqual(recs[2].record_type, 'service')
+        self.assertEqual(recs[2].record_type, "service")
 
     def test_offset_error_raising(self):
-        self.assertRaises(ValueError, lambda: hciw.Slotted(slots=[4, 11], slot_sizes=[3, 1], offset='something'))
-        self.assertRaises(ValueError, lambda: hciw.Slotted(slots=[4, 11], slot_sizes=[3, 1], offset=-6.7))
-        self.assertRaises(ValueError, lambda: hciw.Schedule(numbers_of_servers=[1, 2], shift_end_dates=[10, 25], offset='something'))
-        self.assertRaises(ValueError, lambda: hciw.Schedule(numbers_of_servers=[1, 2], shift_end_dates=[10, 25], offset=-6.7))
+        self.assertRaises(
+            ValueError,
+            lambda: hciw.Slotted(slots=[4, 11], slot_sizes=[3, 1], offset="something"),
+        )
+        self.assertRaises(
+            ValueError,
+            lambda: hciw.Slotted(slots=[4, 11], slot_sizes=[3, 1], offset=-6.7),
+        )
+        self.assertRaises(
+            ValueError,
+            lambda: hciw.Schedule(
+                numbers_of_servers=[1, 2], shift_end_dates=[10, 25], offset="something"
+            ),
+        )
+        self.assertRaises(
+            ValueError,
+            lambda: hciw.Schedule(
+                numbers_of_servers=[1, 2], shift_end_dates=[10, 25], offset=-6.7
+            ),
+        )
 
     def test_schedules_with_offset(self):
         """
         First with no offset
         """
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.1, float('inf')])],
+            arrival_distributions=[hciw.dists.Sequential([0.1, float("inf")])],
             service_distributions=[hciw.dists.Deterministic(10)],
             batching_distributions=[hciw.dists.Deterministic(10)],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 6, 0], shift_end_dates=[5, 20, 23, 30])]
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 6, 0], shift_end_dates=[5, 20, 23, 30]
+                )
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(3000)
@@ -918,15 +1093,31 @@ class TestScheduling(unittest.TestCase):
         Now with an offset
         """
         N = hciw.create_network(
-            arrival_distributions=[hciw.dists.Sequential([0.1, float('inf')])],
+            arrival_distributions=[hciw.dists.Sequential([0.1, float("inf")])],
             service_distributions=[hciw.dists.Deterministic(10)],
             batching_distributions=[hciw.dists.Deterministic(10)],
-            number_of_servers=[hciw.Schedule(numbers_of_servers=[1, 0, 6, 0], shift_end_dates=[5, 20, 23, 30], offset=0.5)]
+            number_of_servers=[
+                hciw.Schedule(
+                    numbers_of_servers=[1, 0, 6, 0],
+                    shift_end_dates=[5, 20, 23, 30],
+                    offset=0.5,
+                )
+            ],
         )
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(3000)
         recs = Q.get_all_records()
 
-        expected_service_dates = [0.5, 20.5, 20.5, 20.5, 20.5, 20.5, 20.5, 30.5, 50.5, 50.5]
+        expected_service_dates = [
+            0.5,
+            20.5,
+            20.5,
+            20.5,
+            20.5,
+            20.5,
+            20.5,
+            30.5,
+            50.5,
+            50.5,
+        ]
         self.assertEqual(expected_service_dates, [r.service_start_date for r in recs])
-

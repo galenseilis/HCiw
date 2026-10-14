@@ -1,12 +1,11 @@
 """Service disciplines for selecting the next individual from a queue."""
 
-from typing import List
 
-from hciw.individual import Individual
 from hciw.auxiliary import random_choice
+from hciw.individual import Individual
 
 
-def FIFO(individuals: List[Individual], t: float) -> Individual:
+def FIFO(individuals: list[Individual], t: float) -> Individual:
     """Select individuals first in, first out.
 
     Args:
@@ -19,7 +18,7 @@ def FIFO(individuals: List[Individual], t: float) -> Individual:
     return individuals[0]
 
 
-def SIRO(individuals: List[Individual], t: float) -> Individual:
+def SIRO(individuals: list[Individual], t: float) -> Individual:
     """Select individuals in random order.
 
     Args:
@@ -32,7 +31,7 @@ def SIRO(individuals: List[Individual], t: float) -> Individual:
     return random_choice(individuals)
 
 
-def LIFO(individuals: List[Individual], t: float) -> Individual:
+def LIFO(individuals: list[Individual], t: float) -> Individual:
     """Select individuals last in, first out.
 
     Args:

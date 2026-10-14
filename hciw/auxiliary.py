@@ -5,7 +5,9 @@ small list helpers used by the simulation engine.
 """
 
 import random
+
 import numpy as np
+
 import hciw
 
 
@@ -34,7 +36,7 @@ def random_choice(array, probs=None):
         The randomly selected element of ``array``.
     """
     # If no pdf provided, assume uniform dist:
-    if probs == None:
+    if probs is None:
         index = int(random.random() * len(array))
         return array[index]
 

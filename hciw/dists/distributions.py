@@ -1,29 +1,30 @@
-'''Distributions available in HCiw.''' 
+"""Distributions available in HCiw."""
 
 import copy
 import math
 import random
-from math import sqrt, exp, pi, erf
+import statistics as st
 from itertools import cycle
+from math import erf, exp, pi, sqrt
 from operator import add, mul, sub, truediv
 from random import (
     expovariate,
-    uniform,
-    triangular,
     gammavariate,
     lognormvariate,
+    triangular,
+    uniform,
     weibullvariate,
-) 
-from typing import List, NoReturn
+)
 
 import numpy as np
-import statistics as st
 
 from hciw.auxiliary import *
 from hciw.individual import Individual
 
-class Distribution(object):
+
+class Distribution:
     """A general distribution from which all other distributions inherit."""
+
     def __repr__(self) -> str:
         """Return a string representation of the distribution."""
         return "Distribution"
@@ -45,7 +46,7 @@ class Distribution(object):
         Performs vaildity checks before sampling.
         """
         s = self.sample(t=t, ind=ind)
-        if (isinstance(s, float) or isinstance(s, int)) and s >= 0:
+        if (isinstance(s, (float, int))) and s >= 0:
             return s
         else:
             raise ValueError("Invalid time sampled.")
@@ -93,7 +94,7 @@ class Distribution(object):
             CombinedDistribution: A distribution sampling the ratio.
         """
         return CombinedDistribution(self, dist, truediv)
-    
+
     @property
     def mean(self):
         """Return the default mean of a distribution.
@@ -101,7 +102,7 @@ class Distribution(object):
         Returns:
             float: The mean, NaN by default.
         """
-        return float('nan')
+        return float("nan")
 
     @property
     def variance(self):
@@ -110,7 +111,7 @@ class Distribution(object):
         Returns:
             float: The variance, NaN by default.
         """
-        return float('nan')
+        return float("nan")
 
     @property
     def sd(self):
@@ -128,16 +129,16 @@ class Distribution(object):
         Returns:
             float: The median, NaN by default.
         """
-        return float('nan')
+        return float("nan")
 
     @property
     def upper_limit(self):
-         """Return the default upper limit of a distribution.
+        """Return the default upper limit of a distribution.
 
-         Returns:
-             float: The upper limit, NaN by default.
-         """
-         return float('nan')
+        Returns:
+            float: The upper limit, NaN by default.
+        """
+        return float("nan")
 
     @property
     def lower_limit(self):
@@ -146,7 +147,7 @@ class Distribution(object):
         Returns:
             float: The lower limit, NaN by default.
         """
-        return float('nan')
+        return float("nan")
 
 
 class CombinedDistribution(Distribution):
@@ -159,6 +160,7 @@ class CombinedDistribution(Distribution):
         d2 (Distribution): A deep copy of the second distribution.
         operator (callable): The binary operator used to combine samples.
     """
+
     def __init__(self, dist1, dist2, operator):
         """Initialize the combined distribution.
 
@@ -206,9 +208,9 @@ class CombinedDistribution(Distribution):
             return m1 * m2
         elif self.operator == truediv:
             if m2 == 0:
-                return float('nan')
+                return float("nan")
             return m1 / m2  # delta-method mean
-        return float('nan')
+        return float("nan")
 
     @property
     def variance(self) -> float:
@@ -228,13 +230,13 @@ class CombinedDistribution(Distribution):
             return v1 + v2
         elif self.operator == mul:
             # Var(A * B) = v1*v2 + m2^2*v1 + m1^2*v2, assuming independence
-            return v1 * v2 + (m2 ** 2) * v1 + (m1 ** 2) * v2
+            return v1 * v2 + (m2**2) * v1 + (m1**2) * v2
         elif self.operator == truediv:
             # delta-method approximation for Var(A/B)
             if m2 == 0:
-                return float('nan')
-            return (v1 / (m2 ** 2)) + ((m1 ** 2) * v2) / (m2 ** 4)
-        return float('nan')
+                return float("nan")
+            return (v1 / (m2**2)) + ((m1**2) * v2) / (m2**4)
+        return float("nan")
 
     @property
     def upper_limit(self):
@@ -245,7 +247,7 @@ class CombinedDistribution(Distribution):
         """
         if self.operator == add:
             return self.d1.upper_limit + self.d2.upper_limit
-        return float('nan')
+        return float("nan")
 
     @property
     def lower_limit(self):
@@ -256,7 +258,7 @@ class CombinedDistribution(Distribution):
         """
         if self.operator == add:
             return self.d1.lower_limit + self.d2.lower_limit
-        return float('nan')
+        return float("nan")
 
 
 class Uniform(Distribution):
@@ -266,6 +268,7 @@ class Uniform(Distribution):
         lower (float): The lower bound.
         upper (float): The upper bound.
     """
+
     def __init__(self, lower, upper):
         """Initialize the Uniform distribution.
 
@@ -318,7 +321,7 @@ class Uniform(Distribution):
             float: The variance.
         """
         return ((self.upper - self.lower) ** 2) / 12
- 
+
     @property
     def median(self):
         """Return the median of the Uniform distribution.
@@ -336,7 +339,7 @@ class Uniform(Distribution):
             float: The upper bound.
         """
         return self.upper
-    
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Uniform distribution.
@@ -353,6 +356,7 @@ class Deterministic(Distribution):
     Attributes:
         value (float): The value always returned by the distribution.
     """
+
     def __init__(self, value):
         """Initialize the Deterministic distribution.
 
@@ -419,7 +423,7 @@ class Deterministic(Distribution):
             float: The deterministic value.
         """
         return self.value
-    
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Deterministic distribution.
@@ -438,6 +442,7 @@ class Triangular(Distribution):
         mode (float): The modal value.
         upper (float): The upper bound.
     """
+
     def __init__(self, lower, mode, upper):
         """Initialize the Triangular distribution.
 
@@ -456,7 +461,8 @@ class Triangular(Distribution):
             )
         if not lower <= mode <= upper:
             raise ValueError(
-                "Triangular distribution lower bound must be <= mode must be <= upper bound."
+                "Triangular distribution lower bound must be <= mode must be "
+                "<= upper bound."
             )
         self.lower = lower
         self.mode = mode
@@ -495,8 +501,8 @@ class Triangular(Distribution):
             float: The variance.
         """
         a, b, c = self.lower, self.upper, self.mode
-        return (a**2 + b**2 + c**2 - a*b - a*c - b*c) / 18
- 
+        return (a**2 + b**2 + c**2 - a * b - a * c - b * c) / 18
+
     @property
     def median(self):
         # True median of a Triangular(a, c, b)
@@ -519,7 +525,7 @@ class Triangular(Distribution):
             float: The upper bound.
         """
         return self.upper
-    
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Triangular distribution.
@@ -536,6 +542,7 @@ class Exponential(Distribution):
     Attributes:
         rate (float): The rate parameter, lambda.
     """
+
     def __init__(self, rate):
         """Initialize the Exponential distribution.
 
@@ -583,8 +590,7 @@ class Exponential(Distribution):
         Returns:
             float: The variance.
         """
-        return 1 / (self.rate ** 2)
-
+        return 1 / (self.rate**2)
 
     @property
     def median(self):
@@ -602,8 +608,8 @@ class Exponential(Distribution):
         Returns:
             float: Infinity.
         """
-        return float('inf')
-    
+        return float("inf")
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Exponential distribution.
@@ -611,7 +617,7 @@ class Exponential(Distribution):
         Returns:
             float: Zero.
         """
-        return 0 
+        return 0
 
 
 class Gamma(Distribution):
@@ -621,6 +627,7 @@ class Gamma(Distribution):
         shape (float): The shape parameter, alpha.
         scale (float): The scale parameter, beta.
     """
+
     def __init__(self, shape, scale):
         """Initialize the Gamma distribution.
 
@@ -663,7 +670,7 @@ class Gamma(Distribution):
         Returns:
             float: The variance.
         """
-        return self.shape * (self.scale ** 2)
+        return self.shape * (self.scale**2)
 
     @property
     def upper_limit(self):
@@ -672,8 +679,8 @@ class Gamma(Distribution):
         Returns:
             float: Infinity.
         """
-        return float('inf')
-    
+        return float("inf")
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Gamma distribution.
@@ -686,6 +693,7 @@ class Gamma(Distribution):
 
 class Normal(Distribution):
     """Truncated Normal distribution, truncated below at 0."""
+
     def __init__(self, mean, sd):
         """Initialize the truncated Normal distribution.
 
@@ -720,7 +728,7 @@ class Normal(Distribution):
             float: The mean of the truncated distribution.
         """
         z = self._mean / self._sd
-        phi = (1 / sqrt(2 * pi)) * exp(-0.5 * z ** 2)
+        phi = (1 / sqrt(2 * pi)) * exp(-0.5 * z**2)
         Phi = 0.5 * (1 + erf(z / sqrt(2)))
         return self._mean + self._sd * (phi / Phi)
 
@@ -732,14 +740,14 @@ class Normal(Distribution):
             float: The variance of the truncated distribution.
         """
         z = self._mean / self._sd
-        phi = (1 / sqrt(2 * pi)) * exp(-0.5 * z ** 2)
+        phi = (1 / sqrt(2 * pi)) * exp(-0.5 * z**2)
         Phi = 0.5 * (1 + erf(z / sqrt(2)))
         term = phi / Phi
-        return (self._sd ** 2) * (1 - z * term - (term ** 2))
+        return (self._sd**2) * (1 - z * term - (term**2))
 
     @property
     def median(self):
-        # Truncated below at 0 
+        # Truncated below at 0
         """Return the median of the truncated Normal distribution.
 
         Returns:
@@ -757,8 +765,8 @@ class Normal(Distribution):
         Returns:
             float: Infinity.
         """
-        return float('inf')
-    
+        return float("inf")
+
     @property
     def lower_limit(self):
         """Return the lower limit of the truncated Normal distribution.
@@ -771,6 +779,7 @@ class Normal(Distribution):
 
 class Lognormal(Distribution):
     """The Lognormal distribution."""
+
     def __init__(self, mean, sd):
         """Initialize the Lognormal distribution.
 
@@ -804,7 +813,7 @@ class Lognormal(Distribution):
         Returns:
             float: The mean.
         """
-        return math.exp(self._mean + (self._sd ** 2) / 2)
+        return math.exp(self._mean + (self._sd**2) / 2)
 
     @property
     def variance(self):
@@ -813,7 +822,7 @@ class Lognormal(Distribution):
         Returns:
             float: The variance.
         """
-        return (math.exp(self._sd ** 2) - 1) * math.exp(2 * self._mean + self._sd ** 2)
+        return (math.exp(self._sd**2) - 1) * math.exp(2 * self._mean + self._sd**2)
 
     @property
     def median(self):
@@ -831,8 +840,8 @@ class Lognormal(Distribution):
         Returns:
             float: Infinity.
         """
-        return float('inf')
-    
+        return float("inf")
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Lognormal distribution.
@@ -850,6 +859,7 @@ class Weibull(Distribution):
         scale (float): The scale parameter, alpha.
         shape (float): The shape parameter, beta.
     """
+
     def __init__(self, scale, shape):
         """Initialize the Weibull distribution.
 
@@ -894,7 +904,7 @@ class Weibull(Distribution):
         """
         g1 = math.gamma(1 + 1 / self.shape)
         g2 = math.gamma(1 + 2 / self.shape)
-        return (self.scale ** 2) * (g2 - (g1 ** 2))
+        return (self.scale**2) * (g2 - (g1**2))
 
     @property
     def median(self):
@@ -912,8 +922,8 @@ class Weibull(Distribution):
         Returns:
             float: Infinity.
         """
-        return float ('inf')
-    
+        return float("inf")
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Weibull distribution.
@@ -930,6 +940,7 @@ class Empirical(Distribution):
     Attributes:
         observations (list): The observations from which to sample.
     """
+
     def __init__(self, observations):
         """Initialize the Empirical distribution.
 
@@ -979,7 +990,7 @@ class Empirical(Distribution):
         """
         m = self.mean
         return sum((x - m) ** 2 for x in self.observations) / len(self.observations)
-    
+
     @property
     def median(self):
         # standard sample-median:
@@ -1006,7 +1017,7 @@ class Empirical(Distribution):
             float: The largest observation.
         """
         return max(self.observations)
-    
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Empirical distribution.
@@ -1024,6 +1035,7 @@ class Sequential(Distribution):
         sequence (list): The sequence of values to cycle through.
         generator (itertools.cycle): The cycle iterator over ``sequence``.
     """
+
     def __init__(self, sequence):
         """Initialize the Sequential distribution.
 
@@ -1080,7 +1092,7 @@ class Sequential(Distribution):
 
     @property
     def median(self):
-        # sample median of the fixed sequence 
+        # sample median of the fixed sequence
         #  - odd n: middle element
         #  - even n: average of the two middle elements
         """Return the median of the Sequential distribution.
@@ -1104,7 +1116,7 @@ class Sequential(Distribution):
             float: The largest value in the sequence.
         """
         return max(self.sequence)
-    
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Sequential distribution.
@@ -1122,6 +1134,7 @@ class Pmf(Distribution):
         values (list): The values that can be sampled.
         probs (list): The probability associated with each value.
     """
+
     def __init__(self, values, probs):
         """Initialize the Pmf distribution.
 
@@ -1166,7 +1179,7 @@ class Pmf(Distribution):
         Returns:
             float: The mean.
         """
-        return sum(v * p for v, p in zip(self.values, self.probs))
+        return sum(v * p for v, p in zip(self.values, self.probs, strict=False))
 
     @property
     def variance(self):
@@ -1175,23 +1188,25 @@ class Pmf(Distribution):
         Returns:
             float: The variance.
         """
-        m = self.mean 
-        return sum(p * (v - m) ** 2 for v, p in zip(self.values, self.probs))
+        m = self.mean
+        return sum(
+            p * (v - m) ** 2 for v, p in zip(self.values, self.probs, strict=False)
+        )
 
-    @property 
-    def median(self): 
+    @property
+    def median(self):
         """Return the median of the Pmf distribution.
 
         Returns:
             float: The value at which the cumulative probability reaches 0.5.
         """
-        pairs = sorted(zip(self.values, self.probs), key=lambda t: t[0]) 
-        cum = 0.0 
-        for v, p in pairs: 
-            cum += p 
-            if cum >= 0.5: 
-                return v 
-        return pairs[-1][0] 
+        pairs = sorted(zip(self.values, self.probs, strict=False), key=lambda t: t[0])
+        cum = 0.0
+        for v, p in pairs:
+            cum += p
+            if cum >= 0.5:
+                return v
+        return pairs[-1][0]
 
     @property
     def upper_limit(self):
@@ -1201,7 +1216,7 @@ class Pmf(Distribution):
             float: The largest value.
         """
         return max(self.values)
-    
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Pmf distribution.
@@ -1209,10 +1224,10 @@ class Pmf(Distribution):
         Returns:
             float: The smallest value.
         """
-        return min(self.values) 
+        return min(self.values)
 
 
-class PhaseType(Distribution): 
+class PhaseType(Distribution):
     """A distribution defined by an initial vector and an absorbing Markov chain.
 
     The final state of the chain is the absorbing state.
@@ -1223,7 +1238,7 @@ class PhaseType(Distribution):
         absorbing_matrix (list): The rates of the absorbing Markov chain.
     """
 
-    def __init__(self, initial_state, absorbing_matrix): 
+    def __init__(self, initial_state, absorbing_matrix):
         """Initialize the PhaseType distribution.
 
         Args:
@@ -1242,43 +1257,48 @@ class PhaseType(Distribution):
             ValueError: If the final state is not the absorbing state.
             ValueError: If the absorbing state cannot be reached.
         """
-        if any(p < 0 for p in initial_state): 
-            raise ValueError("Initial state vector must have positive probabilities.") 
-        if any(p > 1.0 for p in initial_state): 
-            raise ValueError("Initial state vector probabilities must be no more than 1.0.") 
-        if sum(initial_state) > 1.0 + 10 ** (-10) or sum(initial_state) < 1.0 - 10 ** (-10): 
-            raise ValueError("Initial state vector probabilities must sum to 1.0.") 
-        if any(len(absorbing_matrix) != len(row) for row in absorbing_matrix): 
-            raise ValueError("Matrix of the absorbing Markov chain must be square.") 
-        if len(initial_state) != len(absorbing_matrix): 
+        if any(p < 0 for p in initial_state):
+            raise ValueError("Initial state vector must have positive probabilities.")
+        if any(p > 1.0 for p in initial_state):
             raise ValueError(
-                "Initial state vector must have same number of states as absorbing Markov chain matrix."
-            ) 
-        if any( 
-            row[j] < 0 
-            for i, row in enumerate(absorbing_matrix) 
-            for j in range(len(absorbing_matrix)) 
-            if i != j 
-        ): 
-            raise ValueError("Transition rates must be positive.") 
-        if not all( 
-            -(10 ** (-10)) < sum(row) < 10 ** (-10) 
-            for i, row in enumerate(absorbing_matrix) 
-        ): 
-            raise ValueError("Matrix rows must sum to 0.") 
-        if not all(r == 0 for r in absorbing_matrix[-1]): 
-            raise ValueError("Final state must be the absorbing state.") 
-        if not any(row[-1] > 0 for row in absorbing_matrix): 
-            raise ValueError("Must be possible to reach the absorbing state.") 
-        self.initial_state = initial_state 
-        self.states = tuple(range(len(initial_state))) 
-        self.absorbing_matrix = absorbing_matrix 
+                "Initial state vector probabilities must be no more than 1.0."
+            )
+        if sum(initial_state) > 1.0 + 10 ** (-10) or sum(initial_state) < 1.0 - 10 ** (
+            -10
+        ):
+            raise ValueError("Initial state vector probabilities must sum to 1.0.")
+        if any(len(absorbing_matrix) != len(row) for row in absorbing_matrix):
+            raise ValueError("Matrix of the absorbing Markov chain must be square.")
+        if len(initial_state) != len(absorbing_matrix):
+            raise ValueError(
+                "Initial state vector must have same number of states as absorbing "
+                "Markov chain matrix."
+            )
+        if any(
+            row[j] < 0
+            for i, row in enumerate(absorbing_matrix)
+            for j in range(len(absorbing_matrix))
+            if i != j
+        ):
+            raise ValueError("Transition rates must be positive.")
+        if not all(
+            -(10 ** (-10)) < sum(row) < 10 ** (-10)
+            for i, row in enumerate(absorbing_matrix)
+        ):
+            raise ValueError("Matrix rows must sum to 0.")
+        if not all(r == 0 for r in absorbing_matrix[-1]):
+            raise ValueError("Final state must be the absorbing state.")
+        if not any(row[-1] > 0 for row in absorbing_matrix):
+            raise ValueError("Must be possible to reach the absorbing state.")
+        self.initial_state = initial_state
+        self.states = tuple(range(len(initial_state)))
+        self.absorbing_matrix = absorbing_matrix
 
     def __repr__(self) -> str:
         """Return a string representation of the PhaseType distribution."""
         return "PhaseType"
 
-    def sample_transition(self, rate): 
+    def sample_transition(self, rate):
         """Sample the time to a single transition.
 
         Args:
@@ -1287,11 +1307,11 @@ class PhaseType(Distribution):
         Returns:
             float: The sampled transition time, or infinity if ``rate`` is not positive.
         """
-        if rate <= 0.0: 
-            return float("Inf") 
-        return expovariate(rate) 
+        if rate <= 0.0:
+            return float("Inf")
+        return expovariate(rate)
 
-    def sample(self, t=None, ind=None): 
+    def sample(self, t=None, ind=None):
         """Sample from the PhaseType distribution.
 
         Args:
@@ -1301,18 +1321,18 @@ class PhaseType(Distribution):
         Returns:
             float: The total time until absorption.
         """
-        cumulative_time = 0 
-        current_state = random_choice(self.states, probs=self.initial_state) 
-        while current_state != self.states[-1]: 
-            potential_transitions = [ 
-                self.sample_transition(r) for r in self.absorbing_matrix[current_state] 
-            ] 
-            time, idx = min( 
-                (time, idx) for (idx, time) in enumerate(potential_transitions) 
-            ) 
-            cumulative_time += time 
-            current_state = idx 
-        return cumulative_time 
+        cumulative_time = 0
+        current_state = random_choice(self.states, probs=self.initial_state)
+        while current_state != self.states[-1]:
+            potential_transitions = [
+                self.sample_transition(r) for r in self.absorbing_matrix[current_state]
+            ]
+            time, idx = min(
+                (time, idx) for (idx, time) in enumerate(potential_transitions)
+            )
+            cumulative_time += time
+            current_state = idx
+        return cumulative_time
 
     @property
     def mean(self):
@@ -1343,7 +1363,7 @@ class PhaseType(Distribution):
         second_moment = float(2 * alpha @ invQ @ invQ @ ones)
 
         # Var(T) = E[T^2] - (E[T])^2  (with tinynegative clamp)
-        v = second_moment - (mean ** 2)
+        v = second_moment - (mean**2)
         return v
 
     @property
@@ -1353,8 +1373,8 @@ class PhaseType(Distribution):
         Returns:
             float: Infinity.
         """
-        return float('inf')
-    
+        return float("inf")
+
     @property
     def lower_limit(self):
         """Return the lower limit of the PhaseType distribution.
@@ -1372,6 +1392,7 @@ class Erlang(PhaseType):
         rate (float): The rate spent in each phase.
         num_phases (int): The number of phases in series.
     """
+
     def __init__(self, rate, num_phases):
         """Initialize the Erlang distribution.
 
@@ -1383,7 +1404,7 @@ class Erlang(PhaseType):
             ValueError: If ``rate`` is not positive.
             ValueError: If ``num_phases`` is less than 1.
         """
-        if rate <= 0.0: 
+        if rate <= 0.0:
             raise ValueError("Rate must be positive.")
         if num_phases < 1:
             raise ValueError("At least one phase is required.")
@@ -1416,16 +1437,18 @@ class Erlang(PhaseType):
         Returns:
             float: The variance.
         """
-        return self.num_phases / (self.rate ** 2)
+        return self.num_phases / (self.rate**2)
 
 
 class HyperExponential(PhaseType):
-    """A shortcut for the HyperExponential distribution, using the PhaseType distribution.
+    """A shortcut for the HyperExponential distribution, using the PhaseType
+    distribution.
 
     Attributes:
         rates (list): The rate of each phase.
         probs (list): The probability of starting in each phase.
     """
+
     def __init__(self, rates, probs):
         """Initialize the HyperExponential distribution.
 
@@ -1440,7 +1463,7 @@ class HyperExponential(PhaseType):
             raise ValueError("Rates must be positive.")
         self.rates = rates
         self.probs = probs
-        initial_state = probs + [0]
+        initial_state = [*probs, 0]
         num_phases = len(probs)
         absorbing_matrix = [[0] * (num_phases + 1) for _ in range(num_phases + 1)]
         for phase in range(num_phases):
@@ -1459,7 +1482,7 @@ class HyperExponential(PhaseType):
         Returns:
             float: The mean.
         """
-        return sum(p / r for p, r in zip(self.probs, self.rates))
+        return sum(p / r for p, r in zip(self.probs, self.rates, strict=False))
 
     @property
     def variance(self):
@@ -1469,7 +1492,10 @@ class HyperExponential(PhaseType):
             float: The variance.
         """
         mean = self.mean
-        return sum(2 * p / (r ** 2) for p, r in zip(self.probs, self.rates)) - (mean ** 2)
+        return (
+            sum(2 * p / (r**2) for p, r in zip(self.probs, self.rates, strict=False))
+            - (mean**2)
+        )
 
 
 class HyperErlang(PhaseType):
@@ -1480,6 +1506,7 @@ class HyperErlang(PhaseType):
         probs (list): The probability of starting in each phase.
         phase_lengths (list): The number of sub-phases in each phase.
     """
+
     def __init__(self, rates, probs, phase_lengths):
         """Initialize the HyperErlang distribution.
 
@@ -1497,7 +1524,7 @@ class HyperErlang(PhaseType):
         if any(n < 1 for n in phase_lengths):
             raise ValueError("At least one phase is required for each sub-phase.")
         initial_state = []
-        for p, n in zip(probs, phase_lengths):
+        for p, n in zip(probs, phase_lengths, strict=False):
             initial_state += [p]
             initial_state += [0] * (n - 1)
         initial_state += [0]
@@ -1530,9 +1557,10 @@ class HyperErlang(PhaseType):
             float: The mean.
         """
         return sum(
-            p * k / r for p, r, k in zip(self.probs, self.rates, self.phase_lengths)
+            p * k / r
+            for p, r, k in zip(self.probs, self.rates, self.phase_lengths, strict=False)
         )
-   
+
     @property
     def variance(self):
         """Return the variance of the HyperErlang distribution.
@@ -1543,15 +1571,16 @@ class HyperErlang(PhaseType):
         mean = self.mean  # âˆ‘ p * k / r
         #  second moment for Erlang(k, r) is k*(k+1)/r^2
         second_moment = sum(
-            p * (k * (k + 1)) / (r ** 2)
-            for p, r, k in zip(self.probs, self.rates, self.phase_lengths)
+            p * (k * (k + 1)) / (r**2)
+            for p, r, k in zip(self.probs, self.rates, self.phase_lengths, strict=False)
         )
-        v = second_moment - (mean ** 2)
+        v = second_moment - (mean**2)
         return v
 
 
 class Coxian(PhaseType):
     """A shortcut for the Coxian distribution, using the PhaseType distribution."""
+
     def __init__(self, rates, probs):
         """Initialize the Coxian distribution.
 
@@ -1570,12 +1599,13 @@ class Coxian(PhaseType):
             raise ValueError("Probability vector must have valid probabilities.")
         if probs[-1] != 1.0:
             raise ValueError(
-                "The probability of going to the absorbing state from the final phase must be 1.0."
+                "The probability of going to the absorbing state from the final "
+                "phase must be 1.0."
             )
         num_phases = len(rates)
         initial_state = [1] + [0] * num_phases
         absorbing_matrix = [[0] * (num_phases + 1) for _ in range(num_phases + 1)]
-        for i, (p, r) in enumerate(zip(probs, rates)):
+        for i, (p, r) in enumerate(zip(probs, rates, strict=False)):
             absorbing_matrix[i][i] = -r
             absorbing_matrix[i][i + 1] = (1 - p) * r
             absorbing_matrix[i][-1] = p * r
@@ -1599,6 +1629,7 @@ class PoissonIntervals(Sequential):
         endpoints (list): The endpoints of each time interval.
         max_sample_date (float): The point after which no arrivals occur.
     """
+
     def __init__(self, rates, endpoints, max_sample_date):
         """Initialize the PoissonIntervals distribution.
 
@@ -1620,7 +1651,7 @@ class PoissonIntervals(Sequential):
             raise ValueError("All interval endpoints must be positive.")
         if max_sample_date <= 0.0:
             raise ValueError("Maximum sample date must be positive.")
-        diffs = [s - t for s, t in zip(endpoints[1:], endpoints[:-1])]
+        diffs = [s - t for s, t in zip(endpoints[1:], endpoints[:-1], strict=False)]
         if any(d <= 0.0 for d in diffs):
             raise ValueError("Interval endpoints must be strictly increasing.")
         if len(rates) != len(endpoints):
@@ -1633,7 +1664,9 @@ class PoissonIntervals(Sequential):
         self.max_sample_date = max_sample_date
         self.get_intervals()
         self.get_dates()
-        self.inter_arrivals = [t - s for s, t in zip(self.dates, self.dates[1:])] + [float('inf')]
+        self.inter_arrivals = [
+            t - s for s, t in zip(self.dates, self.dates[1:], strict=False)
+        ] + [float("inf")]
         super().__init__(self.inter_arrivals)
 
     def __repr__(self):
@@ -1672,7 +1705,7 @@ class PoissonIntervals(Sequential):
             ]
             interval_dates = sorted(interval_dates)
             self.dates += interval_dates
-    
+
     @property
     def overall_rate(self):
         """Return the overall rate across all intervals.
@@ -1685,7 +1718,7 @@ class PoissonIntervals(Sequential):
             for i in range(1, len(self.endpoints))
         ]
         P = self.endpoints[-1]
-        LambdaP = sum(r * d for r, d in zip(self.rates, deltas))
+        LambdaP = sum(r * d for r, d in zip(self.rates, deltas, strict=False))
         return LambdaP / P
 
     @property
@@ -1696,7 +1729,7 @@ class PoissonIntervals(Sequential):
             float: The reciprocal of the overall rate, or infinity.
         """
         O_R = self.overall_rate
-        return 1 / O_R if O_R > 0 else float('inf')
+        return 1 / O_R if O_R > 0 else float("inf")
 
     @property
     def variance(self):
@@ -1705,7 +1738,7 @@ class PoissonIntervals(Sequential):
         Returns:
             float: The variance, which is NaN.
         """
-        return float('nan')
+        return float("nan")
 
     @property
     def median(self):
@@ -1714,7 +1747,7 @@ class PoissonIntervals(Sequential):
         Returns:
             float: The median, which is NaN.
         """
-        return float('nan')
+        return float("nan")
 
     @property
     def upper_limit(self):
@@ -1723,8 +1756,8 @@ class PoissonIntervals(Sequential):
         Returns:
             float: Infinity.
         """
-        return float('inf')
-    
+        return float("inf")
+
     @property
     def lower_limit(self):
         """Return the lower limit of the inter-arrival times.
@@ -1734,7 +1767,7 @@ class PoissonIntervals(Sequential):
         """
         return 0
 
-    
+
 class Poisson(Distribution):
     """The Poisson distribution.
 
@@ -1743,6 +1776,7 @@ class Poisson(Distribution):
     Attributes:
         rate (float): The rate parameter, lambda.
     """
+
     def __init__(self, rate):
         """Initialize the Poisson distribution.
 
@@ -1806,7 +1840,7 @@ class Poisson(Distribution):
         Returns:
             float: Infinity.
         """
-        return float('inf')
+        return float("inf")
 
     @property
     def lower_limit(self):
@@ -1817,6 +1851,7 @@ class Poisson(Distribution):
         """
         return 0
 
+
 class Geometric(Distribution):
     """The Geometric distribution.
 
@@ -1825,6 +1860,7 @@ class Geometric(Distribution):
     Attributes:
         prob (float): The probability parameter.
     """
+
     def __init__(self, prob):
         """Initialize the Geometric distribution.
 
@@ -1872,8 +1908,8 @@ class Geometric(Distribution):
         Returns:
             float: The variance.
         """
-        return (1 - self.prob) / (self.prob ** 2)
-    
+        return (1 - self.prob) / (self.prob**2)
+
     @property
     def median(self):
         """Return the median of the Geometric distribution.
@@ -1890,8 +1926,8 @@ class Geometric(Distribution):
         Returns:
             float: Infinity.
         """
-        return float('inf')
-    
+        return float("inf")
+
     @property
     def lower_limit(self):
         """Return the lower limit of the Geometric distribution.
@@ -1911,6 +1947,7 @@ class Binomial(Distribution):
         n (int): The total number of experiments.
         prob (float): The probability parameter.
     """
+
     def __init__(self, n, prob):
         """Initialize the Binomial distribution.
 
@@ -1928,7 +1965,8 @@ class Binomial(Distribution):
             )
         if not isinstance(n, int) or n <= 0:
             raise ValueError(
-                "The number of trials of the Binomial distirbution must be a positive integer."
+                "The number of trials of the Binomial distirbution must be a "
+                "positive integer."
             )
         self.n = n
         self.prob = prob
@@ -1983,7 +2021,7 @@ class Binomial(Distribution):
         Returns:
             float: Infinity.
         """
-        return float('inf')
+        return float("inf")
 
     @property
     def lower_limit(self):
@@ -2002,7 +2040,8 @@ class MixtureDistribution(Distribution):
         probs (List[float]): The weights of each distribution, summing to 1.
         dists (List[Distribution]): The distributions in the mixture.
     """
-    def __init__(self, dists: List[Distribution], probs: List[float]) -> None:
+
+    def __init__(self, dists: list[Distribution], probs: list[float]) -> None:
         """Initialize the MixtureDistribution.
 
         Args:
@@ -2022,11 +2061,7 @@ class MixtureDistribution(Distribution):
         Returns:
             float: A sample from one of the distributions, chosen by weight.
         """
-        chosen_dist = random.choices(
-            population=self.dists,
-            weights=self.probs,
-            k=1
-        )[0]
+        chosen_dist = random.choices(population=self.dists, weights=self.probs, k=1)[0]
 
         return chosen_dist.sample(t, ind)
 
@@ -2042,7 +2077,7 @@ class MixtureDistribution(Distribution):
             float: The weighted mean of the component distributions.
         """
         return sum(
-            p * dist.mean for p, dist in zip(self.probs, self.dists)
+            p * dist.mean for p, dist in zip(self.probs, self.dists, strict=False)
         )
 
     @property
@@ -2053,9 +2088,13 @@ class MixtureDistribution(Distribution):
             float: The weighted variance of the component distributions.
         """
         mu = self.mean
-        var = sum(
-            p * (dist.variance + dist.mean ** 2) for p, dist in zip(self.probs, self.dists)
-        ) - mu ** 2
+        var = (
+            sum(
+                p * (dist.variance + dist.mean**2)
+                for p, dist in zip(self.probs, self.dists, strict=False)
+            )
+            - mu**2
+        )
         return max(var, 0)
 
     @property
@@ -2066,7 +2105,7 @@ class MixtureDistribution(Distribution):
             float: The largest component upper limit, or NaN if any is NaN.
         """
         if any(math.isnan(dist.upper_limit) for dist in self.dists):
-            return float('nan')
+            return float("nan")
         return max(dist.upper_limit for dist in self.dists)
 
     @property
@@ -2077,5 +2116,5 @@ class MixtureDistribution(Distribution):
             float: The smallest component lower limit, or NaN if any is NaN.
         """
         if any(math.isnan(dist.lower_limit) for dist in self.dists):
-            return float('nan')
+            return float("nan")
         return min(dist.lower_limit for dist in self.dists)

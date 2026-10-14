@@ -1,7 +1,9 @@
 import unittest
-import hciw
+
 from hypothesis import given
 from hypothesis.strategies import integers
+
+import hciw
 
 
 class TestIndividual(unittest.TestCase):
@@ -23,8 +25,8 @@ class TestIndividual(unittest.TestCase):
 
     def test_init_method_2(self):
         i = hciw.Individual(5)
-        self.assertEqual(i.customer_class, 'Customer')
-        self.assertEqual(i.previous_class, 'Customer')
+        self.assertEqual(i.customer_class, "Customer")
+        self.assertEqual(i.previous_class, "Customer")
         self.assertEqual(i.priority_class, 0)
         self.assertEqual(i.id_number, 5)
         self.assertEqual(i.service_start_date, False)
@@ -98,8 +100,8 @@ class TestIndividual(unittest.TestCase):
     @given(id_num=integers())
     def test_init_method_2h(self, id_num):
         i = hciw.Individual(id_num)
-        self.assertEqual(i.customer_class, 'Customer')
-        self.assertEqual(i.previous_class, 'Customer')
+        self.assertEqual(i.customer_class, "Customer")
+        self.assertEqual(i.previous_class, "Customer")
         self.assertEqual(i.priority_class, 0)
         self.assertEqual(i.id_number, id_num)
         self.assertEqual(i.service_start_date, False)

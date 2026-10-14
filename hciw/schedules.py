@@ -1,6 +1,7 @@
 """Server schedules for varying the number of servers over time."""
 
-from typing import List, Tuple, Union, Generator
+from collections.abc import Generator
+
 
 class Schedule:
     """Store server schedule information and generate the next shifts.
@@ -13,7 +14,14 @@ class Schedule:
         cyclelength (float): The length of the schedule cycle.
         offset (float): The offset applied to the schedule.
     """
-    def __init__(self, numbers_of_servers: List[int], shift_end_dates: List[float], preemption: Union[bool, str] = False, offset: float = 0.0) -> None:
+
+    def __init__(
+        self,
+        numbers_of_servers: list[int],
+        shift_end_dates: list[float],
+        preemption: bool | str = False,
+        offset: float = 0.0,
+    ) -> None:
         """Initialise a ``Schedule`` instance.
 
         Args:
@@ -29,13 +37,15 @@ class Schedule:
         Raises:
             ValueError: If ``preemption`` or ``offset`` is invalid.
         """
-        if preemption not in [False, 'resume', 'restart', 'resample', 'reroute']:
-            raise ValueError("Pre-emption options should be either 'resume', 'restart', 'resample', 'reroute', or False.")
+        if preemption not in [False, "resume", "restart", "resample", "reroute"]:
+            raise ValueError(
+                "Pre-emption options should be either 'resume', 'restart', 'resample', 'reroute', or False."
+            )
         if not isinstance(offset, float):
             raise ValueError("Offset should be a positive float.")
         if offset < 0.0:
             raise ValueError("Offset should be a positive float.")
-        self.schedule_type = 'schedule'
+        self.schedule_type = "schedule"
         self.shift_end_dates = shift_end_dates
         self.numbers_of_servers = numbers_of_servers
         self.preemption = preemption
@@ -47,9 +57,13 @@ class Schedule:
         self.c = 0
         self.next_shift_change_date = self.offset
         self.next_c = self.numbers_of_servers[0]
-        self.schedule_generator = self.get_schedule_generator(self.shift_end_dates, self.numbers_of_servers, self.offset)
+        self.schedule_generator = self.get_schedule_generator(
+            self.shift_end_dates, self.numbers_of_servers, self.offset
+        )
 
-    def get_schedule_generator(self, boundaries:List[float], values:List[int], offset:float) -> Generator[Tuple[float, int], None, None]:
+    def get_schedule_generator(
+        self, boundaries: list[float], values: list[int], offset: float
+    ) -> Generator[tuple[float, int], None, None]:
         """Yield the next shift date and server count.
 
         Args:
@@ -65,7 +79,11 @@ class Schedule:
         index = 0
         date = 0
         while True:
-            date = offset + boundaries[index % num_boundaries] + ((index) // num_boundaries * self.cyclelength)
+            date = (
+                offset
+                + boundaries[index % num_boundaries]
+                + ((index) // num_boundaries * self.cyclelength)
+            )
             index += 1
             yield date, values[index % num_boundaries]
 
@@ -92,7 +110,9 @@ class Slotted(Schedule):
         c (int): The current number of servers.
     """
 
-    def __init__(self, slots, slot_sizes, capacitated=False, preemption=False, offset=0.0):
+    def __init__(
+        self, slots, slot_sizes, capacitated=False, preemption=False, offset=0.0
+    ):
         """Initialise a ``Slotted`` schedule instance.
 
         Args:
@@ -109,20 +129,23 @@ class Slotted(Schedule):
         Raises:
             ValueError: If ``preemption`` or ``offset`` is invalid.
         """
-        if not capacitated:
-            if preemption is not False:
-                raise ValueError("Pre-emption options not availale for non-capacitated slots.")
-        if preemption not in [False, 'resume', 'restart', 'resample']:
-            raise ValueError("Pre-emption options should be either 'resume', 'restart', 'resample', or False.")
+        if not capacitated and preemption is not False:
+            raise ValueError(
+                "Pre-emption options not availale for non-capacitated slots."
+            )
+        if preemption not in [False, "resume", "restart", "resample"]:
+            raise ValueError(
+                "Pre-emption options should be either 'resume', 'restart', 'resample', or False."
+            )
         if not isinstance(offset, float):
             raise ValueError("Offset should be a positive float.")
         if offset < 0.0:
             raise ValueError("Offset should be a positive float.")
-        self.schedule_type = 'slotted'
+        self.schedule_type = "slotted"
         self.offset = offset
         self.slots = slots
         self.slot_sizes = slot_sizes
-        self.next_slot_sizes = [self.slot_sizes[-1]] + self.slot_sizes[:-1]
+        self.next_slot_sizes = [self.slot_sizes[-1], *self.slot_sizes[:-1]]
         self.capacitated = capacitated
         self.preemption = preemption
         self.cyclelength = self.slots[-1]
@@ -130,7 +153,9 @@ class Slotted(Schedule):
 
     def initialise(self):
         """Initialise the generator at the beginning of a simulation."""
-        self.schedule_generator = self.get_schedule_generator(self.slots, self.next_slot_sizes, self.offset)
+        self.schedule_generator = self.get_schedule_generator(
+            self.slots, self.next_slot_sizes, self.offset
+        )
         self.get_next_slot()
 
     def get_next_slot(self):

@@ -1,8 +1,10 @@
 """
 Tests the version number
 """
-from hciw import __version__
+
 import unittest
+
+from hciw import __version__
 
 
 class TestVersion(unittest.TestCase):

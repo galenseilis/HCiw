@@ -1,6 +1,7 @@
 import unittest
-import hciw
 from decimal import Decimal
+
+import hciw
 
 N_params = hciw.create_network(
     arrival_distributions={
@@ -115,7 +116,7 @@ class TestStateTracker(unittest.TestCase):
     def test_base_release_method_within_simulation(self):
         Q = hciw.Simulation(N_params)
         N = Q.transitive_nodes[2]
-        inds = [hciw.Individual(i, 'Class 0') for i in range(5)]
+        inds = [hciw.Individual(i, "Class 0") for i in range(5)]
         N.individuals = [inds]
         for ind in N.all_individuals:
             srvr = N.find_free_server(ind)
@@ -143,7 +144,7 @@ class TestStateTracker(unittest.TestCase):
         N = Q.transitive_nodes[2]
         self.assertEqual(Q.statetracker.state, None)
         Q.current_time = 45.6
-        N.accept(hciw.Individual(3, 'Class 2'))
+        N.accept(hciw.Individual(3, "Class 2"))
         self.assertEqual(Q.statetracker.state, None)
 
 
@@ -199,7 +200,7 @@ class TestSystemPopulation(unittest.TestCase):
     def test_systempop_release_method_within_simulation(self):
         Q = hciw.Simulation(N_params, tracker=hciw.trackers.SystemPopulation())
         N = Q.transitive_nodes[2]
-        inds = [hciw.Individual(i, 'Class 0') for i in range(5)]
+        inds = [hciw.Individual(i, "Class 0") for i in range(5)]
         N.individuals = [inds]
         for ind in N.individuals[0]:
             srvr = N.find_free_server(ind)
@@ -207,19 +208,13 @@ class TestSystemPopulation(unittest.TestCase):
         Q.statetracker.state = 14
         self.assertEqual(Q.statetracker.state, 14)
         Q.current_time = 43.11
-        N.release(N.all_individuals[0]
-
-            , Q.nodes[1])
+        N.release(N.all_individuals[0], Q.nodes[1])
         self.assertEqual(Q.statetracker.state, 14)
         N.all_individuals[1].is_blocked = True
         Q.current_time = 46.72
-        N.release(N.all_individuals[1]
-
-            , Q.nodes[1])
+        N.release(N.all_individuals[1], Q.nodes[1])
         self.assertEqual(Q.statetracker.state, 14)
-        N.release(N.all_individuals[1]
-
-            , Q.nodes[-1])
+        N.release(N.all_individuals[1], Q.nodes[-1])
         self.assertEqual(Q.statetracker.state, 13)
 
     def test_systempop_block_method_within_simulation(self):
@@ -235,7 +230,7 @@ class TestSystemPopulation(unittest.TestCase):
         N = Q.transitive_nodes[2]
         self.assertEqual(Q.statetracker.state, 0)
         Q.current_time = 45.6
-        N.accept(hciw.Individual(3, 'Class 2'))
+        N.accept(hciw.Individual(3, "Class 2"))
         self.assertEqual(Q.statetracker.state, 1)
 
 
@@ -292,7 +287,7 @@ class TestNodePopulation(unittest.TestCase):
     def test_nodepop_release_method_within_simulation(self):
         Q = hciw.Simulation(N_params, tracker=hciw.trackers.NodePopulation())
         N = Q.transitive_nodes[2]
-        inds = [hciw.Individual(i, 'Class 0') for i in range(5)]
+        inds = [hciw.Individual(i, "Class 0") for i in range(5)]
         N.individuals = [inds]
         for ind in N.individuals[0]:
             srvr = N.find_free_server(ind)
@@ -322,7 +317,7 @@ class TestNodePopulation(unittest.TestCase):
         N = Q.transitive_nodes[2]
         self.assertEqual(Q.statetracker.state, [0, 0, 0, 0])
         Q.current_time = 45.6
-        N.accept(hciw.Individual(3, 'Class 2'))
+        N.accept(hciw.Individual(3, "Class 2"))
         self.assertEqual(Q.statetracker.state, [0, 0, 1, 0])
 
 
@@ -339,7 +334,7 @@ class TestNodeClassMatrix(unittest.TestCase):
         B = hciw.trackers.NodeClassMatrix()
         B.initialise(Q)
         N = Q.nodes[1]
-        ind = hciw.Individual(1, customer_class='Class 1')
+        ind = hciw.Individual(1, customer_class="Class 1")
         self.assertEqual(B.state, [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]])
         B.change_state_accept(N, ind)
         self.assertEqual(B.state, [[0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]])
@@ -349,7 +344,7 @@ class TestNodeClassMatrix(unittest.TestCase):
         B = hciw.trackers.NodeClassMatrix()
         B.initialise(Q)
         N = Q.nodes[1]
-        ind = hciw.Individual(1, 'Class 0')
+        ind = hciw.Individual(1, "Class 0")
         B.state = [[0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         B.change_state_block(N, N, ind)
         self.assertEqual(B.state, [[0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]])
@@ -360,7 +355,7 @@ class TestNodeClassMatrix(unittest.TestCase):
         B.initialise(Q)
         N = Q.nodes[1]
         Nex = Q.nodes[-1]
-        ind = hciw.Individual(1, customer_class='Class 2')
+        ind = hciw.Individual(1, customer_class="Class 2")
         B.state = [[0, 1, 2], [1, 1, 1], [0, 1, 0], [4, 3, 1]]
         B.change_state_release(N, Nex, ind, False)
         self.assertEqual(B.state, [[0, 1, 1], [1, 1, 1], [0, 1, 0], [4, 3, 1]])
@@ -377,45 +372,29 @@ class TestNodeClassMatrix(unittest.TestCase):
     def test_nodeclassmatrix_release_method_within_simulation(self):
         Q = hciw.Simulation(N_params, tracker=hciw.trackers.NodeClassMatrix())
         N = Q.transitive_nodes[2]
-        inds = [hciw.Individual(i, 'Class 0') for i in range(5)]
+        inds = [hciw.Individual(i, "Class 0") for i in range(5)]
         N.individuals = [inds]
         for ind in N.individuals[0]:
             srvr = N.find_free_server(ind)
             N.attach_server(srvr, ind)
         Q.statetracker.state = [[3, 2, 1], [1, 1, 1], [3, 1, 2], [0, 0, 0]]
         self.assertEqual(
-            Q.statetracker.state,
-            [[3, 2, 1],
-             [1, 1, 1],
-             [3, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[3, 2, 1], [1, 1, 1], [3, 1, 2], [0, 0, 0]]
         )
         Q.current_time = 43.11
         N.release(N.all_individuals[0], Q.nodes[1])
         self.assertEqual(
-            Q.statetracker.state,
-            [[4, 2, 1],
-             [1, 1, 1],
-             [2, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[4, 2, 1], [1, 1, 1], [2, 1, 2], [0, 0, 0]]
         )
         N.all_individuals[1].is_blocked = True
         Q.current_time = 46.72
         N.release(N.all_individuals[1], Q.nodes[1])
         self.assertEqual(
-            Q.statetracker.state,
-            [[5, 2, 1],
-             [1, 1, 1],
-             [1, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[5, 2, 1], [1, 1, 1], [1, 1, 2], [0, 0, 0]]
         )
         N.release(N.all_individuals[1], Q.nodes[-1])
         self.assertEqual(
-            Q.statetracker.state,
-            [[5, 2, 1],
-             [1, 1, 1],
-             [0, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[5, 2, 1], [1, 1, 1], [0, 1, 2], [0, 0, 0]]
         )
 
     def test_nodeclassmatrix_block_method_within_simulation(self):
@@ -423,39 +402,23 @@ class TestNodeClassMatrix(unittest.TestCase):
         N = Q.transitive_nodes[2]
         Q.statetracker.state = [[3, 2, 1], [1, 1, 1], [3, 1, 2], [0, 0, 0]]
         self.assertEqual(
-            Q.statetracker.state,
-            [[3, 2, 1],
-             [1, 1, 1],
-             [3, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[3, 2, 1], [1, 1, 1], [3, 1, 2], [0, 0, 0]]
         )
         N.block_individual(hciw.Individual(1), Q.nodes[1])
         self.assertEqual(
-            Q.statetracker.state,
-            [[3, 2, 1],
-             [1, 1, 1],
-             [3, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[3, 2, 1], [1, 1, 1], [3, 1, 2], [0, 0, 0]]
         )
 
     def test_nodeclassmatrix_accept_method_within_simulation(self):
         Q = hciw.Simulation(N_params, tracker=hciw.trackers.NodeClassMatrix())
         N = Q.transitive_nodes[2]
         self.assertEqual(
-            Q.statetracker.state,
-            [[0, 0, 0],
-             [0, 0, 0],
-             [0, 0, 0],
-             [0, 0, 0]]
+            Q.statetracker.state, [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         )
         Q.current_time = 45.6
-        N.accept(hciw.Individual(3, 'Class 2'))
+        N.accept(hciw.Individual(3, "Class 2"))
         self.assertEqual(
-            Q.statetracker.state,
-            [[0, 0, 0],
-             [0, 0, 0],
-             [0, 0, 1],
-             [0, 0, 0]]
+            Q.statetracker.state, [[0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 0]]
         )
 
 
@@ -509,7 +472,7 @@ class TestNaiveBlocking(unittest.TestCase):
     def test_naive_release_method_within_simulation(self):
         Q = hciw.Simulation(N_params, tracker=hciw.trackers.NaiveBlocking())
         N = Q.transitive_nodes[2]
-        inds = [hciw.Individual(i, 'Class 0') for i in range(5)]
+        inds = [hciw.Individual(i, "Class 0") for i in range(5)]
         N.individuals = [inds]
         for ind in N.individuals[0]:
             srvr = N.find_free_server(ind)
@@ -539,7 +502,7 @@ class TestNaiveBlocking(unittest.TestCase):
         N = Q.transitive_nodes[2]
         self.assertEqual(Q.statetracker.state, [[0, 0], [0, 0], [0, 0], [0, 0]])
         Q.current_time = 45.6
-        N.accept(hciw.Individual(3, 'Class 2'))
+        N.accept(hciw.Individual(3, "Class 2"))
         self.assertEqual(Q.statetracker.state, [[0, 0], [0, 0], [1, 0], [0, 0]])
 
 
@@ -654,7 +617,7 @@ class TestMatrixBlocking(unittest.TestCase):
         N1 = Q.nodes[1]
         N3 = Q.nodes[3]
         ind1 = hciw.Individual(1, customer_class=2)
-        ind2 = hciw.Individual(1, customer_class=0)
+        hciw.Individual(1, customer_class=0)
         B.state = [
             [
                 [[], [], [1, 3], []],
@@ -720,7 +683,7 @@ class TestMatrixBlocking(unittest.TestCase):
     def test_matrix_release_method_within_simulation(self):
         Q = hciw.Simulation(N_params, tracker=hciw.trackers.MatrixBlocking())
         N = Q.transitive_nodes[2]
-        inds = [hciw.Individual(i, 'Class 0') for i in range(5)]
+        inds = [hciw.Individual(i, "Class 0") for i in range(5)]
         N.individuals = [inds]
         for ind in N.individuals[0]:
             srvr = N.find_free_server(ind)
@@ -836,7 +799,7 @@ class TestMatrixBlocking(unittest.TestCase):
             ],
         )
         Q.current_time = 45.6
-        N.accept(hciw.Individual(3, 'Class 2'))
+        N.accept(hciw.Individual(3, "Class 2"))
         self.assertEqual(
             Q.statetracker.state,
             [
@@ -931,7 +894,9 @@ class TestTrackHistory(unittest.TestCase):
     def test_one_node_deterministic_nodepopulation(self):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([1.5, 0.3, 2.4, 1.1])],
-            service_distributions=[hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])],
+            service_distributions=[
+                hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])
+            ],
             number_of_servers=[1],
         )
         B = hciw.trackers.NodePopulation()
@@ -1083,7 +1048,9 @@ class TestTrackHistory(unittest.TestCase):
     def test_one_node_deterministic_nodeclassmatrix(self):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([1.5, 0.3, 2.4, 1.1])],
-            service_distributions=[hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])],
+            service_distributions=[
+                hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])
+            ],
             number_of_servers=[1],
         )
         B = hciw.trackers.NodeClassMatrix()
@@ -1155,7 +1122,7 @@ class TestTrackHistory(unittest.TestCase):
             [4.28, 3],
         ]
         self.assertEqual(len(observed_history), len(expected_history))
-        for obs, exp in zip(observed_history, expected_history):
+        for obs, exp in zip(observed_history, expected_history, strict=False):
             self.assertEqual([round(obs[0], 2), obs[1]], exp)
 
         # Node Population
@@ -1180,7 +1147,7 @@ class TestTrackHistory(unittest.TestCase):
             [4.28, (0, 3)],
         ]
         self.assertEqual(len(observed_history), len(expected_history))
-        for obs, exp in zip(observed_history, expected_history):
+        for obs, exp in zip(observed_history, expected_history, strict=False):
             self.assertEqual([round(obs[0], 2), obs[1]], exp)
 
         # Node Class Matrix
@@ -1205,7 +1172,7 @@ class TestTrackHistory(unittest.TestCase):
             [4.28, ((0, 0), (1, 2))],
         ]
         self.assertEqual(len(observed_history), len(expected_history))
-        for obs, exp in zip(observed_history, expected_history):
+        for obs, exp in zip(observed_history, expected_history, strict=False):
             self.assertEqual([round(obs[0], 2), obs[1]], exp)
 
 
@@ -1213,7 +1180,9 @@ class TestStateProbabilities(unittest.TestCase):
     def test_prob_one_node_deterministic_naiveblocking(self):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([1.5, 0.3, 2.4, 1.1])],
-            service_distributions=[hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])],
+            service_distributions=[
+                hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])
+            ],
             number_of_servers=[1],
         )
         B = hciw.trackers.NaiveBlocking()
@@ -1248,7 +1217,9 @@ class TestStateProbabilities(unittest.TestCase):
     def test_prob_one_node_deterministic_systempopulation(self):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([1.5, 0.3, 2.4, 1.1])],
-            service_distributions=[hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])],
+            service_distributions=[
+                hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])
+            ],
             number_of_servers=[1],
         )
         B = hciw.trackers.SystemPopulation()
@@ -1282,7 +1253,9 @@ class TestStateProbabilities(unittest.TestCase):
     def test_prob_one_node_deterministic_nodepopulation(self):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([1.5, 0.3, 2.4, 1.1])],
-            service_distributions=[hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])],
+            service_distributions=[
+                hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])
+            ],
             number_of_servers=[1],
         )
         B = hciw.trackers.NodePopulation()
@@ -1315,7 +1288,9 @@ class TestStateProbabilities(unittest.TestCase):
     def test_prob_one_node_deterministic_nodeclassmatrix(self):
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([1.5, 0.3, 2.4, 1.1])],
-            service_distributions=[hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])],
+            service_distributions=[
+                hciw.dists.Sequential([1.8, 2.2, 0.2, 0.2, 0.2, 0.2])
+            ],
             number_of_servers=[1],
         )
         B = hciw.trackers.NodeClassMatrix()
@@ -1498,8 +1473,7 @@ class TestStateProbabilities(unittest.TestCase):
 
         for state in state_probs:
             self.assertEqual(
-                round(state_probs[state], 2),
-                round(expected_probs[state], 2)
+                round(state_probs[state], 2), round(expected_probs[state], 2)
             )
 
         error_squared = sum(
@@ -1530,8 +1504,7 @@ class TestStateProbabilities(unittest.TestCase):
 
         for state in state_probs:
             self.assertEqual(
-                round(state_probs[state], 2),
-                round(expected_probs[state], 2)
+                round(state_probs[state], 2), round(expected_probs[state], 2)
             )
 
         error_squared = sum(
@@ -1562,8 +1535,7 @@ class TestStateProbabilities(unittest.TestCase):
 
         for state in state_probs:
             self.assertEqual(
-                round(state_probs[state], 2),
-                round(expected_probs[state], 2)
+                round(state_probs[state], 2), round(expected_probs[state], 2)
             )
 
         error_squared = sum(
@@ -1662,9 +1634,8 @@ class TestStateProbabilities(unittest.TestCase):
             },
             number_of_servers=[1],
             class_change_time_distributions={
-                'Class 0': {'Class 0': None, 'Class 1': hciw.dists.Deterministic(4)}
-                ,
-                'Class 1': {'Class 0': None, 'Class 1': None}
+                "Class 0": {"Class 0": None, "Class 1": hciw.dists.Deterministic(4)},
+                "Class 1": {"Class 0": None, "Class 1": None},
             },
         )
         Q = hciw.Simulation(N, tracker=hciw.trackers.NodeClassMatrix())
@@ -1707,8 +1678,6 @@ class TestStateProbabilities(unittest.TestCase):
         self.assertEqual(Q.statetracker.history[15], [24.0, ((2, 2),)])
         self.assertEqual(Q.statetracker.history[16], [25.0, ((1, 3),)])
         self.assertEqual(Q.statetracker.history[17], [25.5, ((1, 2),)])
-
-
 
 
 class TestNodeClassMatrixWithCustomerClassNames(unittest.TestCase):
@@ -1779,38 +1748,46 @@ class TestNodeClassMatrixWithCustomerClassNames(unittest.TestCase):
 
     def test_nodeclassmatrix_init_method_custnames(self):
         Q = hciw.Simulation(self.N_paramscustomnames)
-        B = hciw.trackers.NodeClassMatrix(class_ordering=['Child', 'Adult', 'Pensioner'])
+        B = hciw.trackers.NodeClassMatrix(
+            class_ordering=["Child", "Adult", "Pensioner"]
+        )
         B.initialise(Q)
         self.assertEqual(B.simulation, Q)
         self.assertEqual(B.state, [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]])
 
     def test_nodeclassmatrix_change_state_accept_method_custnames(self):
         Q = hciw.Simulation(self.N_paramscustomnames)
-        B = hciw.trackers.NodeClassMatrix(class_ordering=['Child', 'Adult', 'Pensioner'])
+        B = hciw.trackers.NodeClassMatrix(
+            class_ordering=["Child", "Adult", "Pensioner"]
+        )
         B.initialise(Q)
         N = Q.nodes[1]
-        ind = hciw.Individual(1, customer_class='Adult')
+        ind = hciw.Individual(1, customer_class="Adult")
         self.assertEqual(B.state, [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]])
         B.change_state_accept(N, ind)
         self.assertEqual(B.state, [[0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]])
 
     def test_nodeclassmatrix_change_state_block_method_custnames(self):
         Q = hciw.Simulation(self.N_paramscustomnames)
-        B = hciw.trackers.NodeClassMatrix(class_ordering=['Child', 'Adult', 'Pensioner'])
+        B = hciw.trackers.NodeClassMatrix(
+            class_ordering=["Child", "Adult", "Pensioner"]
+        )
         B.initialise(Q)
         N = Q.nodes[1]
-        ind = hciw.Individual(1, 'Child')
+        ind = hciw.Individual(1, "Child")
         B.state = [[0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         B.change_state_block(N, N, ind)
         self.assertEqual(B.state, [[0, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]])
 
     def test_nodeclassmatrix_change_state_release_method_custnames(self):
         Q = hciw.Simulation(self.N_paramscustomnames)
-        B = hciw.trackers.NodeClassMatrix(class_ordering=['Child', 'Adult', 'Pensioner'])
+        B = hciw.trackers.NodeClassMatrix(
+            class_ordering=["Child", "Adult", "Pensioner"]
+        )
         B.initialise(Q)
         N = Q.nodes[1]
         Nex = Q.nodes[-1]
-        ind = hciw.Individual(1, customer_class='Pensioner')
+        ind = hciw.Individual(1, customer_class="Pensioner")
         B.state = [[0, 1, 2], [1, 1, 1], [0, 1, 0], [4, 3, 1]]
         B.change_state_release(N, Nex, ind, False)
         self.assertEqual(B.state, [[0, 1, 1], [1, 1, 1], [0, 1, 0], [4, 3, 1]])
@@ -1819,7 +1796,9 @@ class TestNodeClassMatrixWithCustomerClassNames(unittest.TestCase):
 
     def test_nodeclassmatrix_hash_state_method_custnames(self):
         Q = hciw.Simulation(self.N_paramscustomnames)
-        B = hciw.trackers.NodeClassMatrix(class_ordering=['Child', 'Adult', 'Pensioner'])
+        B = hciw.trackers.NodeClassMatrix(
+            class_ordering=["Child", "Adult", "Pensioner"]
+        )
         B.initialise(Q)
         B.state = [[0, 2, 0], [1, 1, 1], [0, 1, 0], [4, 3, 1]]
         self.assertEqual(B.hash_state(), ((0, 2, 0), (1, 1, 1), (0, 1, 0), (4, 3, 1)))
@@ -1828,100 +1807,69 @@ class TestNodeClassMatrixWithCustomerClassNames(unittest.TestCase):
         Q = hciw.Simulation(
             self.N_paramscustomnames,
             tracker=hciw.trackers.NodeClassMatrix(
-                class_ordering=['Child', 'Adult', 'Pensioner']
-            )
+                class_ordering=["Child", "Adult", "Pensioner"]
+            ),
         )
         N = Q.transitive_nodes[2]
-        inds = [hciw.Individual(i, 'Child') for i in range(5)]
+        inds = [hciw.Individual(i, "Child") for i in range(5)]
         N.individuals = [inds]
         for ind in N.individuals[0]:
             srvr = N.find_free_server(ind)
             N.attach_server(srvr, ind)
         Q.statetracker.state = [[3, 2, 1], [1, 1, 1], [3, 1, 2], [0, 0, 0]]
         self.assertEqual(
-            Q.statetracker.state,
-            [[3, 2, 1],
-             [1, 1, 1],
-             [3, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[3, 2, 1], [1, 1, 1], [3, 1, 2], [0, 0, 0]]
         )
         Q.current_time = 43.11
         N.release(N.all_individuals[0], Q.nodes[1])
         self.assertEqual(
-            Q.statetracker.state,
-            [[4, 2, 1],
-             [1, 1, 1],
-             [2, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[4, 2, 1], [1, 1, 1], [2, 1, 2], [0, 0, 0]]
         )
         N.all_individuals[1].is_blocked = True
         Q.current_time = 46.72
         N.release(N.all_individuals[1], Q.nodes[1])
         self.assertEqual(
-            Q.statetracker.state,
-            [[5, 2, 1],
-             [1, 1, 1],
-             [1, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[5, 2, 1], [1, 1, 1], [1, 1, 2], [0, 0, 0]]
         )
         N.release(N.all_individuals[1], Q.nodes[-1])
         self.assertEqual(
-            Q.statetracker.state,
-            [[5, 2, 1],
-             [1, 1, 1],
-             [0, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[5, 2, 1], [1, 1, 1], [0, 1, 2], [0, 0, 0]]
         )
 
     def test_nodeclassmatrix_block_method_within_simulation_custnames(self):
         Q = hciw.Simulation(
             self.N_paramscustomnames,
             tracker=hciw.trackers.NodeClassMatrix(
-                class_ordering=['Child', 'Adult', 'Pensioner']
-            )
+                class_ordering=["Child", "Adult", "Pensioner"]
+            ),
         )
         N = Q.transitive_nodes[2]
         Q.statetracker.state = [[3, 2, 1], [1, 1, 1], [3, 1, 2], [0, 0, 0]]
         self.assertEqual(
-            Q.statetracker.state,
-            [[3, 2, 1],
-             [1, 1, 1],
-             [3, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[3, 2, 1], [1, 1, 1], [3, 1, 2], [0, 0, 0]]
         )
         N.block_individual(hciw.Individual(1), Q.nodes[1])
         self.assertEqual(
-            Q.statetracker.state,
-            [[3, 2, 1],
-             [1, 1, 1],
-             [3, 1, 2],
-             [0, 0, 0]]
+            Q.statetracker.state, [[3, 2, 1], [1, 1, 1], [3, 1, 2], [0, 0, 0]]
         )
 
     def test_nodeclassmatrix_accept_method_within_simulation_custnames(self):
         Q = hciw.Simulation(
             self.N_paramscustomnames,
             tracker=hciw.trackers.NodeClassMatrix(
-                class_ordering=['Child', 'Adult', 'Pensioner']
-            )
+                class_ordering=["Child", "Adult", "Pensioner"]
+            ),
         )
         N = Q.transitive_nodes[2]
         self.assertEqual(
-            Q.statetracker.state,
-            [[0, 0, 0],
-             [0, 0, 0],
-             [0, 0, 0],
-             [0, 0, 0]]
+            Q.statetracker.state, [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         )
         Q.current_time = 45.6
-        N.accept(hciw.Individual(3, 'Pensioner'))
+        N.accept(hciw.Individual(3, "Pensioner"))
         self.assertEqual(
-            Q.statetracker.state,
-            [[0, 0, 0],
-             [0, 0, 0],
-             [0, 0, 1],
-             [0, 0, 0]]
+            Q.statetracker.state, [[0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 0]]
         )
+
 
 class TestGroupedNodePopulation(unittest.TestCase):
     def test_groupednodepop_init_method(self):
@@ -1978,9 +1926,12 @@ class TestGroupedNodePopulation(unittest.TestCase):
         self.assertEqual(B.hash_state(), (7, 3))
 
     def test_groupednodepop_release_method_within_simulation(self):
-        Q = hciw.Simulation(N_params, tracker=hciw.trackers.GroupedNodePopulation(groups=[[0, 2, 3], [1]]))
+        Q = hciw.Simulation(
+            N_params,
+            tracker=hciw.trackers.GroupedNodePopulation(groups=[[0, 2, 3], [1]]),
+        )
         N = Q.transitive_nodes[2]
-        inds = [hciw.Individual(i, 'Class 0') for i in range(5)]
+        inds = [hciw.Individual(i, "Class 0") for i in range(5)]
         N.individuals = [inds]
         for ind in N.individuals[0]:
             srvr = N.find_free_server(ind)
@@ -1998,7 +1949,10 @@ class TestGroupedNodePopulation(unittest.TestCase):
         self.assertEqual(Q.statetracker.state, [10, 3])
 
     def test_groupednodepop_block_method_within_simulation(self):
-        Q = hciw.Simulation(N_params, tracker=hciw.trackers.GroupedNodePopulation(groups=[[0, 2, 3], [1]]))
+        Q = hciw.Simulation(
+            N_params,
+            tracker=hciw.trackers.GroupedNodePopulation(groups=[[0, 2, 3], [1]]),
+        )
         N = Q.transitive_nodes[2]
         Q.statetracker.state = [11, 3]
         self.assertEqual(Q.statetracker.state, [11, 3])
@@ -2006,9 +1960,12 @@ class TestGroupedNodePopulation(unittest.TestCase):
         self.assertEqual(Q.statetracker.state, [11, 3])
 
     def test_groupednodepop_accept_method_within_simulation(self):
-        Q = hciw.Simulation(N_params, tracker=hciw.trackers.GroupedNodePopulation(groups=[[0, 2, 3], [1]]))
+        Q = hciw.Simulation(
+            N_params,
+            tracker=hciw.trackers.GroupedNodePopulation(groups=[[0, 2, 3], [1]]),
+        )
         N = Q.transitive_nodes[2]
         self.assertEqual(Q.statetracker.state, [0, 0])
         Q.current_time = 45.6
-        N.accept(hciw.Individual(3, 'Class 2'))
+        N.accept(hciw.Individual(3, "Class 2"))
         self.assertEqual(Q.statetracker.state, [1, 0])

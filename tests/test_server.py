@@ -1,7 +1,6 @@
 import unittest
+
 import hciw
-from hypothesis import given
-from hypothesis.strategies import integers
 
 N_params = hciw.create_network(
     arrival_distributions={

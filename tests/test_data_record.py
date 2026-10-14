@@ -1,7 +1,9 @@
 import unittest
-import hciw
+
 from hypothesis import given
 from hypothesis.strategies import floats, integers
+
+import hciw
 
 
 class TestDataRecord(unittest.TestCase):

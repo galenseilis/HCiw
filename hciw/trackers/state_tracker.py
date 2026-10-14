@@ -104,14 +104,18 @@ class StateTracker:
         date_diff = 0.0
 
         if start < 0 or end <= start:
-            raise ValueError("Observation period need to be a positive interval above zero")
+            raise ValueError(
+                "Observation period need to be a positive interval above zero"
+            )
 
         for event in self.history:
             date = event[0]
             state = event[1]
             if date > end:
                 break
-            date_diff = self.simulation.nodes[1].increment_time(date, -max(prev_date, start))
+            date_diff = self.simulation.nodes[1].increment_time(
+                date, -max(prev_date, start)
+            )
             if start < date < end:
                 if prev_state not in steady_state_dictionary:
                     steady_state_dictionary[prev_state] = date_diff
@@ -343,7 +347,7 @@ class GroupedNodePopulation(StateTracker):
             groups (list): A list of node groups, each a list of node indices.
         """
         self.groups = groups
-        self.observed_nodes = [nd for group in groups for nd in group] 
+        self.observed_nodes = [nd for group in groups for nd in group]
 
     def initialise(self, simulation):
         """Initialise the state tracker class.
@@ -434,9 +438,14 @@ class NodeClassMatrix(StateTracker):
         self.simulation = simulation
 
         if self._class_ordering_input is not None:
-            self.class_ordering = {clss: i for i, clss in enumerate(self._class_ordering_input)}
+            self.class_ordering = {
+                clss: i for i, clss in enumerate(self._class_ordering_input)
+            }
         else:
-            self.class_ordering = {clss: i for i, clss in enumerate(self.simulation.network.customer_class_names)}
+            self.class_ordering = {
+                clss: i
+                for i, clss in enumerate(self.simulation.network.customer_class_names)
+            }
 
         self.state = [
             [0 for cls in range(self.simulation.network.number_of_classes)]
@@ -588,9 +597,8 @@ class MatrixBlocking(StateTracker):
         self.simulation = simulation
         self.state = [
             [
-                [
-                    [] for i in range(self.simulation.network.number_of_nodes)
-                ] for i in range(self.simulation.network.number_of_nodes)
+                [[] for i in range(self.simulation.network.number_of_nodes)]
+                for i in range(self.simulation.network.number_of_nodes)
             ],
             [0 for i in range(self.simulation.network.number_of_nodes)],
         ]
@@ -615,7 +623,9 @@ class MatrixBlocking(StateTracker):
                 entering.
             ind (hciw.Individual): The individual being blocked.
         """
-        self.state[0][node.id_number - 1][destination.id_number - 1].append(self.increment)
+        self.state[0][node.id_number - 1][destination.id_number - 1].append(
+            self.increment
+        )
         self.increment += 1
 
     def change_state_release(self, node, destination, ind, blocked):
@@ -673,8 +683,6 @@ class MatrixBlocking(StateTracker):
         """
         naive = tuple(self.state[-1])
         matrix = tuple(
-            tuple(
-                tuple(obs for obs in col) for col in row
-            ) for row in self.state[0]
+            tuple(tuple(obs for obs in col) for col in row) for row in self.state[0]
         )
         return (matrix, naive)

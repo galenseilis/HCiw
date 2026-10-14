@@ -1,7 +1,6 @@
 """Arrival node of the queueing network."""
 
 from random import random
-from .individual import Individual
 
 
 class ArrivalNode:
@@ -21,13 +20,19 @@ class ArrivalNode:
         self.simulation = simulation
         self.number_of_individuals = 0
         self.all_individuals = []
-        self.number_of_individuals_per_class = {clss: 0 for clss in self.simulation.network.customer_class_names}
+        self.number_of_individuals_per_class = {
+            clss: 0 for clss in self.simulation.network.customer_class_names
+        }
         self.number_accepted_individuals = 0
-        self.number_accepted_individuals_per_class = {clss: 0 for clss in self.simulation.network.customer_class_names}
+        self.number_accepted_individuals_per_class = {
+            clss: 0 for clss in self.simulation.network.customer_class_names
+        }
         self.system_capacity = self.simulation.network.system_capacity
         self.event_dates_dict: dict[int, dict[str, float | bool]] = {
-            nd + 1: {clss: False for clss in self.simulation.network.customer_class_names
-            } for nd in range(self.simulation.network.number_of_nodes)
+            nd + 1: {
+                clss: False for clss in self.simulation.network.customer_class_names
+            }
+            for nd in range(self.simulation.network.number_of_nodes)
         }
 
     def initialise(self):
@@ -54,7 +59,12 @@ class ArrivalNode:
             self.send_individual(next_node, next_individual)
         else:
             rnd_num = random()
-            if rnd_num < next_node.baulking_functions[self.next_class](next_node.number_of_individuals, Q=self.simulation, next_ind=next_individual, next_node=next_node):
+            if rnd_num < next_node.baulking_functions[self.next_class](
+                next_node.number_of_individuals,
+                Q=self.simulation,
+                next_ind=next_individual,
+                next_node=next_node,
+            ):
                 self.record_baulk(next_node, next_individual)
                 self.simulation.nodes[-1].accept(next_individual, completed=False)
             else:
@@ -87,7 +97,9 @@ class ArrivalNode:
         for _ in range(batch):
             self.number_of_individuals += 1
             self.number_of_individuals_per_class[self.next_class] += 1
-            priority_class = self.simulation.network.priority_class_mapping[self.next_class]
+            priority_class = self.simulation.network.priority_class_mapping[
+                self.next_class
+            ]
             next_individual = self.simulation.IndividualType(
                 self.number_of_individuals,
                 self.next_class,
@@ -96,7 +108,9 @@ class ArrivalNode:
             )
             next_node = self.simulation.transitive_nodes[self.next_node - 1]
             next_individual.starting_node = next_node.id_number
-            self.simulation.routers[next_individual.customer_class].initialise_individual(next_individual)
+            self.simulation.routers[
+                next_individual.customer_class
+            ].initialise_individual(next_individual)
             self.release_individual(next_node, next_individual)
 
         self.event_dates_dict[self.next_node][self.next_class] = self.increment_time(
@@ -139,7 +153,9 @@ class ArrivalNode:
         Returns:
             The sampled inter-arrival time.
         """
-        return self.simulation.inter_arrival_times[nd][clss]._sample(t=self.simulation.current_time)
+        return self.simulation.inter_arrival_times[nd][clss]._sample(
+            t=self.simulation.current_time
+        )
 
     def batch_size(self, nd, clss):
         """Sample the batch size for the next class and node.
@@ -155,7 +171,9 @@ class ArrivalNode:
             ValueError: If the sampled batch size is not a non-negative
                 integer.
         """
-        batch = self.simulation.batch_sizes[nd][clss]._sample(t=self.simulation.current_time)
+        batch = self.simulation.batch_sizes[nd][clss]._sample(
+            t=self.simulation.current_time
+        )
         if isinstance(batch, int) and batch >= 0:
             return batch
         raise ValueError("Batch sizes must be positive integers.")
@@ -176,7 +194,9 @@ class ArrivalNode:
             next_node (Node): The node the individual was rejected from.
             individual (Individual): The rejected individual.
         """
-        next_node.write_baulking_or_rejection_record(individual, record_type="rejection")
+        next_node.write_baulking_or_rejection_record(
+            individual, record_type="rejection"
+        )
 
     def release_individual(self, next_node, next_individual):
         """Release an individual to the next node.
@@ -188,7 +208,9 @@ class ArrivalNode:
             next_node (Node): The next node.
             next_individual (Individual): The individual being released.
         """
-        if (next_node.number_of_individuals >= next_node.node_capacity) or (self.simulation.number_of_individuals >= self.system_capacity):
+        if (next_node.number_of_individuals >= next_node.node_capacity) or (
+            self.simulation.number_of_individuals >= self.system_capacity
+        ):
             self.record_rejection(next_node, next_individual)
             self.simulation.nodes[-1].accept(next_individual, completed=False)
         else:
