@@ -35,9 +35,11 @@ dev = [
     "hypothesis",
     "coverage",
     "pandas",
-    "sphinx>=5.0.0",
-    "furo",
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.27",
     "pyright",
+    "ruff>=0.14.0",
 ]
 
 [tool.pyright]
@@ -46,6 +48,36 @@ exclude = ["old", "docs", ".venv", "tests"]
 venvPath = "."
 venv = ".venv"
 pythonVersion = "3.12"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = ["old", "docs", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "S", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# Star imports are the project's intentional re-export pattern; F403/F405 are
+# unavoidable false positives there.
+"hciw/__init__.py" = ["F403", "F405"]
+"hciw/dists/__init__.py" = ["F403", "F405"]
+"hciw/deadlock/__init__.py" = ["F403", "F405"]
+"hciw/import_params.py" = ["F403", "F405"]
+"hciw/dists/distributions.py" = ["F403", "F405", "S311"]
+"hciw/node.py" = ["F403", "F405"]
+"hciw/routing/__init__.py" = ["F403", "F405"]
+"hciw/trackers/__init__.py" = ["F403", "F405"]
+"hciw/simulation.py" = ["F403", "F405"]
+# DES library: random.random() is the intended RNG, not cryptography.
+"hciw/arrival_node.py" = ["S311"]
+"hciw/auxiliary.py" = ["S311"]
+"tests/test_auxiliary.py" = ["S311"]
+"tests/test_process_based.py" = ["S311"]
+"tests/test_sampling.py" = ["S311"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.setuptools]
 include-package-data = true
