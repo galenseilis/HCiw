@@ -114,6 +114,7 @@ nav:
       - "How to Implement a Progress Bar": Guides/Simulation/progressbar.md
       - "How to Parallelise Trials": Guides/Simulation/parallel_process.md
       - "How to Implement Exact Arithmetic": Guides/Simulation/exact.md
+      - "How to Warm-Start a Simulation": Guides/Simulation/warm_start.md
     - "Distributions":
       - Guides/Distributions/index.md
       - "How to Set Arrival & Service Distributions": Guides/Distributions/set_distributions.md

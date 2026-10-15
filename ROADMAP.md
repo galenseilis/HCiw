@@ -8,7 +8,7 @@ The archived modules below are candidates. None are committed to; each should be
 
 Priority depends on how valuable the feature is to healthcare simulation work.
 
-- `old/src/hciw/waitlist.py` — Warm-start a simulation with a pre-existing backlog of customers (`create_existing_customers_from_list`, `accept`, `begin_service_if_possible_accept`). High value for healthcare workloads that start from an existing waitlist. Natural home: a warm-start/initial-conditions facility in `hciw`. Note the code manipulates `hciw.Node` internals, so it must be re-checked against the current `hciw/` node implementation after the restructure.
+- ~~`old/src/hciw/waitlist.py` — Warm-start a simulation with a pre-existing backlog of customers (`create_existing_customers_from_list`, `accept`, `begin_service_if_possible_accept`).~~ **Done:** integrated as `hciw/waitlist.py` with `create_existing_customers_from_list` and `accept`, reusing the current `Node.accept` / `Node.begin_service_if_possible_accept` machinery rather than duplicating node internals. Historical arrival dates are preserved (so waiting times include time before the simulation starts) while service begins at time zero, and the arrival node's counters are advanced past seeded identifiers so later arrivals are not given duplicates. Covered by `tests/test_waitlist.py` and the "How to Warm-Start a Simulation" how-to guide. The archived copy under `old/` is now redundant.
 - `old/src/hciw/disciplines.py` — `wait_time_over_benchmark`: a service discipline that serves the individual furthest past a per-class `benchmark` (target wait time). Natural home: `hciw/disciplines.py`. Needs a way to attach `benchmark` to customer classes and a `simulation` reference on individuals (individuals in the current `hciw` carry `simulation`; verify).
 - `old/src/hciw/server_schedules.py` — `weekday_server_sched`: builds a weekday/weekend shift template (`Schedule` input). Natural home: `hciw/schedules.py` as a schedule helper.
 - `old/src/hciw/results.py` — `summarize_individuals` and related result helpers (pandas). Natural home: a `hciw` results helper or an example. Depends on pandas, which is only a dev/docs dependency today.
@@ -17,13 +17,14 @@ Priority depends on how valuable the feature is to healthcare simulation work.
 ## Candidates to discard
 
 - `old/src/hciw/distributions.py` — `SeqPMFNaive`: a sequence-of-PMF time-dependent distribution. The current `hciw.dists` already provides time-dependent and sequential distributions, so this one is likely superseded.
-- `old/tests/service_disciplines.py`, `old/tests/test_waitlist.py`, `old/tests/test_server_schedules.py` — port the relevant tests if the matching modules are integrated; otherwise discard with them.
+- `old/tests/service_disciplines.py`, `old/tests/test_waitlist.py`, `old/tests/test_server_schedules.py` — port the relevant tests if the matching modules are integrated; otherwise discard with them. (`old/tests/test_waitlist.py` was mock-based and depended on the old node internals; it has been superseded by `tests/test_waitlist.py`.)
 - `old/examples/example.py` — example driving the wrapper; superseded by the docs tutorials.
 - `old/requirements*.lock`, `old/README.md`, `old/pyproject.toml` — obsolete packaging metadata, discard when the archive is pruned.
 
 ## Standing ideas (not from `old/`)
 
 - Review upstream Ciw issues for fixes/features worth porting back.
+- Fix exact-arithmetic (`exact=True`) wrap-up: `Node.wrap_up_servers` adds a `Decimal` to a server's `busy_time` that is still the initial `float` `0.0` when a server is still busy at the end of the run, raising `TypeError: unsupported operand type(s) for +=: 'float' and 'decimal.Decimal'`. This is pre-existing and unrelated to warm starts.
 - Improve or fill gaps in the Ciw feature surface that prompted the original wrapper (e.g., warm starts, healthcare-oriented service disciplines).
 
 ## Python and platform support

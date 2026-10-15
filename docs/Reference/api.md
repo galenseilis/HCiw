@@ -17,6 +17,10 @@ docstrings.
 
 ::: hciw.auxiliary
 
+## Warm starts
+
+::: hciw.waitlist
+
 ## Distribution classes
 
 ::: hciw.dists.distributions

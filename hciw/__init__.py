@@ -1,4 +1,4 @@
-from . import deadlock, disciplines, dists, trackers
+from . import deadlock, disciplines, dists, trackers, waitlist
 from .arrival_node import ArrivalNode
 from .auxiliary import *
 from .data_record import DataRecord
@@ -31,6 +31,7 @@ __all__ = [
     "rng",
     "seed",
     "trackers",
+    "waitlist",
 ]
 
 rng = np.random.default_rng()
