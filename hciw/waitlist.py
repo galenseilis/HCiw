@@ -48,8 +48,11 @@ def accept(
         priority_class,
         simulation=simulation,
     )
+    next_individual.starting_node = node.id_number
+    simulation.routers[individual_class].initialise_individual(next_individual)
     node.accept(next_individual)
     next_individual.arrival_date = arrival_date
+    node.update_next_event_date()
     _update_arrival_node(simulation, individual_id, individual_class)
 
 
@@ -101,3 +104,20 @@ def create_existing_customers_from_list(
             simulation.nodes[node_index],
             simulation,
         )
+    if backlog:
+        _record_initial_state(simulation)
+
+
+def _record_initial_state(simulation: hciw.Simulation) -> None:
+    """Record the state tracker's initial state after seeding.
+
+    The state tracker records its state when ``Simulation`` initialises it,
+    before any individual has been seeded. Seeding changes that state at time
+    zero, so the tracker's first history entry is refreshed to match, ensuring
+    state probabilities cover the whole simulation correctly.
+
+    Args:
+        simulation: The simulation that was seeded.
+    """
+    history = simulation.statetracker.history
+    history[0] = [history[0][0], simulation.statetracker.hash_state()]

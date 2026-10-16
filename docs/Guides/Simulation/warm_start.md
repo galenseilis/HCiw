@@ -61,3 +61,25 @@ Warm-starts should be applied to the simulation *before* it is run. Calling
 `hciw.waitlist.create_existing_customers_from_list` resets the simulation's
 current time to zero, so it must not be called on a simulation that has already
 progressed.
+
+## Seeding at construction
+
+The same backlog can be passed directly to the `Simulation` constructor via the
+`initial_individuals` argument, which seeds the individuals before the
+simulation is initialised:
+
+``` python
+>>> Q = hciw.Simulation(N, initial_individuals=[
+...     [1, 'Customer', -7, 1],
+...     [2, 'Customer', -3, 1],
+... ])
+>>> Q.simulate_until_max_time(30)
+>>> for rec in Q.get_all_records()[:2]:
+...     print(rec.id_number, rec.waiting_time)
+1 7
+2 8
+```
+
+This is equivalent to constructing a cold simulation and then calling
+`hciw.waitlist.create_existing_customers_from_list` on it, but is more
+convenient when the backlog is known up front.

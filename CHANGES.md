@@ -5,6 +5,7 @@
   - Breaking: the importable package is renamed from `ciw` to `hciw`, and the distribution from `Ciw` to `HCiw`; existing `import ciw` code must be updated. This is a new major version because the public identifier changed.
   - Packaging migrated from `setup.py`/`requirements\*.txt` to `pyproject.toml` with `uv` and a committed `uv.lock`; Python restricted to `\>=3.12,\<3.13`.
   - Added `ROADMAP.md` documenting the fork's direction; the previous healthcare-oriented HCiw wrapper is archived under `old/`.
+  - Added warm starts: `hciw.waitlist.create_existing_customers_from_list` seeds a simulation with a backlog of pre-existing individuals, preserving their historical arrival dates so waiting times include time before the simulation begins. The same backlog can be passed to the `Simulation` constructor via the new `initial_individuals` argument.
   - The release history below records the upstream Ciw releases the fork inherits.
 
 - **3.2.7 (2025-12-05)**  

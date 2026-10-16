@@ -5,7 +5,7 @@ from decimal import getcontext
 
 import tqdm
 
-from hciw import deadlock, trackers
+from hciw import deadlock, trackers, waitlist
 
 from .arrival_node import ArrivalNode
 from .auxiliary import *
@@ -59,6 +59,7 @@ class Simulation:
         exit_node_class=None,
         individual_class=None,
         server_class=None,
+        initial_individuals=None,
     ):
         """Initialise a simulation instance.
 
@@ -82,6 +83,14 @@ class Simulation:
                 Defaults to ``Individual``.
             server_class (type, optional): The server class to use. Defaults
                 to ``Server``.
+            initial_individuals (list[list], optional): A list of backlogged
+                individuals to seed the simulation with, in the form
+                ``[[id, customer_class, arrival_date, node_index], ...]`` where
+                ``arrival_date`` is the individual's historical arrival date
+                (typically negative, meaning it arrived before the simulation
+                began). If provided, these individuals are placed at their
+                specified nodes before the simulation begins. Defaults to
+                ``None``.
         """
         self.current_time = 0.0
         self.network = network
@@ -123,6 +132,8 @@ class Simulation:
         else:
             self.statetracker = tracker
         self.statetracker.initialise(self)
+        if initial_individuals is not None:
+            waitlist.create_existing_customers_from_list(initial_individuals, self)
         self.times_dictionary = {self.statetracker.hash_state(): 0.0}
         self.times_to_deadlock = {}
         self.unchecked_blockage = False
