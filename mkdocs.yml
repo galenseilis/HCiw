@@ -182,6 +182,7 @@ nav:
     - "Authors": Project/authors.md
   - "Background":
     - Background/index.md
+    - "Overview": Background/overview.md
     - "Simulation Practice": Background/simulationpractice.md
     - "Notes on HCiw's Mechanisms": Background/mechanisms.md
     - "Kendall's Notation": Background/kendall.md

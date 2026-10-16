@@ -1,5 +1,9 @@
 # Change Log
 
+- **Unreleased**  
+  - Broadened the Ruff configuration to `select = ["ALL"]`, enabling every stable lint rule (including the `D` docstring family with the Google convention) and excluding only rules that conflict with the formatter, another rule, or a documented project convention. Fixed the resulting violations across `hciw/`, `tests/` and `doctests.py`; no runtime behaviour changed.
+  - Reoriented the documentation toward academic and industry audiences. The README and landing page now state the model, the algorithm, and the intended users; a new `docs/Background/overview.md` page covers the queueing-network model (Kendall notation, Little's law, stability, Jackson and BCMP networks), the discrete-event simulation algorithm, and applications in healthcare, call centres, telecommunications, and manufacturing, with citations. The bibliography was expanded with the cited sources.
+
 - **4.0.0 (2026-10-12)**  
   - First release of HCiw, a fork of the [Ciw](https://github.com/CiwPython/Ciw) queueing network simulation library, taken from the Ciw 3.2.7 codebase.
   - Breaking: the importable package is renamed from `ciw` to `hciw`, and the distribution from `Ciw` to `HCiw`; existing `import ciw` code must be updated. This is a new major version because the public identifier changed.

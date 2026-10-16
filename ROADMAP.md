@@ -24,8 +24,38 @@ Priority depends on how valuable the feature is to healthcare simulation work.
 ## Standing ideas (not from `old/`)
 
 - Review upstream Ciw issues for fixes/features worth porting back.
+- Give nodes optional aliases so code and outcomes can refer to them by a readable name instead of a numeric index. For example, `create_network` could accept a `node_names` (or `aliases`) argument mapping node indices to names, exposing them on the node objects and using them in records, trackers and reports. This would make networks easier to read and interpret.
+- Give individuals their own discrete-event processes so their properties can change over time, independent of service and routing events. This would let individuals accumulate continuous or stepwise state, such as a severity-of-illness score that worsens while waiting, and attach time-dependent attributes that disciplines, routing and trackers can condition on.
 - Fix exact-arithmetic (`exact=True`) wrap-up: `Node.wrap_up_servers` adds a `Decimal` to a server's `busy_time` that is still the initial `float` `0.0` when a server is still busy at the end of the run, raising `TypeError: unsupported operand type(s) for +=: 'float' and 'decimal.Decimal'`. This is pre-existing and unrelated to warm starts.
 - Improve or fill gaps in the Ciw feature surface that prompted the original wrapper (e.g., warm starts, healthcare-oriented service disciplines).
+
+## Models
+
+Add a directory of named models (`hciw/models/`) that users can instantiate directly and, where applicable, fit to data. Each model declares its parameters: the user may fix any subset of them, and the remaining parameters are the ones estimated when fitting. A parameter that has been fixed by the user is never treated as a fitted parameter, so a single model object supports both fully-specified simulation and calibration from observed data.
+
+- Begin with the classic queueing systems (e.g. M/M/1, M/M/c, M/G/1, M/G/c, and finite-capacity, priority and multi-class variants), each exposing its arrival process, service distribution, number of servers and capacity as parameters.
+- Include the hybrid DES+SD model described in the [DES+SD hybrid guide](docs/Guides/System/behaviour/hybrid.md) (Palmer and Tian, [GP21]), which couples the discrete-event simulation to a system-dynamics component.
+- Add other less-typical models that are essentially queueing or adjacent to it, such as queueing networks, retrial and vacation queues, fluid and diffusion approximations, and healthcare flow models (e.g. emergency-department or bed-occupancy models).
+- Keep the simulation-side models free of new runtime dependencies; the fitting machinery may rely on a numerical/statistics stack (e.g. SciPy), which is acceptable to add as a dependency for that purpose.
+
+## Performance benchmarks
+
+Add a benchmark suite and track performance over the project's lifetime, so that regressions are caught deliberately rather than discovered by users. The aim is the capability, not a specific tool; the choice should follow from what fits the project's `uv`-based, `unittest`-based toolchain and its MkDocs/GitHub Pages publishing.
+
+- **Recommended primary tool: [airspeed velocity](https://asv.readthedocs.io/en/latest/index.html) (`asv`).** It is standalone (benchmarks are plain Python classes, so the project need not adopt `pytest`), now has first-class `uv` support (`asv.plugins.uv`), tracks runtime and memory across git commits and releases, and publishes an interactive HTML dashboard that fits the existing GitHub Pages workflow. It is the de facto standard in scientific Python (astropy, numpy, scipy), which is close in spirit to HCiw.
+- **Benchmark content:** seed the RNG for stability, then micro-benchmark distribution sampling and `Individual`/`Node` operations, and measure end-to-end simulation throughput (individuals and events per second) on representative networks, parametrised over network size. Unlike micro-benchmarks, these are unavoidably long-running, which is the main reason to track them per release rather than per commit.
+- **Where to run it:** `asv` wants stable hardware, so run the suite on a schedule on a dedicated or self-hosted runner and publish results alongside the docs. It is a poor fit for noisy pull-request runners.
+- **Per-PR regression checks (optional, complementary):** for fast feedback on pull requests, consider [CodSpeed](https://codspeed.io/) (free for open source, calibrates for noisy shared runners, has a GitHub Action, but adds `pytest`/`pytest-codspeed`) or a lightweight `pytest-benchmark`/`pyperf` comparison with a generous threshold (5–10%) to avoid false positives from CI variance.
+
+## Testing
+
+Keep the existing focused, example-based unit tests (including the paired specific/`_h` Hypothesis cases) — they are valuable and should stay — but lean on [Hypothesis](https://hypothesis.readthedocs.io/) much more, using broad generated inputs rather than only hand-picked ones. `hypothesis` is already a dev dependency, so this is about how the tests are written, not new tooling.
+
+- Build a shared library of reusable Hypothesis strategies ("schemas") for the domain — distributions, `ServiceCentre`/`CustomerClass`/`Network` objects, `Individual`s, and small `Simulation`s — in a shared test module (e.g. `tests/strategies.py`) instead of bespoke inline `@given` arguments repeated per test. Use `hypothesis.strategies.composite`, `builds`, and (for annotated types) `from_type`.
+- Prioritise strategy builders that generate valid, internally consistent networks (routing rows that sum to one, matching class names, sensible server and capacity counts) so tests can focus on behaviour instead of building fixtures.
+- Move from round-tripping constructor arguments towards genuine properties and invariants, for example: seeded runs are reproducible; simulated time never moves backwards; individuals are conserved (arrivals minus exits equals the number in the system); records and state-tracker histories are well formed and consistent; routing probabilities and sampled values stay within their supports.
+- Keep the generated-example database (`.hypothesis/`) gitignored, and use `@settings`/Hypothesis profiles to keep the default run fast in CI while allowing longer, higher-`max_examples` runs locally or on a schedule.
+- Add [mutmut](https://mutmut.readthedocs.io/) mutation testing as an ancillary quality check, run periodically rather than on every pull request (it is slow). It alters the source (integer literals, `<` to `<=`, `break` to `continue`, and so on) and reports the mutants the tests fail to catch, pointing at behaviour that is under-tested so that mutation bugs can be found and covered preemptively. Add targeted tests for the meaningful survivors, but do not treat every survivor as a defect: some mutations are equivalent or simply not worth testing, so use the score as guidance rather than a hard gate. Configure `[tool.mutmut]` with `source_paths = ["hciw"]` and the `tests/` selection, and use `# pragma: no mutate` (or the type-checker filter) to suppress intentional noise. Note that mutmut 3+ drives `pytest`, so this would require `pytest` as a test runner even though the suite is written with `unittest`; it also needs POSIX fork support (fine on Linux, WSL on Windows).
 
 ## Python and platform support
 
@@ -44,15 +74,29 @@ Priority depends on how valuable the feature is to healthcare simulation work.
 
 - Adopt Google's Python style for code and docstrings, following the `Google Python Style Guide <https://google.github.io/styleguide/pyguide.html>`_.
 - Convert docstrings to `Google style <https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings>`_ section headings (`Args:`, `Returns:`, `Raises:`, `Yields:`, `Attributes:`, `Examples:`, `Note:`, `Todo:`) rather than the current NumPy/Sphinx-style `Parameters`/`Returns` blocks. The `hciw/` sources are largely NumPy-style today; migrate opportunistically as files are touched, and prefer Google style for all new code.
-- ~~Adopt the `Ruff formatter <https://docs.astral.sh/ruff/formatter/>`_ and the `Ruff linter <https://docs.astral.sh/ruff/linter/>`_~~ **Done:** Ruff is authoritative, configured under `[tool.ruff]` in `pyproject.toml` with the `E`, `F`, `W`, `I`, `UP`, `B`, `S`, `SIM`, and `RUF` rule families at 88 columns; `uv run ruff check` and `uv run ruff format --check` are clean. Enabling the `D` docstring rules remains outstanding.
-- When enabling the `D` (pydocstyle) rules, select the `google` convention (`[tool.ruff.lint.pydocstyle] convention = "google"`); choose an opt-out for individual rules only where they conflict with the style guide rather than with preference.
-- Google-style docstrings render through mkdocstrings (`docstring_style: google` in `mkdocs.yml`), so no separate docstring-conversion extension is required.
-- Line length: the Ruff formatter's default of **88 columns** is now authoritative; `.pylintrc` (`max-line-length=240`) has been retired. This overrides the Google guide's 80-column recommendation for this project.
-- **Tie-break policy (decided):** when neither the Google style guide nor PEP 8 decides a formatting/linting conflict, **Ruff defaults win**. Do not fight the formatter. Where a case genuinely matters, add a targeted suppression (`# noqa` / `per-file-ignores`) with a short, specific justification (e.g. a code comment or a note in this file). Record any lasting exception below.
+- ~~Adopt the `Ruff formatter <https://docs.astral.sh/ruff/formatter/>`_ and the `Ruff linter <https://docs.astral.sh/ruff/linter/>`_~~ **Done:** Ruff is authoritative, configured under `[tool.ruff]` in `pyproject.toml` at 88 columns; `uv run ruff check` and `uv run ruff format --check` are clean. The linter enables **every** stable rule (`select = ["ALL"]`), including `D` (pydocstyle), and excludes only the rules that contradict another rule, the formatter, or a deliberate project convention. Every exclusion is documented in `pyproject.toml` and mirrored below.
+- `D` uses the `google` convention (`[tool.ruff.lint.pydocstyle] convention = "google"`); individual `D` rules are opted out only where they conflict with the style guide rather than with preference.
 
 ### Ruff exceptions
 
-- `S101` (`assert`) is ignored globally: `assert` is used throughout `hciw/` for internal invariants and for type narrowing, and is stripped under `-O`.
+Beyond the formatter-conflict rules (`COM812`, `COM819`, `ISC001`, `Q000`–`Q003`, which the formatter owns), the global `ignore` list is:
+
+- `S101` (`assert`) — `assert` is used throughout `hciw/` for internal invariants and for type narrowing, and is stripped under `-O`.
+- `PT009`, `PT027` — the suite is written with `unittest`; the pytest-style equivalents of its idioms are intentionally unused.
+- `ANN001`, `ANN201`, `ANN202`, `ANN204`, `ANN401` — a full type-annotation layer is a separate, large effort, and Google Style treats annotations as optional (deferred; see above).
+- `ARG001`, `ARG002` — unused parameters are overwhelmingly base-class/interface signatures (the `_sample(self, t, ind)` distribution interface, routing hooks, etc.); re-annotating them would desynchronise the documented interface.
+- `TRY003`, `EM101`, `EM102` — opinionated exception-message rules; Google Style and PEP 8 are silent on this and the codebase favours inline messages.
+- `SLF001` — access to underscore-prefixed members is intentional within the library and in tests that exercise private helpers.
+- `CPY001` — attribution is centralised in `LICENSE.txt` and `AUTHORS.md` rather than in per-file copyright headers.
+- `FBT001`, `FBT002` — boolean positional parameters (`completed=False`, `exact=False`, `progress_bar=False`, ...) are part of the Ciw-derived public API; making them keyword-only would break source compatibility with Ciw.
+
+Per-file exceptions are used where a rule conflicts with a file's deliberate conventions:
+
+- `hciw/disciplines.py`: `N802` — `FIFO`/`SIRO`/`LIFO` are the public service-discipline names (queueing acronyms).
+- `tests/**`: `D`, `FBT`, `N803`, `N805`, `N806`, `PLR0915`, `PLR2004`, `PTH` — the test suite is self-describing, uses the tutorial `N`/`Q` notation, and bundles many example-based assertions per test.
+- Google-style docstrings render through mkdocstrings (`docstring_style: google` in `mkdocs.yml`), so no separate docstring-conversion extension is required.
+- Line length: the Ruff formatter's default of **88 columns** is now authoritative; `.pylintrc` (`max-line-length=240`) has been retired. This overrides the Google guide's 80-column recommendation for this project.
+- **Tie-break policy (decided):** when neither the Google style guide nor PEP 8 decides a formatting/linting conflict, **Ruff defaults win**. Do not fight the formatter. Where a case genuinely matters, add a targeted suppression (`# noqa` / `per-file-ignores`) with a short, specific justification (e.g. a code comment or a note in this file). Record any lasting exception above, under "Ruff exceptions".
 
 ## Conventions
 
