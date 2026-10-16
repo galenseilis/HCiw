@@ -67,6 +67,8 @@ class CustomerClass:
             each node.
         class_change_time_distributions (dict): Class change time
             distributions for each pair of customer classes.
+        benchmark (float or None): The target maximum waiting time for this
+            customer class, used by the benchmark-aware service disciplines.
     """
 
     def __init__(  # noqa: PLR0913, PLR0917 - public configuration API
@@ -79,6 +81,7 @@ class CustomerClass:
         batching_distributions,
         reneging_time_distributions,
         class_change_time_distributions,
+        benchmark=None,
     ):
         """Initialise a ``CustomerClass`` object.
 
@@ -93,6 +96,8 @@ class CustomerClass:
                 each node.
             class_change_time_distributions (dict): Class change time
                 distributions for each pair of customer classes.
+            benchmark (float or None, optional): The target maximum waiting
+                time for this class. Defaults to ``None``.
         """
         self.arrival_distributions = arrival_distributions
         self.service_distributions = service_distributions
@@ -102,6 +107,7 @@ class CustomerClass:
         self.baulking_functions = baulking_functions
         self.reneging_time_distributions = reneging_time_distributions
         self.class_change_time_distributions = class_change_time_distributions
+        self.benchmark = benchmark
 
 
 class Network:

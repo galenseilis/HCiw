@@ -8,7 +8,7 @@ from .routing import *
 from .schedules import *
 
 
-def create_network(  # noqa: C901, PLR0913, PLR0917 - public config API
+def create_network(  # noqa: C901, PLR0912, PLR0913, PLR0917 - public config API
     arrival_distributions=None,
     baulking_functions=None,
     class_change_matrices=None,
@@ -23,6 +23,7 @@ def create_network(  # noqa: C901, PLR0913, PLR0917 - public config API
     server_priority_functions=None,
     reneging_time_distributions=None,
     service_disciplines=None,
+    customer_class_benchmarks=None,
     system_capacity=float("inf"),
 ):
     """Create a ``Network`` object from keyword arguments.
@@ -55,6 +56,10 @@ def create_network(  # noqa: C901, PLR0913, PLR0917 - public config API
             distributions for each customer class and node.
         service_disciplines (list, optional): Service disciplines, one per
             node.
+        customer_class_benchmarks (dict, optional): The target maximum
+            waiting time for each customer class, keyed by class name. Read
+            by the benchmark-aware service disciplines such as
+            ``hciw.disciplines.wait_time_over_benchmark``.
         system_capacity (int or float, optional): The maximum number of
             customers allowed in the system. Defaults to infinity.
 
@@ -104,6 +109,8 @@ def create_network(  # noqa: C901, PLR0913, PLR0917 - public config API
         params["reneging_time_distributions"] = reneging_time_distributions
     if service_disciplines is not None:
         params["service_disciplines"] = service_disciplines
+    if customer_class_benchmarks is not None:
+        params["customer_class_benchmarks"] = customer_class_benchmarks
 
     return create_network_from_dictionary(params)
 
@@ -171,6 +178,7 @@ def create_network_from_dictionary(params_input):
             params["batching_distributions"][clss_name],
             params["reneging_time_distributions"][clss_name],
             class_change_time_distributions[clss_name],
+            benchmark=params["customer_class_benchmarks"][clss_name],
         )
     n = Network(nodes, classes)
     n.system_capacity = params["system_capacity"]
@@ -252,6 +260,7 @@ def fill_out_dictionary(params):  # noqa: C901 - linear default-filling branch c
             class_name: [None] * number_of_nodes for class_name in class_names
         },
         "service_disciplines": [hciw.disciplines.FIFO for _ in range(number_of_nodes)],
+        "customer_class_benchmarks": dict.fromkeys(class_names, None),
         "system_capacity": float("inf"),
     }
 
@@ -360,6 +369,25 @@ def validify_dictionary(params):  # noqa: C901, PLR0912 - linear validation bran
             raise ValueError(
                 "Ensure consistant customer classes used in "
                 "class_change_time_distributions."
+            )
+
+    if not isinstance(params["customer_class_benchmarks"], dict):
+        raise ValueError(  # noqa: TRY004 - consistent with the other validations
+            "customer_class_benchmarks should be a dictionary mapping customer "
+            "class names to benchmark times."
+        )
+    if not set(params["customer_class_benchmarks"]).issubset(
+        set(params["customer_class_names"])
+    ):
+        raise ValueError(
+            "Ensure consistant customer classes used in customer_class_benchmarks."
+        )
+    for clss, benchmark in params["customer_class_benchmarks"].items():
+        if benchmark is not None and (
+            isinstance(benchmark, bool) or not isinstance(benchmark, (int, float))
+        ):
+            raise ValueError(
+                f"Benchmark for customer class '{clss}' must be a number or None."
             )
 
     if not isinstance(params["system_capacity"], int) and params[

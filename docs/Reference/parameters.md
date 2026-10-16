@@ -93,6 +93,19 @@ class_change_dist_dict = {
 }
 ```
 
+## customer_class_benchmarks
+
+*Optional*
+
+A dictionary mapping each customer class to a numerical target maximum waiting time (its *benchmark*). The benchmark is read by the benchmark-aware service disciplines, such as [`wait_time_over_benchmark`](../Guides/Services/service_disciplines.md#benchmark-service-disciplines), which serves the customer furthest past their own class's benchmark next. Classes with no benchmark are given a value of `None`.
+
+Example of a two class network where class 0 has a target wait of 1 time unit and class 1 a target of 5:
+
+``` python
+customer_class_benchmarks={'Class 0': 1.0,
+                           'Class 1': 5.0}
+```
+
 ## number_of_servers
 
 *Required*
