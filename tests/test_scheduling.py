@@ -292,7 +292,7 @@ class TestScheduling(unittest.TestCase):
 
         self.assertEqual(len(Q.nodes[1].interrupted_individuals), 0)
         self.assertEqual(len(Q.nodes[1].all_individuals), 1)
-        self.assertEqual(set([r.service_time for r in recs]), set([5.0, 4.0]))
+        self.assertEqual({r.service_time for r in recs}, {5.0, 4.0})
         # 5 due to the one individual who has finished service without interruption.
         # 4 due to the 1 time unit in service before interruption not counting.
 
@@ -724,7 +724,7 @@ class TestScheduling(unittest.TestCase):
         expected_service_dates = [1, 1, 1, 2, 2, 3, 3, 3, 4]
         observed_service_dates = [r.service_start_date for r in recs]
         self.assertEqual(observed_service_dates, expected_service_dates)
-        self.assertFalse(any([ind.server for ind in Q.nodes[-1].all_individuals]))
+        self.assertFalse(any(ind.server for ind in Q.nodes[-1].all_individuals))
 
     def test_slotted_services_with_offset(self):
         """
@@ -754,7 +754,7 @@ class TestScheduling(unittest.TestCase):
         expected_service_dates = [1.05, 1.05, 1.05, 2.05, 2.05, 3.05, 3.05, 3.05, 4.05]
         observed_service_dates = [r.service_start_date for r in recs]
         self.assertEqual(observed_service_dates, expected_service_dates)
-        self.assertFalse(any([ind.server for ind in Q.nodes[-1].all_individuals]))
+        self.assertFalse(any(ind.server for ind in Q.nodes[-1].all_individuals))
 
     def test_slotted_services_repeat(self):
         """
@@ -928,7 +928,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[1].exit_date, 14)
         self.assertEqual(recs[1].record_type, "service")
 
-        # preemption='resume'
+        # With the 'resume' preemption option.
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float("inf")])],
             service_distributions=[hciw.dists.Sequential([10, 10, 1])],
@@ -970,7 +970,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[2].exit_date, 18)
         self.assertEqual(recs[2].record_type, "service")
 
-        # preemption='resample'
+        # With the 'resample' preemption option.
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float("inf")])],
             service_distributions=[hciw.dists.Sequential([10, 10, 1])],
@@ -1012,7 +1012,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(recs[2].exit_date, 16)
         self.assertEqual(recs[2].record_type, "service")
 
-        # preemption='restart'
+        # With the 'restart' preemption option.
         N = hciw.create_network(
             arrival_distributions=[hciw.dists.Sequential([0.3, 0.2, float("inf")])],
             service_distributions=[hciw.dists.Sequential([10, 10, 1])],

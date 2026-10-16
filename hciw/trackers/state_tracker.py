@@ -21,7 +21,6 @@ class StateTracker:
             node (hciw.Node): The node at which the individual is accepted.
             ind (hciw.Individual): The individual being accepted.
         """
-        pass
 
     def change_state_block(self, node, destination, ind):
         """Change the state of the system when a customer gets blocked.
@@ -32,7 +31,6 @@ class StateTracker:
                 entering.
             ind (hciw.Individual): The individual being blocked.
         """
-        pass
 
     def change_state_release(self, node, destination, ind, blocked):
         """Change the state of the system when a customer is released.
@@ -44,7 +42,6 @@ class StateTracker:
             ind (hciw.Individual): The individual being released.
             blocked (bool): Whether the individual was blocked.
         """
-        pass
 
     def change_state_renege(self, node, destination, ind, blocked):
         """Change the state of the system when a customer reneges.
@@ -65,7 +62,6 @@ class StateTracker:
             node (hciw.Node): The node at which the individual changes class.
             ind (hciw.Individual): The individual changing class.
         """
-        pass
 
     def hash_state(self) -> object:
         """Return a hashable state.
@@ -174,7 +170,6 @@ class SystemPopulation(StateTracker):
                 entering.
             ind (hciw.Individual): The individual being blocked.
         """
-        pass
 
     def change_state_release(self, node, destination, ind, blocked):
         """Change the state of the system when a customer is released.
@@ -234,7 +229,6 @@ class NodePopulation(StateTracker):
                 entering.
             ind (hciw.Individual): The individual being blocked.
         """
-        pass
 
     def change_state_release(self, node, destination, ind, blocked):
         """Change the state of the system when a customer is released.
@@ -304,7 +298,6 @@ class NodePopulationSubset(StateTracker):
                 entering.
             ind (hciw.Individual): The individual being blocked.
         """
-        pass
 
     def change_state_release(self, node, destination, ind, blocked):
         """Change the state of the system when a customer is released.
@@ -380,7 +373,6 @@ class GroupedNodePopulation(StateTracker):
                 entering.
             ind (hciw.Individual): The individual being blocked.
         """
-        pass
 
     def change_state_release(self, node, destination, ind, blocked):
         """Change the state of the system when a customer is released.
@@ -471,7 +463,6 @@ class NodeClassMatrix(StateTracker):
                 entering.
             ind (hciw.Individual): The individual being blocked.
         """
-        pass
 
     def change_state_release(self, node, destination, ind, blocked):
         """Change the state of the system when a customer is released.
@@ -657,8 +648,7 @@ class MatrixBlocking(StateTracker):
         Returns:
             int: The order position of the blocked customer.
         """
-        position = self.state[0][node.id_number - 1][destination.id_number - 1].pop(0)
-        return position
+        return self.state[0][node.id_number - 1][destination.id_number - 1].pop(0)
 
     def adjust_positions(self, position):
         """Reduce any positions greater than ``position`` by one.

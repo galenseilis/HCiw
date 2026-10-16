@@ -3,6 +3,7 @@
 import doctest
 import os
 import unittest
+from pathlib import Path
 from typing import Any
 
 
@@ -65,7 +66,7 @@ def load_tests(
             if f.endswith((".md", ".rst")):
                 tests.addTests(
                     doctest.DocFileSuite(
-                        os.path.join(root, f),
+                        str(Path(root) / f),
                         optionflags=doctest.ELLIPSIS,
                         parser=_FenceStrippingParser(),
                     )

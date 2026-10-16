@@ -1202,16 +1202,16 @@ class TestStateProbabilities(unittest.TestCase):
             ((0, 0),): Decimal("0.64"),
         }
 
-        for state in expected_probabilities:
+        for state, expected in expected_probabilities.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities()[state],
-                expected_probabilities[state],
+                expected,
             )
 
-        for state in expected_probabilities_with_time_period:
+        for state, expected in expected_probabilities_with_time_period.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities(observation_period=(5, 10))[state],
-                expected_probabilities_with_time_period[state],
+                expected,
             )
 
     def test_prob_one_node_deterministic_systempopulation(self):
@@ -1238,16 +1238,16 @@ class TestStateProbabilities(unittest.TestCase):
             0: Decimal("0.64"),
         }
 
-        for state in expected_probabilities:
+        for state, expected in expected_probabilities.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities()[state],
-                expected_probabilities[state],
+                expected,
             )
 
-        for state in expected_probabilities_with_time_period:
+        for state, expected in expected_probabilities_with_time_period.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities(observation_period=(5, 10))[state],
-                expected_probabilities_with_time_period[state],
+                expected,
             )
 
     def test_prob_one_node_deterministic_nodepopulation(self):
@@ -1273,16 +1273,16 @@ class TestStateProbabilities(unittest.TestCase):
             (1,): Decimal("0.22"),
             (0,): Decimal("0.64"),
         }
-        for state in expected_probabilities:
+        for state, expected in expected_probabilities.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities()[state],
-                expected_probabilities[state],
+                expected,
             )
 
-        for state in expected_probabilities_with_time_period:
+        for state, expected in expected_probabilities_with_time_period.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities(observation_period=(5, 10))[state],
-                expected_probabilities_with_time_period[state],
+                expected,
             )
 
     def test_prob_one_node_deterministic_nodeclassmatrix(self):
@@ -1308,16 +1308,16 @@ class TestStateProbabilities(unittest.TestCase):
             ((1,),): Decimal("0.22"),
             ((0,),): Decimal("0.64"),
         }
-        for state in expected_probabilities:
+        for state, expected in expected_probabilities.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities()[state],
-                expected_probabilities[state],
+                expected,
             )
 
-        for state in expected_probabilities_with_time_period:
+        for state, expected in expected_probabilities_with_time_period.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities(observation_period=(5, 10))[state],
-                expected_probabilities_with_time_period[state],
+                expected,
             )
 
     def test_prob_track_history_two_node_two_class(self):
@@ -1359,16 +1359,16 @@ class TestStateProbabilities(unittest.TestCase):
             6: 0.026448393637203527,
         }
 
-        for state in expected_probabilities:
+        for state, expected in expected_probabilities.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities()[state],
-                expected_probabilities[state],
+                expected,
             )
 
-        for state in expected_probabilities_with_time_period:
+        for state, expected in expected_probabilities_with_time_period.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities(observation_period=(1, 4))[state],
-                expected_probabilities_with_time_period[state],
+                expected,
             )
 
         # Node Population
@@ -1396,16 +1396,16 @@ class TestStateProbabilities(unittest.TestCase):
             (3, 3): 0.026448393637203527,
         }
 
-        for state in expected_probabilities:
+        for state, expected in expected_probabilities.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities()[state],
-                expected_probabilities[state],
+                expected,
             )
 
-        for state in expected_probabilities_with_time_period:
+        for state, expected in expected_probabilities_with_time_period.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities(observation_period=(1, 4))[state],
-                expected_probabilities_with_time_period[state],
+                expected,
             )
 
         # Node Class Matrix
@@ -1440,16 +1440,16 @@ class TestStateProbabilities(unittest.TestCase):
             ((1, 1), (0, 3)): 0.0664801989859809,
         }
 
-        for state in expected_probabilities:
+        for state, expected in expected_probabilities.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities()[state],
-                expected_probabilities[state],
+                expected,
             )
 
-        for state in expected_probabilities_with_time_period:
+        for state, expected in expected_probabilities_with_time_period.items():
             self.assertEqual(
                 Q.statetracker.state_probabilities(observation_period=(1, 4))[state],
-                expected_probabilities_with_time_period[state],
+                expected,
             )
 
     def test_compare_state_probabilities_to_analytical(self):

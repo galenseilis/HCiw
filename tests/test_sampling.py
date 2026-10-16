@@ -20,8 +20,7 @@ def import_empirical(dist_file):
     file_name = root + "/" + dist_file
     with open(file_name) as empirical_file:
         rdr = reader(empirical_file)
-        empirical_dist = next([float(x) for x in row] for row in rdr)
-    return empirical_dist
+        return next([float(x) for x in row] for row in rdr)
 
 
 class CustomDist(hciw.dists.Distribution):
@@ -778,7 +777,7 @@ class TestSampling(unittest.TestCase):
         for _itr in range(10):  # Because repition happens in the simulation
             self.assertTrue(
                 Nem.simulation.service_times[Nem.id_number]["Customer"]._sample()
-                in set([7.0, 7.1, 7.2, 7.3, 7.7, 7.8])
+                in {7.0, 7.1, 7.2, 7.3, 7.7, 7.8}
             )
             self.assertTrue(
                 Nem.simulation.inter_arrival_times[Nem.id_number]["Customer"]._sample()
@@ -954,17 +953,13 @@ class TestSampling(unittest.TestCase):
     def test_timedependent_dist_object(self):
         TD1 = TimeDependentDist1()
         hciw.seed(5)
-        samples = []
-        for t in [3.0, 9.0, 9.0, 11.0, 11.0]:
-            samples.append(round(TD1.sample(t), 2))
+        samples = [round(TD1.sample(t), 2) for t in [3.0, 9.0, 9.0, 11.0, 11.0]]
         expected = [3.0, 3.0, 3.0, 5.0, 5.0]
         self.assertEqual(samples, expected)
 
         TD2 = TimeDependentDist2()
         hciw.seed(5)
-        samples = []
-        for t in [4.0, 4.0, 17.0, 22.0, 22.0]:
-            samples.append(round(TD2.sample(t), 2))
+        samples = [round(TD2.sample(t), 2) for t in [4.0, 4.0, 17.0, 22.0, 22.0]]
         expected = [2.0, 2.0, 8.5, 8.0, 8.0]
         self.assertEqual(samples, expected)
 
@@ -981,13 +976,10 @@ class TestSampling(unittest.TestCase):
         ind = hciw.Individual(0)
         hciw.seed(5)
 
-        samples = []
-        for t in [3.0, 9.0, 9.0, 11.0, 11.0]:
-            samples.append(
-                round(
-                    N1.simulation.service_times[N1.id_number]["Customer"]._sample(t), 2
-                )
-            )
+        samples = [
+            round(N1.simulation.service_times[N1.id_number]["Customer"]._sample(t), 2)
+            for t in [3.0, 9.0, 9.0, 11.0, 11.0]
+        ]
         expected = [3.0, 3.0, 3.0, 5.0, 5.0]
         self.assertEqual(samples, expected)
 
@@ -1353,9 +1345,9 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(C.variance, expected_var)
 
     def test_combined_div_summary_stats(self):
-        # Division uses the delta-method approximation implemented in your properties:
-        # E[A/B] = mA / mB
-        # Var(A/B) = vA / mB^2 + (mA^2 * vB) / mB^4   (requires mB != 0)
+        # Division uses the delta-method approximation implemented in the properties:
+        # the mean is E[A/B] = mA / mB
+        # the variance is vA / mB^2 + (mA^2 * vB) / mB^4   (requires mB != 0)
         A = hciw.dists.Normal(5.0, 1.0)  # mA=5, vA=1
         B = hciw.dists.Normal(2.0, 0.5)  # mB=2, vB=0.25
 
@@ -1545,7 +1537,7 @@ class TestSampling(unittest.TestCase):
         # Second moment: E[T^2] = 2 Î± (-Q)^-2 1
         expected_second_moment = float(2 * alpha @ invQ @ invQ @ ones)
 
-        # Variance: Var(T) = E[T^2] - (E[T])^2
+        # The variance is E[T^2] - (E[T])^2.
         expected_variance = expected_second_moment - expected_mean**2
 
         # Assertions
@@ -2210,7 +2202,9 @@ class TestSampling(unittest.TestCase):
             rates=[5, 1.5, 3], endpoints=[3.2, 7.9, 10], max_sample_date=15
         )
         sd = Pi.sd
-        self.assertTrue((sd == sd) or math.isnan(sd))
+        # `sd` is a float that may be NaN; a NaN is the only value that is not
+        # equal to itself, so this asserts `sd` is either a number or NaN.
+        self.assertTrue((sd == sd) or math.isnan(sd))  # noqa: PLR0124
         self.assertTrue(math.isnan(Pi.median))
         self.assertTrue(math.isinf(Pi.upper_limit))
         self.assertEqual(Pi.lower_limit, 0.0)

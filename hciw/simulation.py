@@ -47,7 +47,7 @@ class Simulation:
         unchecked_blockage (bool): Whether a blockage needs checking.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 - public configuration API
         self,
         network,
         exact=False,
@@ -279,9 +279,11 @@ class Simulation:
             only = ["service", "baulk", "rejection", "renege", "interrupted service"]
         records = []
         for individual in self.get_all_individuals():
-            for record in individual.data_records:
-                if record.record_type in only:
-                    records.append(record)
+            records.extend(
+                record
+                for record in individual.data_records
+                if record.record_type in only
+            )
             if include_incomplete and individual.node != -1:
                 incomplete_record = self.nodes[individual.node].write_incomplete_record(
                     individual
@@ -290,7 +292,7 @@ class Simulation:
         self.all_records = records
         return records
 
-    def set_classes(
+    def set_classes(  # noqa: PLR0912 - per-class selection branch chain
         self,
         node_class,
         arrival_node_class,
@@ -420,7 +422,7 @@ class Simulation:
             self.progress_bar.update(remaining_time)
             self.progress_bar.close()
 
-    def simulate_until_max_customers(
+    def simulate_until_max_customers(  # noqa: C901 - inherent event-loop branching
         self, max_customers, progress_bar=False, method="Complete"
     ):
         """Run the simulation until a number of customers is reached.

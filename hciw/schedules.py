@@ -39,11 +39,13 @@ class Schedule:
         """
         if preemption not in [False, "resume", "restart", "resample", "reroute"]:
             raise ValueError(
-                "Pre-emption options should be either 'resume', 'restart', "
+                "Preemption must be False, 'resume', 'restart', "
                 "'resample', 'reroute', or False."
             )
         if not isinstance(offset, float):
-            raise ValueError("Offset should be a positive float.")
+            raise ValueError(  # noqa: TRY004 - public API raises ValueError
+                "Offset should be a positive float."
+            )
         if offset < 0.0:
             raise ValueError("Offset should be a positive float.")
         self.schedule_type = "schedule"
@@ -140,7 +142,9 @@ class Slotted(Schedule):
                 "'resample', or False."
             )
         if not isinstance(offset, float):
-            raise ValueError("Offset should be a positive float.")
+            raise ValueError(  # noqa: TRY004 - public API raises ValueError
+                "Offset should be a positive float."
+            )
         if offset < 0.0:
             raise ValueError("Offset should be a positive float.")
         self.schedule_type = "slotted"

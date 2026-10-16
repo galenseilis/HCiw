@@ -55,10 +55,59 @@ target-version = "py312"
 extend-exclude = ["old", "docs", ".venv"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B", "S", "SIM", "RUF"]
-# `assert` is used throughout the library for internal invariants and for type
-# narrowing; these are intentional and are stripped under `-O`.
-ignore = ["S101"]
+# Enable every stable rule, then carve out the specific rules that conflict with
+# other rules, with the formatter, or with deliberate project conventions. Each
+# exclusion below is documented; the intent is to keep this list as small and as
+# justified as possible.
+select = ["ALL"]
+ignore = [
+    # --- Rules that contradict the Ruff formatter (the formatter owns these). ---
+    "COM812", # trailing comma missing; conflicts with `ruff format`
+    "COM819", # trailing comma prohibited; conflicts with `ruff format`
+    "ISC001", # single-line implicit string concat; conflicts with `ruff format`
+    "Q000",   # bad quotes; the formatter normalises quote style
+    "Q001",   # bad quotes in multiline string
+    "Q002",   # bad docstring quotes
+    "Q003",   # avoidable escaped quote
+    # --- Deliberate project choices. ---
+    # `assert` is used throughout the library for internal invariants and for
+    # type narrowing; these are intentional and are stripped under `-O`.
+    "S101",
+    # The suite is written with `unittest`, so the pytest-style equivalents of
+    # unittest idioms (bare asserts, pytest.raises) are intentionally not used.
+    "PT009",  # pytest-style: use of unittest asserts
+    "PT027",  # pytest-style: use of unittest raises
+    # --- Deferred refactors (tracked in ROADMAP.md). ---
+    # A full type-annotation layer is a separate, large effort; Google Style
+    # treats annotations as optional. See ROADMAP.md.
+    "ANN001", # missing type annotation for function argument
+    "ANN201", # missing return type annotation for public function
+    "ANN202", # missing return type annotation for private function
+    "ANN204", # missing return type annotation for special method
+    "ANN401", # dynamically typed expression (`Any`)
+    # --- Rules that conflict with established/library conventions. ---
+    # Unused parameters are overwhelmingly base-class/interface signatures (the
+    # `_sample(self, t, ind)` distribution interface, routing hooks, etc.).
+    # Re-annotating them would desynchronise the documented interface.
+    "ARG001", # unused function argument
+    "ARG002", # unused method argument
+    # Opinionated exception-message rules; Google Style and PEP 8 are silent on
+    # this, and the codebase favours inline messages.
+    "TRY003", # long messages outside the exception class
+    "EM101",  # exception must not use a string literal
+    "EM102",  # exception must not use an f-string literal
+    # Access to underscore-prefixed members is intentional within the library
+    # and in tests that exercise private helpers.
+    "SLF001", # private member accessed
+    # Attribution is centralised in LICENSE.txt and AUTHORS.md rather than in
+    # per-file copyright headers.
+    "CPY001", # missing copyright notice at top of file
+    # Boolean positional parameters (``completed=False``, ``exact=False``,
+    # ``progress_bar=False``, ...) are part of the Ciw-derived public API;
+    # making them keyword-only would break source compatibility with Ciw.
+    "FBT001", # boolean-typed positional argument in function definition
+    "FBT002", # boolean default positional argument in function definition
+]
 
 [tool.ruff.lint.per-file-ignores]
 # Star imports are the project's intentional re-export pattern; F403/F405 are
@@ -78,6 +127,19 @@ ignore = ["S101"]
 "tests/test_auxiliary.py" = ["S311"]
 "tests/test_process_based.py" = ["S311"]
 "tests/test_sampling.py" = ["S311"]
+# FIFO/SIRO/LIFO are the public service-discipline names (queueing acronyms).
+"hciw/disciplines.py" = ["N802"]
+# --- Test-suite conventions. ---
+"tests/**" = [
+    "D",       # tests are self-describing; docstrings are not required
+    "FBT",     # positional booleans are idiomatic in test setup
+    "N803",    # argument names such as `N`, `Q` come from the tutorials
+    "N805",    # first argument of a test helper is not always `self`
+    "N806",    # `N` (network) / `Q` (simulation) notation from the tutorials
+    "PLR0915", # long test methods bundle many assertions by design
+    "PLR2004", # magic values are inherent to example-based tests
+    "PTH",     # simple `os.path` usage in short test helpers
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

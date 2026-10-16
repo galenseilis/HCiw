@@ -14,7 +14,10 @@ waiting-time statistics.
 
 from __future__ import annotations
 
-import hciw
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import hciw
 
 
 def accept(

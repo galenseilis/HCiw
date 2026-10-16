@@ -1,3 +1,5 @@
+"""A discrete event simulation library for open queueing networks."""
+
 from . import deadlock, disciplines, dists, trackers, waitlist
 from .arrival_node import ArrivalNode
 from .auxiliary import *

@@ -92,7 +92,7 @@ class TestDataRecord(unittest.TestCase):
         queue_size_at_departure=integers(),
         server_id=integers(),
     )
-    def test_init_methodh(
+    def test_init_methodh(  # noqa: PLR0913, PLR0917 - Hypothesis-generated params
         self,
         arrival_date,
         service_time,

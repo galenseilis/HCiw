@@ -22,7 +22,9 @@ Attributes:
 
 from collections import namedtuple
 
-DataRecord = namedtuple(
+# The ``"Record"`` typename is part of the observable behaviour (see
+# ``tests/test_simulation.py``), so ``namedtuple`` is kept intentionally.
+DataRecord = namedtuple(  # noqa: PYI024
     "Record",
     [
         "id_number",

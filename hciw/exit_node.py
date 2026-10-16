@@ -36,4 +36,3 @@ class ExitNode:
 
     def update_next_event_date(self):
         """Do nothing, as the next event date is always the max time."""
-        pass

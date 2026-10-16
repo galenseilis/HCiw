@@ -1,4 +1,5 @@
 import random
+import types
 import unittest
 from collections import Counter
 
@@ -142,17 +143,13 @@ class TestProcessBased(unittest.TestCase):
         Q = hciw.Simulation(N)
         Q.simulate_until_max_customers(500, method="Finish")
         inds = Q.nodes[-1].all_individuals
-        routes_counter = set(
-            [
-                tuple([ind.customer_class, tuple(dr.node for dr in ind.data_records)])
-                for ind in inds
-            ]
-        )
+        routes_counter = {
+            (ind.customer_class, tuple(dr.node for dr in ind.data_records))
+            for ind in inds
+        }
         self.assertEqual(routes_counter, {("Class 1", (1, 1, 1)), ("Class 0", (1,))})
 
     def test_process_based_takes_methods(self):
-        import types
-
         G = ClassForProcessBasedMethod(5)
         self.assertTrue(isinstance(G.generator_method, types.MethodType))
         N = hciw.create_network(

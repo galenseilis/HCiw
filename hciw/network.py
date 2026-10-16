@@ -16,7 +16,7 @@ class ServiceCentre:
         class_change_time (bool): Whether class change times are modelled.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 - public configuration API
         self,
         number_of_servers,
         queueing_capacity,
@@ -69,7 +69,7 @@ class CustomerClass:
             distributions for each pair of customer classes.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 - public configuration API
         self,
         arrival_distributions,
         service_distributions,
@@ -137,7 +137,7 @@ class Network:
         self.number_of_classes = len(customer_classes)
         self.customer_class_names = sorted(customer_classes.keys())
         self.number_of_priority_classes = len(
-            set([clss.priority_class for clss in customer_classes.values()])
+            {clss.priority_class for clss in customer_classes.values()}
         )
         self.priority_class_mapping = {
             clss: customer_classes[clss].priority_class for clss in customer_classes

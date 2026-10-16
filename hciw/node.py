@@ -246,7 +246,6 @@ class Node:
             next_individual (Individual): The individual being released.
             newly_free_server (Server): The server freed by the release.
         """
-
         if newly_free_server is not None and newly_free_server in self.servers:
             if self.number_interrupted_individuals > 0:
                 self.begin_interrupted_individuals_service(newly_free_server)
@@ -428,6 +427,7 @@ class Node:
             ]
             if len(waiting_individuals) > 0:
                 return self.service_discipline(waiting_individuals, self.now)
+        return None
 
     def create_starting_servers(self):
         """Initialise the servers.
@@ -477,7 +477,7 @@ class Node:
                     if s.cust.priority_class == least_priority
                 ]
                 individual_to_preempt = max(
-                    [ind for ind in least_prioritised_individuals],
+                    list(least_prioritised_individuals),
                     key=lambda cust: cust.service_start_date,
                 )
                 self.preempt(individual_to_preempt, individual)
@@ -812,7 +812,7 @@ class Node:
         self.write_reneging_record(reneging_individual)
         self.reset_individual_attributes(reneging_individual)
         self.simulation.statetracker.change_state_renege(
-            self, next_node, reneging_individual, False
+            self, next_node, reneging_individual, blocked=False
         )
         next_node.accept(reneging_individual, completed=False)
         self.release_blocked_individual()
@@ -1111,7 +1111,7 @@ class Node:
                 service_time = individual.service_time
                 service_end_date = individual.service_end_date
 
-        record = DataRecord(
+        return DataRecord(
             id_number=individual.id_number,
             customer_class=individual.previous_class,
             original_customer_class=individual.original_class,
@@ -1129,7 +1129,6 @@ class Node:
             server_id=False,
             record_type="incomplete",
         )
-        return record
 
     def write_interruption_record(self, individual, destination=nan):
         """Write a data record for an individual being interrupted.

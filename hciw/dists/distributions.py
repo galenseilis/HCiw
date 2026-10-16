@@ -32,24 +32,25 @@ class Distribution:
     def sample(self, t: float | None = None, ind: Individual | None = None) -> float:
         """Sample a value from the distribution.
 
+        The base class implements no sampling; subclasses must override this
+        method.
+
         Args:
             t (float, optional): The current time. Defaults to None.
             ind (Individual, optional): The individual being sampled. Defaults to None.
 
         Returns:
-            float: A sampled value. The base class implements no sampling.
+            float: A sampled value. The base class returns ``None`` so that
+            :meth:`_sample` rejects it.
         """
-        ...
+        return None  # type: ignore[return-value]
 
     def _sample(self, t=None, ind=None):
-        """
-        Performs vaildity checks before sampling.
-        """
+        """Perform validity checks before sampling."""
         s = self.sample(t=t, ind=ind)
         if (isinstance(s, (float, int))) and s >= 0:
             return s
-        else:
-            raise ValueError("Invalid time sampled.")
+        raise ValueError("Invalid time sampled.")
 
     def __add__(self, dist):
         """Add two distributions such that sampling is the sum of the samples.
@@ -202,11 +203,11 @@ class CombinedDistribution(Distribution):
         m2 = self.d2.mean
         if self.operator == add:
             return m1 + m2
-        elif self.operator == sub:
+        if self.operator == sub:
             return m1 - m2
-        elif self.operator == mul:
+        if self.operator == mul:
             return m1 * m2
-        elif self.operator == truediv:
+        if self.operator == truediv:
             if m2 == 0:
                 return float("nan")
             return m1 / m2  # delta-method mean
@@ -228,10 +229,10 @@ class CombinedDistribution(Distribution):
             # Var(A + B) = Var(A) + Var(B), assuming independence
             # Var(A - B) = Var(A) + Var(B), assuming independence
             return v1 + v2
-        elif self.operator == mul:
+        if self.operator == mul:
             # Var(A * B) = v1*v2 + m2^2*v1 + m1^2*v2, assuming independence
             return v1 * v2 + (m2**2) * v1 + (m1**2) * v2
-        elif self.operator == truediv:
+        if self.operator == truediv:
             # delta-method approximation for Var(A/B)
             if m2 == 0:
                 return float("nan")
@@ -729,8 +730,8 @@ class Normal(Distribution):
         """
         z = self._mean / self._sd
         phi = (1 / sqrt(2 * pi)) * exp(-0.5 * z**2)
-        Phi = 0.5 * (1 + erf(z / sqrt(2)))
-        return self._mean + self._sd * (phi / Phi)
+        cdf = 0.5 * (1 + erf(z / sqrt(2)))
+        return self._mean + self._sd * (phi / cdf)
 
     @property
     def variance(self):
@@ -741,8 +742,8 @@ class Normal(Distribution):
         """
         z = self._mean / self._sd
         phi = (1 / sqrt(2 * pi)) * exp(-0.5 * z**2)
-        Phi = 0.5 * (1 + erf(z / sqrt(2)))
-        term = phi / Phi
+        cdf = 0.5 * (1 + erf(z / sqrt(2)))
+        term = phi / cdf
         return (self._sd**2) * (1 - z * term - (term**2))
 
     @property
@@ -754,9 +755,9 @@ class Normal(Distribution):
             float: The median of the truncated distribution.
         """
         z = self._mean / self._sd
-        Norm = st.NormalDist(0, 1)
-        target = 1.0 - 0.5 * Norm.cdf(z)
-        return self._mean + self._sd * Norm.inv_cdf(target)
+        norm = st.NormalDist(0, 1)
+        target = 1.0 - 0.5 * norm.cdf(z)
+        return self._mean + self._sd * norm.inv_cdf(target)
 
     @property
     def upper_limit(self):
@@ -1006,8 +1007,7 @@ class Empirical(Distribution):
         mid = n // 2
         if n % 2 == 1:
             return xs[mid]
-        else:
-            return (xs[mid - 1] + xs[mid]) / 2
+        return (xs[mid - 1] + xs[mid]) / 2
 
     @property
     def upper_limit(self):
@@ -1054,10 +1054,9 @@ class Sequential(Distribution):
 
     def __repr__(self):
         """Return a string representation of the Sequential distribution."""
-        if len(self.sequence) <= 3:
+        if len(self.sequence) <= 3:  # noqa: PLR2004 - display cutoff, not a domain value
             return f"Sequential({self.sequence})"
-        else:
-            return f"Sequential([{self.sequence[0]}, ..., {self.sequence[-1]}])"
+        return f"Sequential([{self.sequence[0]}, ..., {self.sequence[-1]}])"
 
     def sample(self, t=None, ind=None):
         """Sample the next value from the sequence.
@@ -1105,8 +1104,7 @@ class Sequential(Distribution):
         mid = n // 2
         if n % 2 == 1:
             return xs[mid]
-        else:
-            return (xs[mid - 1] + xs[mid]) / 2
+        return (xs[mid - 1] + xs[mid]) / 2
 
     @property
     def upper_limit(self):
@@ -1204,7 +1202,7 @@ class Pmf(Distribution):
         cum = 0.0
         for v, p in pairs:
             cum += p
-            if cum >= 0.5:
+            if cum >= 0.5:  # noqa: PLR2004 - the median is defined at 0.5
                 return v
         return pairs[-1][0]
 
@@ -1341,10 +1339,10 @@ class PhaseType(Distribution):
         Returns:
             float: The expected time to absorption.
         """
-        Q = np.array(self.absorbing_matrix)[:-1, :-1]
+        q = np.array(self.absorbing_matrix)[:-1, :-1]
         alpha = np.array(self.initial_state[:-1])
-        ones = np.ones(len(Q))
-        return float(alpha @ np.linalg.inv(-Q) @ ones)
+        ones = np.ones(len(q))
+        return float(alpha @ np.linalg.inv(-q) @ ones)
 
     @property
     def variance(self):
@@ -1353,18 +1351,17 @@ class PhaseType(Distribution):
         Returns:
             float: The variance of the time to absorption.
         """
-        Q = np.array(self.absorbing_matrix)[:-1, :-1]
+        q = np.array(self.absorbing_matrix)[:-1, :-1]
         alpha = np.array(self.initial_state)[:-1]
-        ones = np.ones(len(Q))
-        invQ = np.linalg.inv(-Q)
+        ones = np.ones(len(q))
+        inv_q = np.linalg.inv(-q)
 
-        # E[T] and E[T^2]
-        mean = float(alpha @ invQ @ ones)
-        second_moment = float(2 * alpha @ invQ @ invQ @ ones)
+        # First and second moments of the time to absorption.
+        mean = float(alpha @ inv_q @ ones)
+        second_moment = float(2 * alpha @ inv_q @ inv_q @ ones)
 
-        # Var(T) = E[T^2] - (E[T])^2  (with tinynegative clamp)
-        v = second_moment - (mean**2)
-        return v
+        # Variance by the second-moment identity, clamped against tiny negatives.
+        return second_moment - (mean**2)
 
     @property
     def upper_limit(self):
@@ -1441,8 +1438,7 @@ class Erlang(PhaseType):
 
 
 class HyperExponential(PhaseType):
-    """A shortcut for the HyperExponential distribution, using the PhaseType
-    distribution.
+    """A shortcut for the HyperExponential distribution using PhaseType.
 
     Attributes:
         rates (list): The rate of each phase.
@@ -1573,8 +1569,7 @@ class HyperErlang(PhaseType):
             p * (k * (k + 1)) / (r**2)
             for p, r, k in zip(self.probs, self.rates, self.phase_lengths, strict=False)
         )
-        v = second_moment - (mean**2)
-        return v
+        return second_moment - (mean**2)
 
 
 class Coxian(PhaseType):
@@ -1716,9 +1711,9 @@ class PoissonIntervals(Sequential):
             self.endpoints[i] - self.endpoints[i - 1]
             for i in range(1, len(self.endpoints))
         ]
-        P = self.endpoints[-1]
-        LambdaP = sum(r * d for r, d in zip(self.rates, deltas, strict=False))
-        return LambdaP / P
+        period = self.endpoints[-1]
+        weighted_rate = sum(r * d for r, d in zip(self.rates, deltas, strict=False))
+        return weighted_rate / period
 
     @property
     def mean(self):
@@ -1727,8 +1722,8 @@ class PoissonIntervals(Sequential):
         Returns:
             float: The reciprocal of the overall rate, or infinity.
         """
-        O_R = self.overall_rate
-        return 1 / O_R if O_R > 0 else float("inf")
+        overall_rate = self.overall_rate
+        return 1 / overall_rate if overall_rate > 0 else float("inf")
 
     @property
     def variance(self):
@@ -1916,7 +1911,7 @@ class Geometric(Distribution):
         Returns:
             float: The median.
         """
-        return math.ceil(-1 / math.log(1 - self.prob, 2))
+        return math.ceil(-1 / math.log2(1 - self.prob))
 
     @property
     def upper_limit(self):

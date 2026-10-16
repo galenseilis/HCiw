@@ -12,7 +12,6 @@ class NoDetection:
 
     def __init__(self):
         """Initialise the detection mechanism class."""
-        pass
 
     def initialise_at_node(self, node):
         """Initialise the detection mechanism when the node is created.
@@ -20,7 +19,6 @@ class NoDetection:
         Args:
             node (hciw.Node): The node being created.
         """
-        pass
 
     def detect_deadlock(self) -> bool:
         """Return whether deadlock has been reached.
@@ -38,7 +36,6 @@ class NoDetection:
             server (hciw.Server): The server being attached.
             individual (hciw.Individual): The individual being served.
         """
-        pass
 
     def action_at_blockage(self, individual, next_node):
         """Take action when the node's ``block_individual`` method is called.
@@ -48,7 +45,6 @@ class NoDetection:
             next_node (hciw.Node): The node the individual is blocked from
                 entering.
         """
-        pass
 
     def action_at_detatch_server(self, server):
         """Take action when the node's ``detatch_server`` method is called.
@@ -56,7 +52,6 @@ class NoDetection:
         Args:
             server (hciw.Server): The server being detached.
         """
-        pass
 
 
 class StateDigraph(NoDetection):

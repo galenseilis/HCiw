@@ -20,18 +20,16 @@ class ArrivalNode:
         self.simulation = simulation
         self.number_of_individuals = 0
         self.all_individuals = []
-        self.number_of_individuals_per_class = {
-            clss: 0 for clss in self.simulation.network.customer_class_names
-        }
+        self.number_of_individuals_per_class = dict.fromkeys(
+            self.simulation.network.customer_class_names, 0
+        )
         self.number_accepted_individuals = 0
-        self.number_accepted_individuals_per_class = {
-            clss: 0 for clss in self.simulation.network.customer_class_names
-        }
+        self.number_accepted_individuals_per_class = dict.fromkeys(
+            self.simulation.network.customer_class_names, 0
+        )
         self.system_capacity = self.simulation.network.system_capacity
         self.event_dates_dict: dict[int, dict[str, float | bool]] = {
-            nd + 1: {
-                clss: False for clss in self.simulation.network.customer_class_names
-            }
+            nd + 1: dict.fromkeys(self.simulation.network.customer_class_names, False)
             for nd in range(self.simulation.network.number_of_nodes)
         }
 
@@ -229,4 +227,3 @@ class ArrivalNode:
 
     def update_next_event_date(self):
         """Do nothing, as the next event update happens at the event time."""
-        pass

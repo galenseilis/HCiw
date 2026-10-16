@@ -8,7 +8,7 @@ from .routing import *
 from .schedules import *
 
 
-def create_network(
+def create_network(  # noqa: C901, PLR0913, PLR0917 - public config API
     arrival_distributions=None,
     baulking_functions=None,
     class_change_matrices=None,
@@ -136,7 +136,7 @@ def create_network_from_dictionary(params_input):
         [None] * number_of_nodes,
     )
     class_change_time_distributions = {
-        clss2: {clss1: None for clss1 in params["customer_class_names"]}
+        clss2: dict.fromkeys(params["customer_class_names"])
         for clss2 in params["customer_class_names"]
     }
     if "class_change_time_distributions" in params:
@@ -148,19 +148,19 @@ def create_network_from_dictionary(params_input):
                             "class_change_time_distributions"
                         ][clss1][clss2]
 
-    nodes, classes = [], {}
-    for nd in range(number_of_nodes):
-        nodes.append(
-            ServiceCentre(
-                params["number_of_servers"][nd],
-                params["queue_capacities"][nd],
-                class_change_matrices[nd],
-                preempt_priorities[nd],
-                params["ps_thresholds"][nd],
-                params["server_priority_functions"][nd],
-                params["service_disciplines"][nd],
-            )
+    nodes = [
+        ServiceCentre(
+            params["number_of_servers"][nd],
+            params["queue_capacities"][nd],
+            class_change_matrices[nd],
+            preempt_priorities[nd],
+            params["ps_thresholds"][nd],
+            params["server_priority_functions"][nd],
+            params["service_disciplines"][nd],
         )
+        for nd in range(number_of_nodes)
+    ]
+    classes = {}
     for clss_name in params["customer_class_names"]:
         classes[clss_name] = CustomerClass(
             params["arrival_distributions"][clss_name],
@@ -177,7 +177,7 @@ def create_network_from_dictionary(params_input):
     return n
 
 
-def fill_out_dictionary(params):
+def fill_out_dictionary(params):  # noqa: C901 - linear default-filling branch chain
     """Fill out a parameters dictionary with default optional values.
 
     Args:
@@ -238,7 +238,7 @@ def fill_out_dictionary(params):
         "number_of_nodes": number_of_nodes,
         "number_of_classes": len(class_names),
         "queue_capacities": [float("inf")] * number_of_nodes,
-        "priority_classes": {class_name: 0 for class_name in class_names},
+        "priority_classes": dict.fromkeys(class_names, 0),
         "baulking_functions": {
             class_name: [None] * number_of_nodes for class_name in class_names
         },
@@ -255,12 +255,12 @@ def fill_out_dictionary(params):
         "system_capacity": float("inf"),
     }
 
-    for a in default_dict:
-        params[a] = params.get(a, default_dict[a])
+    for key, value in default_dict.items():
+        params[key] = params.get(key, value)
     return params
 
 
-def validify_dictionary(params):
+def validify_dictionary(params):  # noqa: C901, PLR0912 - linear validation branch chain
     """Raise errors if a parameters dictionary is invalid.
 
     Args:
@@ -306,13 +306,11 @@ def validify_dictionary(params):
     if len(set(num_nodes_count)) != 1:
         raise ValueError("Ensure consistant number of nodes is used throughout.")
     neg_numservers = any(
-        [(isinstance(obs, int) and obs < 0) for obs in params["number_of_servers"]]
+        (isinstance(obs, int) and obs < 0) for obs in params["number_of_servers"]
     )
     valid_capacities = all(
-        [
-            ((isinstance(obs, int) and obs >= 0) or obs == float("inf") or obs == "Inf")
-            for obs in params["queue_capacities"]
-        ]
+        ((isinstance(obs, int) and obs >= 0) or obs == float("inf") or obs == "Inf")
+        for obs in params["queue_capacities"]
     )
     if neg_numservers:
         raise ValueError("Number of servers must be positive integers.")
@@ -342,23 +340,19 @@ def validify_dictionary(params):
                     or max(row.values()) > 1.0
                 ):
                     raise ValueError("Ensure that class change matrix is valid.")
-        class_change_names = set(
-            [k for matrix in params["class_change_matrices"] for k in matrix]
-        )
+        class_change_names = {
+            k for matrix in params["class_change_matrices"] for k in matrix
+        }
         if not class_change_names.issubset(set(params["arrival_distributions"])):
             raise ValueError("Ensure consistant names for customer classes.")
 
     if "class_change_time_distributions" in params:
-        class_change_from_names = set(
-            list(params["class_change_time_distributions"].keys())
-        )
-        class_change_to_names = set(
-            [
-                clss
-                for row in params["class_change_time_distributions"].values()
-                for clss in row
-            ]
-        )
+        class_change_from_names = set(params["class_change_time_distributions"].keys())
+        class_change_to_names = {
+            clss
+            for row in params["class_change_time_distributions"].values()
+            for clss in row
+        }
         wrong_class_names = (
             not class_change_from_names.issubset(set(params["customer_class_names"]))
         ) or (not class_change_to_names.issubset(set(params["customer_class_names"])))

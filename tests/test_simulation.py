@@ -188,9 +188,7 @@ class TestSimulation(unittest.TestCase):
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(50)
         L = Q.get_all_individuals()
-        drl = []
-        for dr in L[0].data_records:
-            drl.append((dr.customer_class, dr.service_time))
+        drl = [(dr.customer_class, dr.service_time) for dr in L[0].data_records]
         self.assertEqual(drl, [("Class 1", 10.0), ("Class 0", 5.0), ("Class 0", 5.0)])
 
     def test_simulate_until_max_time_with_pbar_method(self):
@@ -413,18 +411,18 @@ class TestSimulation(unittest.TestCase):
         hciw.seed(36)
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(36)
-        completed_inds = set(ind.id_number for ind in Q.get_all_individuals())
+        completed_inds = {ind.id_number for ind in Q.get_all_individuals()}
         recs = Q.get_all_records()
         self.assertEqual(len(completed_inds), 3)
-        self.assertTrue(all([x[7] == 5.0 for x in recs[1:]]))
+        self.assertTrue(all(x[7] == 5.0 for x in recs[1:]))
 
         hciw.seed(35)
         Q = hciw.Simulation(N)
         Q.simulate_until_max_time(36)
-        completed_inds = set(ind.id_number for ind in Q.get_all_individuals())
+        completed_inds = {ind.id_number for ind in Q.get_all_individuals()}
         recs = Q.get_all_records()
         self.assertEqual(len(completed_inds), 3)
-        self.assertTrue(all([x[7] == 5.0 for x in recs[1:]]))
+        self.assertTrue(all(x[7] == 5.0 for x in recs[1:]))
 
         completed_inds = []
         num_trials = 2500
@@ -433,7 +431,7 @@ class TestSimulation(unittest.TestCase):
             Q = hciw.Simulation(N)
             Q.simulate_until_max_time(36)
             recs = Q.get_all_records()
-            num_completed_inds = len(set([r.id_number for r in recs]))
+            num_completed_inds = len({r.id_number for r in recs})
             completed_inds.append(num_completed_inds)
         self.assertAlmostEqual(completed_inds.count(2) / num_trials, 1 / 4.0, places=2)
 
@@ -454,11 +452,11 @@ class TestSimulation(unittest.TestCase):
         recs = Q.get_all_records()
         mod_service_starts = [obs % 3 for obs in [r[6] for r in recs]]
         self.assertNotEqual(
-            set(mod_service_starts), set([0.50, 0.51, 0.52, 0.53, 0.54, 0.55])
+            set(mod_service_starts), {0.50, 0.51, 0.52, 0.53, 0.54, 0.55}
         )
         rounded_mod_service_starts = [round(r, 10) for r in mod_service_starts]
         self.assertEqual(
-            set(rounded_mod_service_starts), set([0.50, 0.51, 0.52, 0.53, 0.54, 0.55])
+            set(rounded_mod_service_starts), {0.50, 0.51, 0.52, 0.53, 0.54, 0.55}
         )
 
         N = hciw.create_network(
@@ -477,9 +475,9 @@ class TestSimulation(unittest.TestCase):
         Q.simulate_until_max_time(10)
         recs = Q.get_all_records()
         mod_service_starts = [obs % 3 for obs in [r[6] for r in recs]]
-        expected_set = set(
-            [Decimal(k) for k in ["0.50", "0.51", "0.52", "0.53", "0.54", "0.55"]]
-        )
+        expected_set = {
+            Decimal(k) for k in ["0.50", "0.51", "0.52", "0.53", "0.54", "0.55"]
+        }
         self.assertEqual(set(mod_service_starts), expected_set)
 
     def test_setting_classes(self):
@@ -1471,16 +1469,16 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual([1, 2, 1, 2], [r.node for r in recs_cust3])
 
         self.assertEqual(
-            set([r.customer_class for r in Q.nodes[1].individuals[0]]), set(["Class 1"])
+            {r.customer_class for r in Q.nodes[1].individuals[0]}, {"Class 1"}
         )
         self.assertEqual(
-            set([r.customer_class for r in Q.nodes[1].individuals[1]]), set(["Class 0"])
+            {r.customer_class for r in Q.nodes[1].individuals[1]}, {"Class 0"}
         )
         self.assertEqual(
-            set([r.customer_class for r in Q.nodes[2].individuals[0]]), set(["Class 1"])
+            {r.customer_class for r in Q.nodes[2].individuals[0]}, {"Class 1"}
         )
         self.assertEqual(
-            set([r.customer_class for r in Q.nodes[2].individuals[1]]), set(["Class 0"])
+            {r.customer_class for r in Q.nodes[2].individuals[1]}, {"Class 0"}
         )
 
     def test_allow_zero_servers(self):
@@ -1658,7 +1656,7 @@ class TestSimulation(unittest.TestCase):
             8.0,
         ]
 
-        self.assertTrue(all([s[1] <= 5 for s in Q.statetracker.history]))
+        self.assertTrue(all(s[1] <= 5 for s in Q.statetracker.history))
         self.assertEqual(
             [round(r.arrival_date, 2) for r in recs_service], expected_arrivals
         )

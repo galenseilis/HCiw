@@ -42,7 +42,7 @@ def random_choice(array, probs=None):
 
     # A common case, guaranteed to reach the Exit node;
     # No need to sample for this:
-    if (set(probs[:-1]) == set([0.0])) and (probs[-1] == 1.0):
+    if (set(probs[:-1]) == {0.0}) and (probs[-1] == 1.0):
         return array[-1]
 
     # Sample a random value from using pdf

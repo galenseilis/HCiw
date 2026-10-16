@@ -382,20 +382,18 @@ class TestNode(unittest.TestCase):
         N2.accept(inds[6])
         self.assertEqual(inds[6].is_blocked, False)
         self.assertEqual(N1.blocked_queue, [])
-        self.assertEqual(set(Q.deadlock_detector.statedigraph.edges()), set([]))
+        self.assertEqual(set(Q.deadlock_detector.statedigraph.edges()), set())
         N2.block_individual(inds[6], N1)
         self.assertEqual(inds[6].is_blocked, True)
         self.assertEqual(
             set(Q.deadlock_detector.statedigraph.edges()),
-            set(
-                [
-                    ("Server 1 at Node 2", "Server 2 at Node 1"),
-                    ("Server 1 at Node 2", "Server 5 at Node 1"),
-                    ("Server 1 at Node 2", "Server 3 at Node 1"),
-                    ("Server 1 at Node 2", "Server 1 at Node 1"),
-                    ("Server 1 at Node 2", "Server 4 at Node 1"),
-                ]
-            ),
+            {
+                ("Server 1 at Node 2", "Server 2 at Node 1"),
+                ("Server 1 at Node 2", "Server 5 at Node 1"),
+                ("Server 1 at Node 2", "Server 3 at Node 1"),
+                ("Server 1 at Node 2", "Server 1 at Node 1"),
+                ("Server 1 at Node 2", "Server 4 at Node 1"),
+            },
         )
 
     def test_release_method(self):
@@ -449,20 +447,18 @@ class TestNode(unittest.TestCase):
         ind.arrival_date = 100.0
         self.assertEqual(
             set(Q.deadlock_detector.statedigraph.nodes()),
-            set(
-                [
-                    "Server 5 at Node 2",
-                    "Server 5 at Node 1",
-                    "Server 3 at Node 2",
-                    "Server 1 at Node 2",
-                    "Server 1 at Node 1",
-                    "Server 2 at Node 1",
-                    "Server 2 at Node 2",
-                    "Server 3 at Node 1",
-                    "Server 4 at Node 1",
-                    "Server 4 at Node 2",
-                ]
-            ),
+            {
+                "Server 5 at Node 2",
+                "Server 5 at Node 1",
+                "Server 3 at Node 2",
+                "Server 1 at Node 2",
+                "Server 1 at Node 1",
+                "Server 2 at Node 1",
+                "Server 2 at Node 2",
+                "Server 3 at Node 1",
+                "Server 4 at Node 1",
+                "Server 4 at Node 2",
+            },
         )
         self.assertEqual(ind.arrival_date, 100.0)
         self.assertEqual(ind.service_time, False)
@@ -656,20 +652,18 @@ class TestNode(unittest.TestCase):
         ind = hciw.Individual(1)
         self.assertEqual(
             set(Q.deadlock_detector.statedigraph.nodes()),
-            set(
-                [
-                    "Server 5 at Node 2",
-                    "Server 5 at Node 1",
-                    "Server 3 at Node 2",
-                    "Server 1 at Node 2",
-                    "Server 1 at Node 1",
-                    "Server 2 at Node 1",
-                    "Server 2 at Node 2",
-                    "Server 3 at Node 1",
-                    "Server 4 at Node 1",
-                    "Server 4 at Node 2",
-                ]
-            ),
+            {
+                "Server 5 at Node 2",
+                "Server 5 at Node 1",
+                "Server 3 at Node 2",
+                "Server 1 at Node 2",
+                "Server 1 at Node 1",
+                "Server 2 at Node 1",
+                "Server 2 at Node 2",
+                "Server 3 at Node 1",
+                "Server 4 at Node 1",
+                "Server 4 at Node 2",
+            },
         )
         self.assertEqual(ind.arrival_date, False)
         self.assertEqual(ind.service_time, False)
@@ -1110,6 +1104,7 @@ class TestNode(unittest.TestCase):
             if ind.customer_class == "Class 1":
                 priorities = {1: 1, 2: 0}
                 return priorities[srv.id_number]
+            return None
 
         N = hciw.create_network(
             arrival_distributions={
@@ -1128,18 +1123,14 @@ class TestNode(unittest.TestCase):
         Q.simulate_until_max_time(50)
 
         all_class_0_correct = all(
-            [
-                rec.server_id == 1
-                for rec in Q.get_all_records()
-                if rec.customer_class == "Class 0"
-            ]
+            rec.server_id == 1
+            for rec in Q.get_all_records()
+            if rec.customer_class == "Class 0"
         )
         all_class_1_correct = all(
-            [
-                rec.server_id == 1
-                for rec in Q.get_all_records()
-                if rec.customer_class == "Class 0"
-            ]
+            rec.server_id == 1
+            for rec in Q.get_all_records()
+            if rec.customer_class == "Class 0"
         )
 
         self.assertTrue(all_class_0_correct)
