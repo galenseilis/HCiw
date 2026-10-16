@@ -1,6 +1,7 @@
 """Server that processes individuals at a node."""
 
 from decimal import Decimal
+from operator import truediv
 
 
 class Server:
@@ -12,7 +13,9 @@ class Server:
         Args:
             node (Node): The node the server belongs to.
             id_number (int): Identifier for the server.
-            start_date (float): The time at which the server started.
+            start_date (float | Decimal): The time at which the server started,
+                and whose type sets the precision of the server's accumulated
+                times.
         """
         self.node = node
         self.id_number = id_number
@@ -21,20 +24,20 @@ class Server:
         self.offduty = False
         self.all_time = False
         self.start_date = start_date
-        self.busy_time = False
-        self.total_time = False
+        zero = type(start_date)()
+        self.busy_time = zero
+        self.total_time = zero
         self.shift_end = False
         self.next_end_service_date = float("Inf")
-        self.busy_time = 0.0
 
     @property
     def utilisation(self):
         """Get the server utilisation.
 
         Returns:
-            float: The proportion of total time the server was busy.
+            float | Decimal: The proportion of total time the server was busy.
         """
-        return self.busy_time / self.total_time
+        return truediv(self.busy_time, self.total_time)
 
     def __repr__(self):
         """Return a string representation of the server.

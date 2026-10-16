@@ -1,4 +1,5 @@
 import unittest
+from decimal import Decimal
 
 import hciw
 
@@ -146,3 +147,36 @@ class TestServer(unittest.TestCase):
         self.assertEqual(s.total_time, 10.0)
         self.assertEqual(s.busy_time, 7.0)
         self.assertEqual(s.utilisation, 0.7)
+
+    def test_busy_total_times_exact(self):
+        # A server that is still busy when the run ends without ever having
+        # completed a service must accumulate its busy time as a Decimal,
+        # not mix a Decimal into the initial float zero.
+        N = hciw.create_network(
+            arrival_distributions=[hciw.dists.Deterministic(1.0)],
+            service_distributions=[hciw.dists.Deterministic(3.0)],
+            number_of_servers=[1],
+        )
+        Q = hciw.Simulation(N, exact=26)
+        Q.simulate_until_max_time(2.0)
+        s = Q.nodes[1].servers[0]
+        self.assertEqual(s.busy_time, Decimal("1.0"))
+        self.assertEqual(s.total_time, Decimal("2.0"))
+        self.assertEqual(s.utilisation, Decimal("0.5"))
+
+    def test_server_utilisation_exact_with_idle_servers(self):
+        # Servers that never serve a customer keep a typed-zero busy time so
+        # that the node's utilisation sums Decimal values only.
+        N = hciw.create_network(
+            arrival_distributions=[hciw.dists.Deterministic(1.0)],
+            service_distributions=[hciw.dists.Deterministic(0.5)],
+            number_of_servers=[3],
+        )
+        Q = hciw.Simulation(N, exact=26)
+        Q.simulate_until_max_time(3.0)
+        nd = Q.transitive_nodes[0]
+        self.assertEqual(
+            [s.busy_time for s in nd.servers],
+            [Decimal("1.0"), Decimal(0), Decimal(0)],
+        )
+        self.assertEqual(nd.server_utilisation, Decimal("1.0") / Decimal("9.0"))
